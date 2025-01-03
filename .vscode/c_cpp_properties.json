@@ -1,0 +1,22 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "/opt/ros/jazzy/include/**",
+                "/opt/ros/jazzy/include/sensor_msgs/sensor_msgs/msg/detail",
+                "/opt/ros/jazzy/include/rclcpp",
+                "/usr/include/linux",
+                "${workspaceFolder}/src/lg"
+            ],
+            "defines": [],
+            "compilerPath": "/usr/bin/gcc",
+            "cStandard": "c17",
+            "cppStandard": "gnu++17",
+            "intelliSenseMode": "linux-gcc-arm64",
+            "configurationProvider": "ms-vscode.cmake-tools"
+        }
+    ],
+    "version": 4
+}
