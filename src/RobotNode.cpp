@@ -10,7 +10,6 @@
 
 std::shared_ptr<RobotNode> g_myRobot = nullptr;
 
-
 RobotNode::RobotNode()
     : Node("robot_node")
 {
@@ -23,10 +22,7 @@ void RobotNode::init()
     subscription_ = this->create_subscription<sensor_msgs::msg::Joy>(
         "joy", 10, std::bind(&RobotNode::joy_callback, this, std::placeholders::_1));
 
-    pLwheel = new Motor(Motor::GPIO_L_WHEEL_DIR, Motor::GPIO_L_WHEEL_PWM, Motor::GPIO_L_WHEEL_COUNT);
-    pRwheel = new Motor(Motor::GPIO_R_WHEEL_DIR, Motor::GPIO_R_WHEEL_PWM, Motor::GPIO_R_WHEEL_COUNT);
-    pLknee = new Motor(Motor::GPIO_L_KNEE_DIR, Motor::GPIO_L_KNEE_PWM, Motor::GPIO_L_KNEE_COUNT);
-    pRknee = new Motor(Motor::GPIO_R_KNEE_DIR, Motor::GPIO_R_KNEE_PWM, Motor::GPIO_R_KNEE_COUNT);
+    pMotors = new Motor();
 }
 
 void RobotNode::joy_callback(const sensor_msgs::msg::Joy::SharedPtr msg)
@@ -40,12 +36,17 @@ void RobotNode::joy_callback(const sensor_msgs::msg::Joy::SharedPtr msg)
                 msg->buttons[8], msg->buttons[9], msg->buttons[10], msg->buttons[11]);
 }
 
-void RobotNode::writeLog(const std::string& msg)
+RobotNode::~RobotNode()
+{
+    delete pMotors;
+}
+
+void RobotNode::writeLog(const std::string &msg)
 {
     RCLCPP_INFO(this->get_logger(), "%s", msg.c_str());
 }
 
-void RobotNode::writeLog(const char* msg)
+void RobotNode::writeLog(const char *msg)
 {
     RCLCPP_INFO(this->get_logger(), "%s", msg);
 }

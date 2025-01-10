@@ -16,64 +16,142 @@ extern "C"
 
 extern std::shared_ptr<RobotNode> g_myRobot;
 
-volatile int turn_count = 0;
+int m_lgpio_chip = 0;
+const int Motor::m_gpio_for_turn_count[Motor::NUMBER_OF_MOTORS] = {
+    Motor::GPIO_R_WHEEL_COUNT,
+    Motor::GPIO_L_WHEEL_COUNT,
+    Motor::GPIO_R_KNEE_COUNT,
+    Motor::GPIO_L_KNEE_COUNT};
+
+const int Motor::m_gpio_for_pwm[Motor::NUMBER_OF_MOTORS] = {
+    Motor::GPIO_R_WHEEL_PWM,
+    Motor::GPIO_L_WHEEL_PWM,
+    Motor::GPIO_R_KNEE_PWM,
+    Motor::GPIO_L_KNEE_PWM,
+};
+
+const int Motor::m_gpio_for_direction[Motor::NUMBER_OF_MOTORS] = {
+    Motor::GPIO_R_WHEEL_DIR,
+    Motor::GPIO_L_WHEEL_DIR,
+    Motor::GPIO_R_KNEE_DIR,
+    Motor::GPIO_L_KNEE_DIR,
+};
+
+int Motor::m_lgpio_chip = 0;
+double Motor::m_power[Motor::NUMBER_OF_MOTORS] = {0.0};
+sig_atomic_t Motor::m_turn_count[Motor::NUMBER_OF_MOTORS] = {0};
 
 void turnCountISR(int num_alerts, lgGpioAlert_p alerts, void *user)
 {
-    (void)alerts; // Avoid unused parameter warning
-    (void)user; // Avoid unused parameter warning
+    Motor::MOTOR_TYPE typ = Motor::RWheel;
+    switch (alerts->report.gpio)
+    {
+    case Motor::GPIO_R_WHEEL_COUNT:
+        typ = Motor::RWheel;
+        break;
+    case Motor::GPIO_L_WHEEL_COUNT:
+        typ = Motor::LWheel;
+        break;
+    case Motor::GPIO_R_KNEE_COUNT:
+        typ = Motor::RKnee;
+        break;
+    case Motor::GPIO_L_KNEE_COUNT:
+        typ = Motor::LKnee;
+        break;
+    default:
+        throw;
+    }
 
-    for (int i = 0; i < num_alerts; ++i) {
-        //if (alerts[i].level == LG_GPIO_CHANGED_TO_HIGH) 
+    for (int i = 0; i < num_alerts; ++i)
+    {
+        if (alerts->report.level == 1) /* 0=low, 1=high, 2=watchdog */
         {
-            turn_count++;
+            if (Motor::isReverse(typ))
+            {
+                Motor::m_turn_count[typ]--;
+            }
+            else
+            {
+                Motor::m_turn_count[typ]++;
+            }
         }
     }
 }
 
-Motor::Motor(Motor::GPIO_PIN gpio_for_direction, Motor::GPIO_PIN gpio_for_pwm, Motor::GPIO_PIN gpio_for_turn_count)
-    : m_gpio_for_direction(gpio_for_direction), m_gpio_for_pwm(gpio_for_pwm), m_gpio_for_turn_count(gpio_for_turn_count)
+Motor::Motor()
+{
+    init();
+}
+
+Motor::~Motor()
+{
+    lgGpiochipClose(m_lgpio_chip);
+}
+
+int Motor::init()
 {
     // Prepare interrupt service for turn count GPIO pin
-        // Open the GPIO chip
-   lgpio_chip = lgGpiochipOpen(0);
-    if (lgpio_chip < 0) {
-        std::string msg = "Failed to open GPIO chip: " + std::to_string(lgpio_chip); 
-      //  g_myRobot->writeLog(msg);
-        return;
+    // Open the GPIO chip
+    m_lgpio_chip = lgGpiochipOpen(0);
+    if (m_lgpio_chip < 0)
+    {
+        std::string msg = "Failed to open GPIO chip: " + std::to_string(m_lgpio_chip);
+        g_myRobot->writeLog(msg);
+        return 1;
     }
 
-    if (lgGpioClaimOutput(lgpio_chip, 0, m_gpio_for_direction, 0) < 0 ||
-        lgGpioClaimOutput(lgpio_chip, 0, m_gpio_for_pwm, 0) < 0 ||
-        lgGpioClaimInput(lgpio_chip, 0, m_gpio_for_turn_count) < 0) {
-      //  g_myRobot->writeLog("Failed to claim GPIO lines");
-        return;
-    }
+    for (int i = 0; i < NUMBER_OF_MOTORS; i++)
+    {
+        if(lgGpioClaimInput(m_lgpio_chip, 0, m_gpio_for_turn_count[i]))
+        {
+            g_myRobot->writeLog("Failed to claim turn count GPIO lines");
+            return 1;
+        }
+ 
+        if(lgGpioClaimOutput(m_lgpio_chip, 0, m_gpio_for_pwm[i], 0))
+        {
+            g_myRobot->writeLog("Failed to claim PWM GPIO lines");
+            return 1;
+        }
+ 
+        if(lgGpioClaimOutput(m_lgpio_chip, 0, m_gpio_for_direction[i], 0))
+        {
+            g_myRobot->writeLog("Failed to claim Direction GPIO lines");
+            return 1;
+        }
 
-    if (lgGpioSetAlertsFunc(lgpio_chip, m_gpio_for_turn_count, turnCountISR, nullptr) < 0) {
-       // g_myRobot->writeLog("Failed to set alert function");
-        return;
+        m_power[i] = 0.0;
+        m_turn_count[i] = 0;
     }
-
+    return 0;
 }
 
-Motor::~Motor() 
+void Motor::setPower(Motor::MOTOR_TYPE typ, double power) // -1.0 to 1.0
 {
-    lgGpiochipClose(lgpio_chip);
-}
+    m_power[typ] = power;
 
-void Motor::setPower(double power, bool reverse)
-{
     // Set direction
-    lgGpioWrite(lgpio_chip, m_gpio_for_direction, reverse ? 1 : 0);
+    lgGpioWrite(m_lgpio_chip, m_gpio_for_direction[typ], isReverse(typ) ? 1 : 0);
 
-     // Convert power to PWM value (assuming power is between -1 and 1)
-    int pwm_value = static_cast<int>((power + 1) * 512); // Scale to 0-1024 range
-    lgGpioWrite(lgpio_chip, m_gpio_for_pwm, pwm_value);
+    int pwmDutyCycle = abs(m_power[typ]) * 100;
+    int ret = lgTxPwm(m_lgpio_chip, m_gpio_for_pwm[typ], 10000, pwmDutyCycle, 0, 0);
+    if (ret < 0)
+    {
+        g_myRobot->writeLog("Failed to set PWM duty cycle");
+    }
 }
 
-int Motor::getTurnCount()
+double Motor::getPower(Motor::MOTOR_TYPE typ)
 {
-    return turn_count;
+    return m_power[typ];
 }
 
+bool Motor::isReverse(Motor::MOTOR_TYPE typ)
+{
+    return  m_power[typ] < 0;
+}
+
+int Motor::getTurnCount(Motor::MOTOR_TYPE typ)
+{
+    return m_turn_count[typ];
+}

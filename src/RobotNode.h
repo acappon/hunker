@@ -4,6 +4,7 @@ class RobotNode : public rclcpp::Node
 {
 public:
     RobotNode();
+    ~RobotNode();
 
     void init();
     void writeLog(const std::string& msg);
@@ -18,11 +19,7 @@ public:
 public:
     IMU_bno055 imu;
 
-    Motor* pLwheel;
-    Motor* pRwheel;
-    Motor* pLknee;
-    Motor* pRknee;
-
+    Motor* pMotors;
  
 private:
     bool m_isEnabled = false;
