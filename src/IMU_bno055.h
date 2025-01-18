@@ -1,4 +1,5 @@
-
+#ifndef IMU_BNO055_H
+#define IMU_BNO055_H
 
 #define BNO055_ADDRESS_A 0x28
 #define BNO055_ID 0xA0
@@ -66,3 +67,5 @@ private:
     int i2c_file_;
     I2C_STATUS i2c_status;
 };
+
+#endif // IMU_BNO055_H

@@ -14,7 +14,7 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 # Find the lgpio library
 find_package(lgpio REQUIRED)
 
-add_executable(hunker_node src/RobotNode.cpp src/Motor.cpp src/IMU_bno055.cpp)
+add_executable(hunker_node src/RobotNode.cpp src/Robot.cpp src/Motor.cpp src/IMU_bno055.cpp)
 
 ament_target_dependencies(hunker_node rclcpp sensor_msgs std_msgs tf2 tf2_geometry_msgs)
 
