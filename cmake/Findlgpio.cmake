@@ -4,11 +4,13 @@
 find_path(LGPIO_INCLUDE_DIR
   NAMES lgpio.h
   PATHS /usr/include /usr/local/include
+  HINTS ${CMAKE_PREFIX_PATH}
 )
 
 find_library(LGPIO_LIBRARY
   NAMES lgpio
   PATHS /usr/lib /usr/local/lib
+  HINTS ${CMAKE_PREFIX_PATH}
 )
 
 include(FindPackageHandleStandardArgs)
