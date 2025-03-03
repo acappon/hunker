@@ -1,26 +1,14 @@
 #ifndef ROBOT_NODE_HPP
 #define ROBOT_NODE_HPP
 
-#include <rclcpp/rclcpp.hpp>
-#include <std_msgs/msg/bool.hpp>
-#include <std_msgs/msg/int32.hpp>
-
 class RobotNode : public rclcpp::Node
 {
-   public:
+public:
     RobotNode();
+    void init();
 
     void writeLog(const std::string &msg);
-
-    typedef enum
-    {
-        FAULT_NONE,
-        FAULT_EXCEPTION,
-        FAULT_CONTROLLER_DISCONNECTED,
-        NUMBER_OF_FAULTS
-    } FAULT_TYPE;
-    void setFault(FAULT_TYPE fault, bool isFault);
- 
+    bool isRobotEnabled();
     typedef enum
     {
         RJOY_FWD_BACK,
@@ -50,26 +38,26 @@ class RobotNode : public rclcpp::Node
     } JOY_BUTTONS;
     bool m_joy_buttons[12];
 
-   private:  // functions
+    MyGpio m_myGpio;
+    FaultIndicator m_faultIndicator;
+
+private: // functions
     void safetyFunction();
     void checkControllerConnection();
     void updateLEDs();
     void setEnableLED(bool state);
     void flashEnableLED();
-    void setFaultLED(bool state);
 
-   private:  // data
+private: // data
     void joy_callback(const sensor_msgs::msg::Joy::SharedPtr msg);
 
     rclcpp::Subscription<sensor_msgs::msg::Joy>::SharedPtr joystick_sub;
 
     rclcpp::Time m_last_joy_msg_time;
     bool m_isControllerConnected;
-    bool m_isEnabled;
-    std::vector<int> m_faults;
+    bool m_isRobotEnabled;
 
-   public:  // static data
-    static int m_lgpio_chip;
+    rclcpp::TimerBase::SharedPtr m_safetyTimer;
 };
 
-#endif  // ROBOT_NODE_HPP
+#endif // ROBOT_NODE_HPP

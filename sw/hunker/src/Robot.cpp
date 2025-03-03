@@ -3,13 +3,18 @@
 #include <csignal>
 #include <memory>
 
-#include "rclcpp/rclcpp.hpp"
+#include <rclcpp/rclcpp.hpp>
+#include <std_msgs/msg/bool.hpp>
+#include <std_msgs/msg/int32.hpp>
+#include <std_msgs/msg/string.hpp>
+
 #include "sensor_msgs/msg/joy.hpp"
 
-#include "IMU_bno055.h"
+#include "MyGpio.hpp"
+#include "FaultIndicator.hpp"
+#include "RobotNode.hpp"
 #include "Motor.h"
 #include "Robot.h"
-#include "RobotNode.h"
 
 extern std::shared_ptr<RobotNode> g_myRobotNode;
 
@@ -32,7 +37,7 @@ static bool isRunning = true;
 static bool isErrorMsgLogged = false;
 void Robot::robotFunction()
 {
-    g_myRobotNode->setFault(RobotNode::FAULT_ROBOT_WATCHDOG, isRunning);
+    g_myRobotNode->m_faultIndicator.setFault(FaultIndicator::FAULT_WATCHDOG, isRunning);
     if(isRunning)
     {
         if(!isErrorMsgLogged)
@@ -65,7 +70,7 @@ void Robot::periodic()
 {
     imu.update();
 
-    if (!g_myRobotNode->isEnabled())
+    if (!g_myRobotNode->isRobotEnabled())
     {
         disabledPeriodic();
     }
@@ -84,14 +89,11 @@ void Robot::periodic()
             }
             else
             {
-                if (isFullyFolded())
-                {
-                    g_myRobotNode->setEnabled(false);
-                }
-                else
+                if (!isFullyFolded())
                 {
                     landingPeriodic();
                 }
+                // else stay landed, do nothing more
             }
         }
     }

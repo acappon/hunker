@@ -1,80 +1,90 @@
 #include <chrono>
 
-extern "C"
-{
-#include <lgpio.h>
-}
 
-#include "rclcpp/rclcpp.hpp"
+#include <rclcpp/rclcpp.hpp>
+#include <std_msgs/msg/bool.hpp>
+#include <std_msgs/msg/int32.hpp>
+#include <std_msgs/msg/string.hpp>
+
 #include "sensor_msgs/msg/joy.hpp"
+
+#include "MyGpio.hpp"
+#include "FaultIndicator.hpp"
 #include "RobotNode.hpp"
-#include "myGpioPins.h"
 
 extern std::shared_ptr<RobotNode> g_myRobotNode;
 
-int RobotNode::m_lgpio_chip = 0;
-
 RobotNode::RobotNode()
-    : Node("RobotNode"), m_isControllerConnected(false), m_isEnabled(false)
+    : Node("RobotNode"), m_isControllerConnected(false), m_isRobotEnabled(false)
 {
-    // Open the GPIO chip
-    m_lgpio_chip = lgGpiochipOpen(0);
-    if (m_lgpio_chip < 0)
+}
+
+void RobotNode::init()
+{
+    try
     {
-        std::string msg =
-            "Failed to open GPIO chip: " + std::to_string(m_lgpio_chip);
-        g_myRobotNode->writeLog(msg);
-    }
+        m_isRobotEnabled = false;
 
-    if (lgGpioClaimOutput(m_lgpio_chip, 0, GPIO_PIN::GPIO_TEST, 0))
+        m_myGpio.init();
+
+        m_last_joy_msg_time = this->now() - rclcpp::Duration(10, 0);
+
+        // Subscribe to joystick messages
+        joystick_sub = this->create_subscription<sensor_msgs::msg::Joy>(
+            "joy", rclcpp::QoS(10),
+            std::bind(&RobotNode::joy_callback, this, std::placeholders::_1));
+
+        m_safetyTimer = this->create_wall_timer(
+            std::chrono::milliseconds(250),
+            std::bind(&RobotNode::safetyFunction, this));
+    }
+    catch (const std::exception &e)
     {
-        g_myRobotNode->writeLog("Failed to claim GPIO test line");
+        g_myRobotNode->writeLog("Exception in RobotNode::init()");
+        m_faultIndicator.setFault(FaultIndicator::FAULT_TYPE::FAULT_EXCEPTION, true);
+        g_myRobotNode->writeLog(e.what());
     }
-
-    // Subscribe to joystick messages
-    joystick_sub = this->create_subscription<sensor_msgs::msg::Joy>(
-        "joy", 10,
-        std::bind(&RobotNode::joy_callback, this, std::placeholders::_1));
-
-    this->create_wall_timer(std::chrono::seconds(1),
-                            std::bind(&RobotNode::updateLEDs, this));
 }
 
 void RobotNode::writeLog(const std::string &msg)
 {
-    RCLCPP_INFO(this->get_logger(), msg.c_str());
-}
+    try
+    {
 
-void RobotNode::setFault(FAULT_TYPE fault, bool isFault)
+        RCLCPP_INFO(this->get_logger(), msg.c_str());
+    }
+    catch (const std::exception &e)
+    {
+        g_myRobotNode->writeLog("Exception in RobotNode::writeLog");
+        m_faultIndicator.setFault(FaultIndicator::FAULT_TYPE::FAULT_EXCEPTION, true);
+        g_myRobotNode->writeLog(e.what());
+    }
+}
+    
+bool RobotNode::isRobotEnabled()
 {
-    if (isFault)
-    {
-        if (std::find(m_faults.begin(), m_faults.end(), fault) ==
-            m_faults.end())
-        {
-            m_faults.push_back(fault);
-        }
-    }
-    else
-    {
-        auto it = std::find(m_faults.begin(), m_faults.end(), fault);
-        if (it != m_faults.end())
-        {
-            m_faults.erase(it);
-        }
-    }
+    return m_isRobotEnabled;
 }
 
 void RobotNode::safetyFunction()
 {
-    checkControllerConnection();
+    try
+    {
+        checkControllerConnection();
 
-    updateLEDs();
+        updateLEDs();
+    }
+    catch (const std::exception &e)
+    {
+        g_myRobotNode->writeLog("Exception in RobotNode::safetyFunction");
+        m_faultIndicator.setFault(FaultIndicator::FAULT_TYPE::FAULT_EXCEPTION, true);
+        g_myRobotNode->writeLog(e.what());
+    }
 }
 
 void RobotNode::checkControllerConnection()
 {
-    auto now = this->now();
+    rclcpp::Time now = this->now();
     bool prev = m_isControllerConnected;
     if ((now - m_last_joy_msg_time).seconds() > 2.0)
     {
@@ -85,7 +95,7 @@ void RobotNode::checkControllerConnection()
         m_isControllerConnected = true;
     }
 
-    setFault(FAULT_TYPE::FAULT_CONTROLLER_DISCONNECTED, m_isControllerConnected);
+    m_faultIndicator.setFault(FaultIndicator::FAULT_TYPE::FAULT_CONTROLLER_DISCONNECTED, !m_isControllerConnected);
 
     if (prev != m_isControllerConnected)
     {
@@ -104,13 +114,13 @@ void RobotNode::updateLEDs()
 {
     if (!m_isControllerConnected)
     {
-        setEnableLED(false);
+        m_myGpio.setEnableLED(false);
     }
     else
     {
-        if (!m_isEnabled)
+        if (!m_isRobotEnabled)
         {
-            setEnableLED(true);
+            m_myGpio.setEnableLED(true);
         }
         else
         {
@@ -118,85 +128,7 @@ void RobotNode::updateLEDs()
         }
     }
 
-    static auto last_fault_time = std::chrono::steady_clock::now();
-    static auto last_fault_count_time = std::chrono::steady_clock::now();
-
-    static int prevNumberOfFaults = 0;
-    static int faultIdx = 0;    // Index of the fault being displayed
-    static int fault_count = 0; // Number of times the fault has been flashed
-                                // for the current fault index
-    auto timeDiff = std::chrono::steady_clock::now() - last_fault_time;
-    static int ms_since_new_fault =
-        std::chrono::duration_cast<std::chrono::milliseconds>(timeDiff).count();
-
-    timeDiff = std::chrono::steady_clock::now() - last_fault_count_time;
-    static int ms_since_fault_count_completed =
-        std::chrono::duration_cast<std::chrono::milliseconds>(timeDiff).count();
-
-    bool isFaultNew = (m_faults.size() != prevNumberOfFaults);
-    prevNumberOfFaults = m_faults.size();
-
-    if (isFaultNew)
-    {
-        last_fault_time = std::chrono::steady_clock::now();
-        last_fault_count_time = std::chrono::steady_clock::now();
-        ms_since_new_fault = 0;
-        ms_since_fault_count_completed = 0;
-
-        faultIdx = 0;
-        fault_count = 0;
-    }
-    else
-    {
-        if (faultIdx >= m_faults.size())
-        {
-            if (ms_since_fault_count_completed > 3000)
-            {
-                last_fault_time = std::chrono::steady_clock::now();
-                last_fault_count_time = std::chrono::steady_clock::now();
-                ms_since_new_fault = 0;
-                ms_since_fault_count_completed = 0;
-
-                faultIdx = 0;
-                fault_count = 0;
-            }
-        }
-        if (fault_count >= m_faults[faultIdx])
-        {
-            if (ms_since_fault_count_completed > 3000)
-            {
-                fault_count = 0;
-                faultIdx++;
-            }
-            else
-            {
-                if (ms_since_new_fault % 1000 < 500)
-                {
-                    setFaultLED(true);
-                }
-                else
-                {
-                    if (ms_since_new_fault % 1000 >= 500)
-                    {
-                        fault_count++;
-                    }
-                    else
-                    {
-                        setFaultLED(false);
-                    }
-                }
-            }
-        }
-    }
-}
-
-void RobotNode::setEnableLED(bool state)
-{
-    if (!lgGpioWrite(g_myRobotNode->m_lgpio_chip, GPIO_PIN::GPIO_LED_ENABLE,
-                     state ? 1 : 0))
-    {
-        g_myRobotNode->writeLog("Failed to write to LED enable GPIO");
-    }
+    m_faultIndicator.update();
 }
 
 void RobotNode::flashEnableLED()
@@ -205,16 +137,7 @@ void RobotNode::flashEnableLED()
                         std::chrono::steady_clock::now().time_since_epoch())
                         .count() %
                     1000;
-    setEnableLED(millisecs < 500);
-}
-
-void RobotNode::setFaultLED(bool state)
-{
-    if (!lgGpioWrite(g_myRobotNode->m_lgpio_chip, GPIO_PIN::GPIO_LED_FAULT,
-                     state ? 1 : 0))
-    {
-        g_myRobotNode->writeLog("Failed to write to LED enable GPIO");
-    }
+    m_myGpio.setEnableLED(millisecs < 500);
 }
 
 void RobotNode::joy_callback(const sensor_msgs::msg::Joy::SharedPtr msg)
