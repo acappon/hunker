@@ -10,6 +10,7 @@
 
 #include "sensor_msgs/msg/joy.hpp"
 
+#include "IMU_bno055.h"
 #include "MyGpio.hpp"
 #include "FaultIndicator.hpp"
 #include "RobotNode.hpp"
@@ -25,12 +26,14 @@ Robot::Robot()
 
 void Robot::init()
 {
-    pMotors = new Motor();
+    m_deck_pitch = 0.0;
+    m_deck_roll = 0.0;
+    m_myMotors.init();
+    imu.init();
 }
 
 Robot::~Robot()
 {
-    delete pMotors;
 }
 
 static bool isRunning = true;
@@ -101,7 +104,10 @@ void Robot::periodic()
 
 void Robot::disabledPeriodic()
 {
-    // TODO:  All motor power == 0
+    m_myMotors.setPower(Motor::MOTOR_TYPE::RWheel, 0.0);
+    m_myMotors.setPower(Motor::MOTOR_TYPE::LWheel, 0.0);
+    m_myMotors.setPower(Motor::MOTOR_TYPE::RKnee, 0.0);
+    m_myMotors.setPower(Motor::MOTOR_TYPE::LKnee, 0.0);
 }
 
 void Robot::balancingPeriodic()

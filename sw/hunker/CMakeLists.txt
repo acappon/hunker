@@ -11,7 +11,7 @@ include_directories(${sensor_msgs_INCLUDE_DIRS})
 set(lgpio_DIR "/path/to/lgpio")
 find_package(lgpio REQUIRED)
 
-add_executable(RobotNode src/main.cpp src/RobotNode.cpp)
+add_executable(RobotNode src/main.cpp src/RobotNode.cpp src/FaultIndicator.cpp src/MyGpio.cpp)
 ament_target_dependencies(RobotNode rclcpp std_msgs sensor_msgs)
 
 # Link against the lgpio library

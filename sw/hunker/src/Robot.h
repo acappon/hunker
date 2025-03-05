@@ -10,7 +10,6 @@ public:
 
     void robotFunction();
 
-    void setPower(double power, bool reverse);
     int getTurnCount();
 
     void periodic();
@@ -21,7 +20,7 @@ public:
 
 public:
     IMU_bno055 imu;
-    Motor *pMotors;
+    Motor m_myMotors;
 
 private:
     double m_deck_pitch;

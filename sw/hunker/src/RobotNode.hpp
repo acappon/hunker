@@ -49,6 +49,9 @@ private: // functions
     void flashEnableLED();
 
 private: // data
+    void emergencyStop();
+    void enableRobot(bool isEnabled);
+
     void joy_callback(const sensor_msgs::msg::Joy::SharedPtr msg);
 
     rclcpp::Subscription<sensor_msgs::msg::Joy>::SharedPtr joystick_sub;
@@ -56,6 +59,7 @@ private: // data
     rclcpp::Time m_last_joy_msg_time;
     bool m_isControllerConnected;
     bool m_isRobotEnabled;
+    bool m_isRobotEmergencyStopped;
 
     rclcpp::TimerBase::SharedPtr m_safetyTimer;
 };

@@ -1,9 +1,8 @@
 
 #include <iostream>
 #include <fstream>
-
-#include <memory>
 #include <csignal>
+#include <memory>
 
 extern "C"
 {
@@ -139,10 +138,8 @@ void Motor::setPower(Motor::MOTOR_TYPE typ, double power) // -1.0 to 1.0
     m_power[typ] = power;
 
     if (!g_myRobotNode->m_myGpio.setMotorPower(
-            m_gpio_for_enable[typ],
             m_gpio_for_direction[typ],
             m_gpio_for_pwm[typ],
-            power != 0.0,
             power > 0.0,
             power))
     {

@@ -1,6 +1,5 @@
 #include <chrono>
 
-
 #include <rclcpp/rclcpp.hpp>
 #include <std_msgs/msg/bool.hpp>
 #include <std_msgs/msg/int32.hpp>
@@ -24,6 +23,7 @@ void RobotNode::init()
     try
     {
         m_isRobotEnabled = false;
+        m_isRobotEmergencyStopped = false;
 
         m_myGpio.init();
 
@@ -60,7 +60,7 @@ void RobotNode::writeLog(const std::string &msg)
         g_myRobotNode->writeLog(e.what());
     }
 }
-    
+
 bool RobotNode::isRobotEnabled()
 {
     return m_isRobotEnabled;
@@ -70,9 +70,21 @@ void RobotNode::safetyFunction()
 {
     try
     {
-        checkControllerConnection();
+        if (m_isRobotEmergencyStopped)
+        {
+            emergencyStop();
+        }
+        else
+        {
+            checkControllerConnection();
 
-        updateLEDs();
+            if (isRobotEnabled() && (!m_isControllerConnected))
+            {
+                m_isRobotEmergencyStopped = true;
+            }
+
+            updateLEDs();
+        }
     }
     catch (const std::exception &e)
     {
@@ -80,6 +92,26 @@ void RobotNode::safetyFunction()
         m_faultIndicator.setFault(FaultIndicator::FAULT_TYPE::FAULT_EXCEPTION, true);
         g_myRobotNode->writeLog(e.what());
     }
+}
+
+void RobotNode::emergencyStop()
+{
+    m_isRobotEmergencyStopped = true;
+    m_isRobotEnabled = false;
+    m_myGpio.enableWheelMotors(false);
+    m_myGpio.setEnableLED(false);
+    m_myGpio.setFaultLED(true);
+}
+
+void RobotNode::enableRobot(bool isEnabled)
+{
+    if (m_isRobotEmergencyStopped)
+    {
+        // Cycle power to clear emergency stop
+        return;
+    }
+    m_isRobotEnabled = isEnabled;
+    m_myGpio.enableWheelMotors(isEnabled);
 }
 
 void RobotNode::checkControllerConnection()
