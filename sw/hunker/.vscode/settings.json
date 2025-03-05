@@ -1,0 +1,13 @@
+{
+    "cmake.sourceDirectory": "/home/viking/sw/hunker",
+    "editor.tabSize": 4,
+    "editor.detectIndentation": false,
+    "C_Cpp.intelliSenseEngine": "Default",
+    "C_Cpp.autocomplete": "Default",
+    "C_Cpp.errorSquiggles": "Enabled",
+    "C_Cpp.formatting": "Default",
+    "files.associations": {
+        "chrono": "cpp"
+    }
+  }
+  
