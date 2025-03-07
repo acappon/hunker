@@ -24,15 +24,15 @@ public:
         GPIO_L_WHEEL_PWM = 11,
         GPIO_L_WHEEL_COUNT = 25,
 
-        GPIO_R_KNEE_ENABLE = -1,
-        GPIO_R_KNEE_DIR = -2,
-        GPIO_R_KNEE_PWM = -3,
-        GPIO_R_KNEE_COUNT = -4,
+        GPIO_R_KNEE_ENABLE = 999,
+        GPIO_R_KNEE_DIR = 998,
+        GPIO_R_KNEE_PWM = 997,
+        GPIO_R_KNEE_COUNT = 996,
 
-        GPIO_L_KNEE_ENABLE = -5,
-        GPIO_L_KNEE_DIR = -6,
-        GPIO_L_KNEE_PWM = -7,
-        GPIO_L_KNEE_COUNT = -8,
+        GPIO_L_KNEE_ENABLE = 995,
+        GPIO_L_KNEE_DIR = 994,
+        GPIO_L_KNEE_PWM = 993,
+        GPIO_L_KNEE_COUNT = 992,
     } GPIO_PIN;
 
     MyGpio();

@@ -31,7 +31,7 @@ bool MyGpio::init()
     int iRet = -999;
 
     // Open the GPIO chip
-    int chipnum = 4;
+    int chipnum = 4;   // GPIO chip #4 is the one for Raspberry Pi 5
     m_lgpio_chip = lgGpiochipOpen(chipnum);
     if (m_lgpio_chip < 0)
     {
@@ -132,7 +132,9 @@ bool MyGpio::gpioRead(MyGpio::GPIO_PIN pin)
 
 void MyGpio::setEnableLED(bool state)
 {
-    if (!gpioWrite(GPIO_PIN::GPIO_LED_ENABLE, state))
+    bool not_state = !state;   // To turn on the LED, set GPIO to 0
+
+    if (!gpioWrite(GPIO_PIN::GPIO_LED_ENABLE, not_state))
     {
         g_myRobotNode->writeLog("Failed to write to enable LED GPIO");
     }
@@ -140,9 +142,9 @@ void MyGpio::setEnableLED(bool state)
 
 void MyGpio::setFaultLED(bool state)
 {
-    g_myRobotNode->writeLog("Fault LED state2: " + (state ? std::string("XXX") : std::string("   ")));
+    bool not_state = !state;   // To turn on the LED, set GPIO to 0
 
-    if (!gpioWrite(GPIO_PIN::GPIO_LED_FAULT, state))
+    if (!gpioWrite(GPIO_PIN::GPIO_LED_FAULT, not_state))
     {
         g_myRobotNode->writeLog("Failed to write to fault LED GPIO");
     }

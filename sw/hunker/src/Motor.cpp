@@ -14,9 +14,10 @@ extern "C"
 
 #include "IMU_bno055.h"
 #include "MyGpio.hpp"
+#include "FaultIndicator.hpp"
+#include "RobotNode.hpp"
 #include "Motor.h"
 #include "Robot.h"
-#include "RobotNode.hpp"
 
 extern std::shared_ptr<RobotNode> g_myRobotNode;
 
@@ -58,12 +59,12 @@ void turnCountISR(int num_alerts, lgGpioAlert_p alerts, void *user)
     case MyGpio::GPIO_PIN::GPIO_L_WHEEL_COUNT:
         typ = Motor::LWheel;
         break;
-    case MyGpio::GPIO_PIN::GPIO_R_KNEE_COUNT:
-        typ = Motor::RKnee;
-        break;
-    case MyGpio::GPIO_PIN::GPIO_L_KNEE_COUNT:
-        typ = Motor::LKnee;
-        break;
+//    case MyGpio::GPIO_PIN::GPIO_R_KNEE_COUNT:
+//        typ = Motor::RKnee;
+//        break;
+//    case MyGpio::GPIO_PIN::GPIO_L_KNEE_COUNT:
+//        typ = Motor::LKnee;
+//        break;
     default:
         throw;
     }

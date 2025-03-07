@@ -29,7 +29,6 @@ void Robot::init()
     m_deck_pitch = 0.0;
     m_deck_roll = 0.0;
     m_myMotors.init();
-    imu.init();
 }
 
 Robot::~Robot()

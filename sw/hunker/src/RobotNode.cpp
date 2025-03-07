@@ -1,4 +1,5 @@
 #include <chrono>
+//#include <cstring>
 
 #include <rclcpp/rclcpp.hpp>
 #include <std_msgs/msg/bool.hpp>
@@ -31,7 +32,7 @@ void RobotNode::init()
 
         // Subscribe to joystick messages
         joystick_sub = this->create_subscription<sensor_msgs::msg::Joy>(
-            "joy", rclcpp::QoS(10),
+            "joy", 10,
             std::bind(&RobotNode::joy_callback, this, std::placeholders::_1));
 
         m_safetyTimer = this->create_wall_timer(
@@ -46,18 +47,20 @@ void RobotNode::init()
     }
 }
 
-void RobotNode::writeLog(const std::string &msg)
+void RobotNode::writeLog(const std::string &msg, ...)
 {
     try
     {
-
-        RCLCPP_INFO(this->get_logger(), msg.c_str());
-    }
+        va_list vl;
+        va_start(vl, msg);
+        RCLCPP_INFO(this->get_logger(), msg.c_str(), vl);
+        va_end(vl);
+    
+     }
     catch (const std::exception &e)
     {
-        g_myRobotNode->writeLog("Exception in RobotNode::writeLog");
+        RCLCPP_ERROR(this->get_logger(), "Exception in RobotNode::writeLog: %s", e.what());
         m_faultIndicator.setFault(FaultIndicator::FAULT_TYPE::FAULT_EXCEPTION, true);
-        g_myRobotNode->writeLog(e.what());
     }
 }
 
@@ -133,11 +136,11 @@ void RobotNode::checkControllerConnection()
     {
         if (m_isControllerConnected)
         {
-            RCLCPP_INFO(this->get_logger(), "Controller is connected");
+            writeLog("Controller is connected");
         }
         else
         {
-            RCLCPP_WARN(this->get_logger(), "Controller is disconnected");
+            writeLog("Controller is disconnected");
         }
     }
 }
@@ -175,18 +178,19 @@ void RobotNode::flashEnableLED()
 void RobotNode::joy_callback(const sensor_msgs::msg::Joy::SharedPtr msg)
 {
     // Listen for Joystick messages
-    RCLCPP_INFO(this->get_logger(), "Axes: [%f, %f, %f, %f, %f, %f]",
-                msg->axes[0], msg->axes[1], msg->axes[2], msg->axes[3],
-                msg->axes[4], msg->axes[5]);
-    RCLCPP_INFO(this->get_logger(),
-                "Buttons: [%d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d]",
-                msg->buttons[0], msg->buttons[1], msg->buttons[2],
-                msg->buttons[3], msg->buttons[4], msg->buttons[5],
-                msg->buttons[6], msg->buttons[7], msg->buttons[8],
-                msg->buttons[9], msg->buttons[10], msg->buttons[11]);
+    writeLog("Axes: [%f, %f, %f, %f, %f, %f]",
+             msg->axes[0], msg->axes[1], msg->axes[2], msg->axes[3],
+             msg->axes[4], msg->axes[5]);
+    writeLog("Buttons: [%d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d]",
+             msg->buttons[0], msg->buttons[1], msg->buttons[2],
+             msg->buttons[3], msg->buttons[4], msg->buttons[5],
+             msg->buttons[6], msg->buttons[7], msg->buttons[8],
+             msg->buttons[9], msg->buttons[10], msg->buttons[11]);
 
     m_isControllerConnected = true;
     m_last_joy_msg_time = this->now();
+
+    writeLog("controller message received, %s", std::to_string(m_last_joy_msg_time.seconds()).c_str());
 
     // Store the joystick data
     m_joy_axes[RJOY_FWD_BACK] = msg->axes[0];

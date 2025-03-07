@@ -109,7 +109,7 @@ void FaultIndicator::update()
     {
         m_faultCount++;
         if (m_faultCount >= m_faults[m_faultIdx])
-        {                       
+        {
             m_faultCount = -1;
         }
         m_lastCountTime = std::chrono::steady_clock::now();

@@ -7,7 +7,7 @@ public:
     RobotNode();
     void init();
 
-    void writeLog(const std::string &msg);
+    void writeLog(const std::string &msg, ...);
     bool isRobotEnabled();
     typedef enum
     {
