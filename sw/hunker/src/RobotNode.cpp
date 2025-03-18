@@ -177,6 +177,11 @@ void RobotNode::checkRobotEnableDisable()
             enableRobot(false);
         }
     }
+   
+    if ((m_joy_buttons[JOY_LB] == 1) || (m_joy_buttons[JOY_RB] == 1))
+    {
+        emergencyStop();
+    }
 }
 
 void RobotNode::updateLEDs()
@@ -274,11 +279,13 @@ void RobotNode::joy_callback(const sensor_msgs::msg::Joy::SharedPtr msg)
     // m_joy_buttons[JOY_UNUSED_1] = msg->buttons[2];
     m_joy_buttons[JOY_X] = msg->buttons[3];
     m_joy_buttons[JOY_Y] = msg->buttons[4];
-    m_joy_buttons[JOY_LB] = msg->buttons[5];
-    m_joy_buttons[JOY_RB] = msg->buttons[6];
-    m_joy_buttons[JOY_BACK] = msg->buttons[7];
-    m_joy_buttons[JOY_START] = msg->buttons[8];
-    m_joy_buttons[JOY_LOGITECH] = msg->buttons[9];
-    m_joy_buttons[JOY_L3] = msg->buttons[10];
-    m_joy_buttons[JOY_R3] = msg->buttons[11];
+    // m_joy_buttons[JOY_UNUSED_2] = msg->buttons[5];
+    m_joy_buttons[JOY_LB] = msg->buttons[6];
+    m_joy_buttons[JOY_RB] = msg->buttons[7];
+
+    m_joy_buttons[JOY_BACK] = msg->buttons[8];
+    m_joy_buttons[JOY_START] = msg->buttons[9];
+    m_joy_buttons[JOY_LOGITECH] = msg->buttons[10];
+    m_joy_buttons[JOY_L3] = msg->buttons[11];
+    m_joy_buttons[JOY_R3] = msg->buttons[12];
 }
