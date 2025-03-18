@@ -40,17 +40,40 @@ static bool isErrorMsgLogged = false;
 void Robot::robotFunction()
 {
     g_myRobotNode->m_faultIndicator.setFault(FaultIndicator::FAULT_WATCHDOG, isRunning);
-    if(isRunning)
+    if (isRunning)
     {
-        if(!isErrorMsgLogged)
+        if (!isErrorMsgLogged)
         {
             g_myRobotNode->writeLog("Robot function did not finish in time");
             isErrorMsgLogged = true;
         }
-        return;
     }
     isRunning = true;
+
     periodic();
+    switch (m_robotState)
+    {
+    case ROBOT_STATE_DISABLED:
+        disabledPeriodic();
+        break;
+    case ROBOT_STATE_BALANCING:
+        balancingPeriodic();
+        break;
+    case ROBOT_STATE_AIRBORNE:
+        airbornePeriodic();
+        break;
+    case ROBOT_STATE_LANDING:
+        landingPeriodic();
+        break;
+    case ROBOT_STATE_HUNKERED:
+        hunkeredPeriodic();
+        break;
+    default:
+        g_myRobotNode->writeLog("Unknown robot state %d", m_robotState);
+        g_myRobotNode->emergencyStop();
+        break;
+    }
+
     isRunning = false;
 }
 
@@ -60,7 +83,11 @@ void Robot::estimateDeckOrientation()
 
 bool Robot::isBalancingPossible()
 {
-    return false;
+    if ((imu.pos.is_airborne) || (m_robotState == ROBOT_STATE_LANDING) || (m_robotState == ROBOT_STATE_HUNKERED))
+    {
+        return false;
+    }
+    return true;
 }
 
 bool Robot::isFullyFolded()
@@ -74,28 +101,36 @@ void Robot::periodic()
 
     if (!g_myRobotNode->isRobotEnabled())
     {
-        disabledPeriodic();
+        m_robotState = ROBOT_STATE_DISABLED;
     }
     else
     {
         estimateDeckOrientation();
+        if (g_myRobotNode->m_joy_buttons[RobotNode::JOY_A] == 1)
+        {
+            m_robotState = ROBOT_STATE_LANDING;
+        }
+
         if (isBalancingPossible())
         {
-            balancingPeriodic();
+            m_robotState = ROBOT_STATE_BALANCING;
         }
         else
         {
             if (imu.pos.is_airborne)
             {
-                airbornePeriodic();
+                m_robotState = ROBOT_STATE_AIRBORNE;
             }
             else
             {
                 if (!isFullyFolded())
                 {
-                    landingPeriodic();
+                    m_robotState = ROBOT_STATE_LANDING;
                 }
-                // else stay landed, do nothing more
+                else
+                {
+                    m_robotState = ROBOT_STATE_HUNKERED;
+                }
             }
         }
     }
@@ -122,4 +157,10 @@ void Robot::airbornePeriodic()
 void Robot::landingPeriodic()
 {
     // TODO: Move leg toward fully folded, if there, motor power == 0
+}
+
+void Robot::hunkeredPeriodic()
+{
+    // TODO: Maintain sufficient power to keep springs from extending legs
+    // Probably zero if upriight, but will need power if upside down
 }

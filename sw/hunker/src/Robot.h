@@ -4,6 +4,16 @@
 class Robot
 {
 public:
+    typedef enum
+    {
+        ROBOT_STATE_DISABLED,
+        ROBOT_STATE_BALANCING,
+        ROBOT_STATE_LANDING,
+        ROBOT_STATE_HUNKERED,
+        ROBOT_STATE_AIRBORNE,
+        NUMBER_OF_ROBOT_STATES
+    } ROBOT_STATE;
+
     Robot();
     void init();
     ~Robot();
@@ -17,12 +27,14 @@ public:
     void balancingPeriodic();
     void airbornePeriodic();
     void landingPeriodic();
+    void hunkeredPeriodic();
 
-public:
+    public:
     IMU_bno055 imu;
     Motor m_myMotors;
 
 private:
+    ROBOT_STATE m_robotState;
     double m_deck_pitch;
     double m_deck_roll;
 

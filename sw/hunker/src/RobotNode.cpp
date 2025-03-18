@@ -47,6 +47,10 @@ void RobotNode::init()
         m_safetyTimer = this->create_wall_timer(
             std::chrono::milliseconds(250),
             std::bind(&RobotNode::safetyFunction, this));
+
+            m_robotTimer = this->create_wall_timer(
+            std::chrono::milliseconds(20),
+            std::bind(&RobotNode::robotFunction, this));
     }
     catch (const std::exception &e)
     {
@@ -102,6 +106,22 @@ void RobotNode::safetyFunction()
     catch (const std::exception &e)
     {
         g_myRobotNode->writeLog("Exception in RobotNode::safetyFunction");
+        g_myRobotNode->writeLog(e.what());
+        g_myRobotNode->writeLog("Stack trace: %s", getStackTrace().c_str());
+
+        m_faultIndicator.setFault(FaultIndicator::FAULT_TYPE::FAULT_EXCEPTION, true);
+    }
+}
+
+void RobotNode::robotFunction()
+{
+    try
+    {
+        
+    }
+    catch (const std::exception &e)
+    {
+        g_myRobotNode->writeLog("Exception in RobotNode::robotFunction");
         g_myRobotNode->writeLog(e.what());
         g_myRobotNode->writeLog("Stack trace: %s", getStackTrace().c_str());
 

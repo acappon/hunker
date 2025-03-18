@@ -45,11 +45,12 @@ public:
 
 private: // functions
     void safetyFunction();
+    void robotFunction();
     void checkControllerConnection();
     void checkRobotEnableDisable();
     void updateLEDs();
     void flashEnableLED();
- 
+
     void enableRobot(bool isEnabled);
 
     std::string getStackTrace();
@@ -65,6 +66,7 @@ private: // data
     bool m_isRobotEmergencyStopped;
 
     rclcpp::TimerBase::SharedPtr m_safetyTimer;
+    rclcpp::TimerBase::SharedPtr m_robotTimer;
 };
 
 #endif // ROBOT_NODE_HPP
