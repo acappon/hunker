@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.5)
 project(robot)
 
+# Set the directory containing ament_cmakeConfig.cmake
+set(ament_cmake_DIR "/opt/ros/jazzy/share/ament_cmake/cmake")
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
@@ -20,6 +22,7 @@ target_include_directories(RobotNode PRIVATE ${LGPIO_INCLUDE_DIRS})
 target_link_libraries(RobotNode ${LGPIO_LIBRARIES})
 
 set(CMAKE_BUILD_TYPE Debug)
+
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g")
 
 install(TARGETS

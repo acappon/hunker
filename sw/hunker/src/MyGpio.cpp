@@ -51,7 +51,7 @@ bool MyGpio::init()
     iRet = lgGpioClaimOutput(m_lgpio_chip, LG_SET_PULL_UP, GPIO_PIN::GPIO_LED_ENABLE, 0);
     if (iRet < 0)
     {
-        g_myRobotNode->writeLog("Failed to claim GPIO enable line");
+        g_myRobotNode->writeLog("Failed to claim GPIO for enable LED line");
     }
 
     iRet = lgGpioClaimOutput(m_lgpio_chip, LG_SET_PULL_UP, GPIO_PIN::GPIO_LED_FAULT, 0);
@@ -72,7 +72,7 @@ bool MyGpio::initWheel(MyGpio::GPIO_PIN enable, MyGpio::GPIO_PIN dir, MyGpio::GP
         iRet = lgGpioClaimOutput(m_lgpio_chip, LG_SET_ACTIVE_LOW, enable, 0);
         if (iRet < 0)
         {
-            g_myRobotNode->writeLog("Failed to claim enable GPIO line");
+            g_myRobotNode->writeLog("Failed to claim GPIO for wheel enable line");
         }
     }
 
@@ -115,7 +115,11 @@ bool MyGpio::gpioWrite(MyGpio::GPIO_PIN pin, bool value)
     int iRet = -999;
     if (isValidPin(pin))
     {
-        iRet = lgGpioWrite(m_lgpio_chip, pin, value);
+        iRet = lgGpioWrite(m_lgpio_chip, pin, value ? 1 : 0);
+        if(iRet != 0)
+        {
+            g_myRobotNode->writeLog("Failed to write to GPIO, iRet = " + std::to_string(iRet));
+        }
     }
     return (iRet == 0);
 }

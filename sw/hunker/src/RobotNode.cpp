@@ -1,19 +1,22 @@
 #include <chrono>
-#include <cstring>
 #include <dirent.h>
 #include <fstream>
 #include <execinfo.h>
+#include <cstring>
 
 #include <rclcpp/rclcpp.hpp>
+/*
 #include <std_msgs/msg/bool.hpp>
 #include <std_msgs/msg/int32.hpp>
 #include <std_msgs/msg/string.hpp>
+*/
 
 #include "sensor_msgs/msg/joy.hpp"
 
 #include "MyGpio.hpp"
 #include "FaultIndicator.hpp"
 #include "RobotNode.hpp"
+
 
 extern std::shared_ptr<RobotNode> g_myRobotNode;
 
@@ -26,8 +29,6 @@ void RobotNode::init()
 {
     try
     {
-        m_isJoyNodeRunning = false;
-        m_joyNodeCheckCount = 0;
         m_isControllerConnected = false;
         m_isRobotEnabled = false;
         m_isRobotEmergencyStopped = false;
@@ -37,7 +38,11 @@ void RobotNode::init()
         m_last_joy_msg_time = this->now() - rclcpp::Duration(10, 0);
 
         // Subscribe to joystick messages
-        joystick_sub = this->create_subscription<sensor_msgs::msg::Joy>("joy", 10, std::bind(&RobotNode::joy_callback, this, std::placeholders::_1));
+        auto qos = rclcpp::QoS(rclcpp::QoSInitialization::from_rmw(rmw_qos_profile_sensor_data));
+        qos.keep_last(10)
+            .reliable()
+            .durability_volatile();
+        m_joystick_sub = this->create_subscription<sensor_msgs::msg::Joy>("joy", qos, std::bind(&RobotNode::joy_callback, this, std::placeholders::_1));
 
         m_safetyTimer = this->create_wall_timer(
             std::chrono::milliseconds(250),
@@ -76,35 +81,13 @@ void RobotNode::safetyFunction()
 {
     try
     {
-        checkJoyNodeRunning();
-        if (!m_isJoyNodeRunning)
-        {
-            m_isControllerConnected = false;
-            m_joyNodeCheckCount++;
-            if (m_joyNodeCheckCount > 10)
-            {
-                m_isRobotEmergencyStopped = true;
-            }
-        }
-        else
-        {
-            m_joyNodeCheckCount = 0;
-        }
-
         if (m_isRobotEmergencyStopped)
         {
             emergencyStop();
         }
         else
         {
-            if (m_isJoyNodeRunning)
-            {
-                checkControllerConnection();
-            }
-            else
-            {
-                m_isControllerConnected = false;
-            }
+            checkControllerConnection();
         }
 
         if (isRobotEnabled() && (!m_isControllerConnected))
@@ -113,6 +96,8 @@ void RobotNode::safetyFunction()
         }
 
         updateLEDs();
+
+        checkRobotEnableDisable();  
     }
     catch (const std::exception &e)
     {
@@ -129,8 +114,6 @@ void RobotNode::emergencyStop()
     m_isRobotEmergencyStopped = true;
     m_isRobotEnabled = false;
     m_myGpio.enableWheelMotors(false);
-    m_myGpio.setEnableLED(false);
-    m_myGpio.setFaultLED(true);
 }
 
 void RobotNode::enableRobot(bool isEnabled)
@@ -144,40 +127,15 @@ void RobotNode::enableRobot(bool isEnabled)
     m_myGpio.enableWheelMotors(isEnabled);
 }
 
-void RobotNode::checkJoyNodeRunning()
-{
-    static bool firstTime = true;
-    m_isJoyNodeRunning = g_myRobotNode->isProcessRunning("joy_node");
-    if (!m_isJoyNodeRunning)
-    {
-        if(firstTime)
-        {
-            firstTime = false;
-            g_myRobotNode->writeLog("joy_node is not running, starting it now %d", m_joyNodeCheckCount);
-            system("ros2 run joy joy_node");
-
-            // Wait for joy_node to start
-            std::this_thread::sleep_for(std::chrono::seconds(5));   
-
-            m_isJoyNodeRunning = g_myRobotNode->isProcessRunning("joy_node");
-            if (!m_isJoyNodeRunning)
-            {
-                g_myRobotNode->writeLog("joy_node failed to start");
-            }
-            else
-            {
-                g_myRobotNode->writeLog("joy_node started successfully");
-            }       
-        }
-    }
-}
-
 void RobotNode::checkControllerConnection()
 {
     rclcpp::Time now = this->now();
     bool prev = m_isControllerConnected;
-    if ((now - m_last_joy_msg_time).seconds() > 2.0)
+    if (abs((now - m_last_joy_msg_time).seconds()) > 2.0)
     {
+        writeLog("Controller is disconnected, now = %d, last = %d",
+                 now.nanoseconds(),
+                 m_last_joy_msg_time.nanoseconds());
         m_isControllerConnected = false;
     }
     else
@@ -200,25 +158,58 @@ void RobotNode::checkControllerConnection()
     }
 }
 
+void RobotNode::checkRobotEnableDisable()
+{
+    if (m_joy_buttons[JOY_B] == 1)
+    {
+        if (!isRobotEnabled())
+        {
+            writeLog("Robot ENABLED");
+            enableRobot(true);
+        }
+    }
+    
+    if (m_joy_buttons[JOY_X] == 1)
+    {
+        if (isRobotEnabled())
+        {
+            writeLog("Robot DISABLED");
+            enableRobot(false);
+        }
+    }
+}
+
 void RobotNode::updateLEDs()
 {
-    if (!m_isControllerConnected)
+    if (m_isRobotEmergencyStopped)
     {
+        writeLog("updateLEDs: ESTOP");
+
         m_myGpio.setEnableLED(false);
+        m_myGpio.setFaultLED(true);
     }
     else
     {
-        if (!m_isRobotEnabled)
+        if (!m_isControllerConnected)
         {
-            m_myGpio.setEnableLED(true);
+            writeLog("updateLEDs: XBox NOT connected");
+            m_myGpio.setEnableLED(false);
         }
         else
         {
-            flashEnableLED();
+            if (!m_isRobotEnabled)
+            {
+                writeLog("updateLEDs: Robot disabled");
+                m_myGpio.setEnableLED(true);
+            }
+            else
+            {
+                writeLog("updateLEDs: Robot ENABLED");
+                flashEnableLED();
+            }
         }
+        m_faultIndicator.update();
     }
-
-    m_faultIndicator.update();
 }
 
 void RobotNode::flashEnableLED()
@@ -236,7 +227,7 @@ std::string RobotNode::getStackTrace()
     {
         {
             void *array[100];
-            size_t size;
+            int size;
 
             // Get the backtrace
             size = backtrace(array, 10);
@@ -253,6 +244,7 @@ std::string RobotNode::getStackTrace()
 void RobotNode::joy_callback(const sensor_msgs::msg::Joy::SharedPtr msg)
 {
     // Listen for Joystick messages
+    /*
     writeLog("Axes: [%f, %f, %f, %f, %f, %f]",
              msg->axes[0], msg->axes[1], msg->axes[2], msg->axes[3],
              msg->axes[4], msg->axes[5]);
@@ -261,11 +253,13 @@ void RobotNode::joy_callback(const sensor_msgs::msg::Joy::SharedPtr msg)
              msg->buttons[3], msg->buttons[4], msg->buttons[5],
              msg->buttons[6], msg->buttons[7], msg->buttons[8],
              msg->buttons[9], msg->buttons[10], msg->buttons[11]);
-
+    */
+   
     m_isControllerConnected = true;
+
     m_last_joy_msg_time = this->now();
 
-    writeLog("controller message received, %s", std::to_string(m_last_joy_msg_time.seconds()).c_str());
+    //writeLog("controller message received, %s", std::to_string(m_last_joy_msg_time.seconds()).c_str());
 
     // Store the joystick data
     m_joy_axes[RJOY_FWD_BACK] = msg->axes[0];
@@ -277,64 +271,14 @@ void RobotNode::joy_callback(const sensor_msgs::msg::Joy::SharedPtr msg)
 
     m_joy_buttons[JOY_A] = msg->buttons[0];
     m_joy_buttons[JOY_B] = msg->buttons[1];
-    m_joy_buttons[JOY_X] = msg->buttons[2];
-    m_joy_buttons[JOY_Y] = msg->buttons[3];
-    m_joy_buttons[JOY_LB] = msg->buttons[4];
-    m_joy_buttons[JOY_RB] = msg->buttons[5];
-    m_joy_buttons[JOY_BACK] = msg->buttons[6];
-    m_joy_buttons[JOY_START] = msg->buttons[7];
-    m_joy_buttons[JOY_LOGITECH] = msg->buttons[8];
-    m_joy_buttons[JOY_L3] = msg->buttons[9];
-    m_joy_buttons[JOY_R3] = msg->buttons[10];
+    // m_joy_buttons[JOY_UNUSED_1] = msg->buttons[2];
+    m_joy_buttons[JOY_X] = msg->buttons[3];
+    m_joy_buttons[JOY_Y] = msg->buttons[4];
+    m_joy_buttons[JOY_LB] = msg->buttons[5];
+    m_joy_buttons[JOY_RB] = msg->buttons[6];
+    m_joy_buttons[JOY_BACK] = msg->buttons[7];
+    m_joy_buttons[JOY_START] = msg->buttons[8];
+    m_joy_buttons[JOY_LOGITECH] = msg->buttons[9];
+    m_joy_buttons[JOY_L3] = msg->buttons[10];
+    m_joy_buttons[JOY_R3] = msg->buttons[11];
 }
-
-int RobotNode::getProcIdByName(std::string procName)
-{
-    int pid = -1;
-
-    // Open the /proc directory
-    DIR *dp = opendir("/proc");
-    if (dp != NULL)
-    {
-        // Enumerate all entries in directory until process found
-        struct dirent *dirp;
-        while (pid < 0 && (dirp = readdir(dp)))
-        {
-            // Skip non-numeric entries
-            int id = atoi(dirp->d_name);
-            if (id > 0)
-            {
-                // Read contents of virtual /proc/{pid}/cmdline file
-                std::string cmdPath = std::string("/proc/") + dirp->d_name + "/cmdline";
-                std::ifstream cmdFile(cmdPath.c_str());
-                std::string cmdLine;
-                getline(cmdFile, cmdLine);
-                if (!cmdLine.empty())
-                {
-                    // Keep first cmdline item which contains the program path
-                    size_t pos = cmdLine.find('\0');
-                    if (pos != std::string::npos)
-                        cmdLine = cmdLine.substr(0, pos);
-                    // Keep program name only, removing the path
-                    pos = cmdLine.rfind('/');
-                    if (pos != std::string::npos)
-                        cmdLine = cmdLine.substr(pos + 1);
-                    // Compare against requested process name
-                    if (procName == cmdLine)
-                        pid = id;
-                        return pid;
-                }
-            }
-        }
-    }
-
-    closedir(dp);
-
-    return -1;
-}
-
-bool RobotNode::isProcessRunning(const std::string &processName)
-{
-    return -1 != getProcIdByName(processName);
-}
-

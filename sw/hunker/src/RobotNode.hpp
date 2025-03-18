@@ -45,14 +45,11 @@ public:
 
 private: // functions
     void safetyFunction();
-    void checkJoyNodeRunning();
     void checkControllerConnection();
+    void checkRobotEnableDisable();
     void updateLEDs();
-    void setEnableLED(bool state);
     void flashEnableLED();
-    int getProcIdByName(std::string procName);
-    bool isProcessRunning(const std::string& processName);
-
+ 
     void enableRobot(bool isEnabled);
 
     std::string getStackTrace();
@@ -60,11 +57,9 @@ private: // functions
     void joy_callback(const sensor_msgs::msg::Joy::SharedPtr msg);
 
 private: // data
-    rclcpp::Subscription<sensor_msgs::msg::Joy>::SharedPtr joystick_sub;
+    rclcpp::Subscription<sensor_msgs::msg::Joy>::SharedPtr m_joystick_sub;
 
     rclcpp::Time m_last_joy_msg_time;
-    bool m_isJoyNodeRunning;
-    int m_joyNodeCheckCount;
     bool m_isControllerConnected;
     bool m_isRobotEnabled;
     bool m_isRobotEmergencyStopped;
