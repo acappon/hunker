@@ -83,15 +83,18 @@ void Robot::estimateDeckOrientation()
 
 bool Robot::isBalancingPossible()
 {
-    if ((imu.pos.is_airborne) || (m_robotState == ROBOT_STATE_LANDING) || (m_robotState == ROBOT_STATE_HUNKERED))
-    {
-        return false;
-    }
+    // TODO:  After estimating deck orientation, robot is in a position that can't reach balance.
+    //        For example, legs extended way out but laying flat on ground.
+    //        For example, HUNKERED down, but upside down on the ground
+    //        The idea is that instead of the wheels going nuts trying to balance, the robot will seek 
+    //        HUNKER position, and doing so might even flip it rightside up, (if the body is lighter than the legs)
+
     return true;
 }
 
 bool Robot::isFullyFolded()
 {
+    // TODO:  There will be limit switches at both extremes of leg position, or if not, at least an encoder position
     return false;
 }
 
@@ -106,20 +109,15 @@ void Robot::periodic()
     else
     {
         estimateDeckOrientation();
-        if (g_myRobotNode->m_joy_buttons[RobotNode::JOY_A] == 1)
+        if (imu.pos.is_airborne)
         {
-            m_robotState = ROBOT_STATE_LANDING;
+            m_robotState = ROBOT_STATE_AIRBORNE;
         }
-
-        if (isBalancingPossible())
+        else if ((m_robotState == ROBOT_STATE_LANDING) || (m_robotState == ROBOT_STATE_HUNKERED))
         {
-            m_robotState = ROBOT_STATE_BALANCING;
-        }
-        else
-        {
-            if (imu.pos.is_airborne)
+            if ((g_myRobotNode->m_joy_buttons[RobotNode::JOY_Y] == 1) && (isBalancingPossible()))
             {
-                m_robotState = ROBOT_STATE_AIRBORNE;
+                m_robotState = ROBOT_STATE_BALANCING;
             }
             else
             {
@@ -131,6 +129,24 @@ void Robot::periodic()
                 {
                     m_robotState = ROBOT_STATE_HUNKERED;
                 }
+            }
+        }
+        else // BALANCING
+        {
+            if ((g_myRobotNode->m_joy_buttons[RobotNode::JOY_A] == 1) || (!isBalancingPossible()))
+            {
+                if (!isFullyFolded())
+                {
+                    m_robotState = ROBOT_STATE_LANDING;
+                }
+                else
+                {
+                    m_robotState = ROBOT_STATE_HUNKERED;
+                }
+            }
+            else
+            {
+                m_robotState = ROBOT_STATE_BALANCING;
             }
         }
     }
