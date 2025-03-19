@@ -7,6 +7,9 @@
 #include "sensor_msgs/msg/joy.hpp"
 #include "MyGpio.hpp"
 #include "FaultIndicator.hpp"
+#include "Motor.h"
+#include "IMU_bno055.h"
+#include "Robot.h"
 #include "RobotNode.hpp"
 
 extern std::shared_ptr<RobotNode> g_myRobotNode;

@@ -15,8 +15,10 @@
 
 #include "MyGpio.hpp"
 #include "FaultIndicator.hpp"
+#include "Motor.h"
+#include "IMU_bno055.h"
+#include "Robot.h"
 #include "RobotNode.hpp"
-
 
 extern std::shared_ptr<RobotNode> g_myRobotNode;
 
@@ -29,6 +31,8 @@ void RobotNode::init()
 {
     try
     {
+        m_robot.init();
+
         m_isControllerConnected = false;
         m_isRobotEnabled = false;
         m_isRobotEmergencyStopped = false;
@@ -48,15 +52,15 @@ void RobotNode::init()
             std::chrono::milliseconds(250),
             std::bind(&RobotNode::safetyFunction, this));
 
-            m_robotTimer = this->create_wall_timer(
+        m_robotTimer = this->create_wall_timer(
             std::chrono::milliseconds(20),
             std::bind(&RobotNode::robotFunction, this));
     }
     catch (const std::exception &e)
     {
-        g_myRobotNode->writeLog("Exception in RobotNode::init()");
+        writeLog("Exception in RobotNode::init()");
         m_faultIndicator.setFault(FaultIndicator::FAULT_TYPE::FAULT_EXCEPTION, true);
-        g_myRobotNode->writeLog(e.what());
+        writeLog(e.what());
     }
 }
 
@@ -101,13 +105,13 @@ void RobotNode::safetyFunction()
 
         updateLEDs();
 
-        checkRobotEnableDisable();  
+        checkRobotEnableDisable();
     }
     catch (const std::exception &e)
     {
-        g_myRobotNode->writeLog("Exception in RobotNode::safetyFunction");
-        g_myRobotNode->writeLog(e.what());
-        g_myRobotNode->writeLog("Stack trace: %s", getStackTrace().c_str());
+        writeLog("Exception in RobotNode::safetyFunction");
+        writeLog(e.what());
+        writeLog("Stack trace: %s", getStackTrace().c_str());
 
         m_faultIndicator.setFault(FaultIndicator::FAULT_TYPE::FAULT_EXCEPTION, true);
     }
@@ -117,13 +121,13 @@ void RobotNode::robotFunction()
 {
     try
     {
-        
+        m_robot.robotFunction();
     }
     catch (const std::exception &e)
     {
-        g_myRobotNode->writeLog("Exception in RobotNode::robotFunction");
-        g_myRobotNode->writeLog(e.what());
-        g_myRobotNode->writeLog("Stack trace: %s", getStackTrace().c_str());
+        writeLog("Exception in Robot::robotFunction");
+        writeLog(e.what());
+        writeLog("Stack trace: %s", getStackTrace().c_str());
 
         m_faultIndicator.setFault(FaultIndicator::FAULT_TYPE::FAULT_EXCEPTION, true);
     }
@@ -188,7 +192,7 @@ void RobotNode::checkRobotEnableDisable()
             enableRobot(true);
         }
     }
-    
+
     if (m_joy_buttons[JOY_X] == 1)
     {
         if (isRobotEnabled())
@@ -197,7 +201,7 @@ void RobotNode::checkRobotEnableDisable()
             enableRobot(false);
         }
     }
-   
+
     if ((m_joy_buttons[JOY_LB] == 1) || (m_joy_buttons[JOY_RB] == 1))
     {
         emergencyStop();
@@ -229,7 +233,7 @@ void RobotNode::updateLEDs()
             }
             else
             {
-                writeLog("updateLEDs: Robot ENABLED");
+                writeLog("updateLEDs: Robot ENABLED, state %s", m_robot.getRobotStateText().c_str());
                 flashEnableLED();
             }
         }
@@ -279,20 +283,20 @@ void RobotNode::joy_callback(const sensor_msgs::msg::Joy::SharedPtr msg)
              msg->buttons[6], msg->buttons[7], msg->buttons[8],
              msg->buttons[9], msg->buttons[10], msg->buttons[11]);
     */
-   
+
     m_isControllerConnected = true;
 
     m_last_joy_msg_time = this->now();
 
-    //writeLog("controller message received, %s", std::to_string(m_last_joy_msg_time.seconds()).c_str());
+    // writeLog("controller message received, %s", std::to_string(m_last_joy_msg_time.seconds()).c_str());
 
     // Store the joystick data
-    m_joy_axes[RJOY_FWD_BACK] = msg->axes[0];
-    m_joy_axes[RJOY_LEFT_RIGHT] = msg->axes[1];
-    m_joy_axes[RJOY_Z] = msg->axes[2];
-    m_joy_axes[LJOY_FWD_BACK] = msg->axes[3];
-    m_joy_axes[LJOY_LEFT_RIGHT] = msg->axes[4];
-    m_joy_axes[LJOY_Z] = msg->axes[5];
+    m_joy_axes[LJOY_LEFT_RIGHT] = msg->axes[0];
+    m_joy_axes[LJOY_FWD_BACK] = msg->axes[1];
+    m_joy_axes[RJOY_LEFT_RIGHT] = msg->axes[2];
+    m_joy_axes[RJOY_FWD_BACK] = msg->axes[3];
+    m_joy_axes[RTRIGGER] = msg->axes[4];
+    m_joy_axes[LTRIGGER] = msg->axes[5];
 
     m_joy_buttons[JOY_A] = msg->buttons[0];
     m_joy_buttons[JOY_B] = msg->buttons[1];

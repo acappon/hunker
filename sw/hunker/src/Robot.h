@@ -14,12 +14,21 @@ public:
         NUMBER_OF_ROBOT_STATES
     } ROBOT_STATE;
 
+    typedef enum
+    {
+        ROBOT_FRAME,    // Tank drive.  Fwd/Back stick means fwd/back relative to robot.  Right/Left means % differential power per wheel
+        FIELD_FRAME,    // Requires IMU.  POwer on robot while standing behind it with controller pointed same direction.
+                        // Direction stick is pushed is direction robot will turn to, magnitude of push = speed
+        NUMBER_OF_DRIVE_TYPES
+    } DRIVE_TYPE;
+
     Robot();
     void init();
     ~Robot();
 
     void robotFunction();
 
+    std::string getRobotStateText();
     int getTurnCount();
 
     void periodic();
@@ -29,11 +38,12 @@ public:
     void landingPeriodic();
     void hunkeredPeriodic();
 
-    public:
+public:
     IMU_bno055 imu;
     Motor m_myMotors;
 
 private:
+    DRIVE_TYPE m_driveType;
     ROBOT_STATE m_robotState;
     double m_deck_pitch;
     double m_deck_roll;

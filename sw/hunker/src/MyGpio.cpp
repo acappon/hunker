@@ -13,6 +13,9 @@ extern "C"
 
 #include "MyGpio.hpp"
 #include "FaultIndicator.hpp"
+#include "Motor.h"
+#include "IMU_bno055.h"
+#include "Robot.h"
 #include "RobotNode.hpp"
 
 extern std::shared_ptr<RobotNode> g_myRobotNode;
@@ -107,7 +110,11 @@ bool MyGpio::initWheel(MyGpio::GPIO_PIN enable, MyGpio::GPIO_PIN dir, MyGpio::GP
 
 bool MyGpio::isValidPin(MyGpio::GPIO_PIN pin)
 {
-    return (pin >= 0);
+    if( pin < 0 || pin > 26)
+    {
+        return false;
+    }
+    return true;
 }
 
 bool MyGpio::gpioWrite(MyGpio::GPIO_PIN pin, bool value)
@@ -118,7 +125,7 @@ bool MyGpio::gpioWrite(MyGpio::GPIO_PIN pin, bool value)
         iRet = lgGpioWrite(m_lgpio_chip, pin, value ? 1 : 0);
         if(iRet != 0)
         {
-            g_myRobotNode->writeLog("Failed to write to GPIO, iRet = " + std::to_string(iRet));
+            g_myRobotNode->writeLog("Failed to write to GPIO pin %d , iRet = %s", pin, lguErrorText(iRet));
         }
     }
     return (iRet == 0);

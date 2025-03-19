@@ -15,9 +15,10 @@ extern "C"
 #include "IMU_bno055.h"
 #include "MyGpio.hpp"
 #include "FaultIndicator.hpp"
-#include "RobotNode.hpp"
 #include "Motor.h"
+#include "IMU_bno055.h"
 #include "Robot.h"
+#include "RobotNode.hpp"
 
 extern std::shared_ptr<RobotNode> g_myRobotNode;
 
@@ -87,7 +88,6 @@ void turnCountISR(int num_alerts, lgGpioAlert_p alerts, void *user)
 
 Motor::Motor()
 {
-    init();
 }
 
 Motor::~Motor()

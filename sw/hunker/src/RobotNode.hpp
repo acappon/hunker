@@ -13,12 +13,12 @@ public:
 
     typedef enum
     {
-        RJOY_FWD_BACK,
-        RJOY_LEFT_RIGHT,
-        RJOY_Z,
-        LJOY_FWD_BACK,
         LJOY_LEFT_RIGHT,
-        LJOY_Z,
+        LJOY_FWD_BACK,
+        RJOY_LEFT_RIGHT,
+        RJOY_FWD_BACK,
+        RTRIGGER,
+        LTRIGGER,
         NUMBER_OF_JOY_AXES,
     } JOY_AXES;
     double m_joy_axes[NUMBER_OF_JOY_AXES];
@@ -58,6 +58,8 @@ private: // functions
     void joy_callback(const sensor_msgs::msg::Joy::SharedPtr msg);
 
 private: // data
+    Robot m_robot;
+
     rclcpp::Subscription<sensor_msgs::msg::Joy>::SharedPtr m_joystick_sub;
 
     rclcpp::Time m_last_joy_msg_time;
