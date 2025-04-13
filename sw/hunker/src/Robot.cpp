@@ -1,22 +1,10 @@
-#include <iostream>
-#include <fstream>
-#include <csignal>
-#include <memory>
+#include "common.h"
 
-#include <rclcpp/rclcpp.hpp>
 #include <std_msgs/msg/bool.hpp>
 #include <std_msgs/msg/int32.hpp>
 #include <std_msgs/msg/string.hpp>
 
 #include "sensor_msgs/msg/joy.hpp"
-
-#include "IMU_bno055.h"
-#include "MyGpio.hpp"
-#include "FaultIndicator.hpp"
-#include "Motor.h"
-#include "IMU_bno055.h"
-#include "Robot.h"
-#include "RobotNode.hpp"
 
 extern std::shared_ptr<RobotNode> g_myRobotNode;
 
@@ -27,10 +15,19 @@ Robot::Robot()
 void Robot::init()
 {
     m_driveType = ROBOT_FRAME;
+    m_robotState = ROBOT_STATE_DISABLED;
     m_deck_pitch = 0.0;
     m_deck_roll = 0.0;
+
+    m_imu.begin();
+    m_imu.modeOn();
+    m_imu.enableRawAccelerometer(20); 
+    m_imu.waitForI2C();
+ 
     m_myMotors.init();
-}
+
+    errno=0;
+ }
 
 Robot::~Robot()
 {
@@ -120,8 +117,12 @@ bool Robot::isFullyFolded()
 
 void Robot::periodic()
 {
-    imu.update();
-
+    short wRet = m_imu.getReadings();
+    if(wRet != 0)
+    {
+        std::string msg = m_imu.getPacketText();
+        g_myRobotNode->writeLog(msg);    
+    }
     if (!g_myRobotNode->isRobotEnabled())
     {
         m_robotState = ROBOT_STATE_DISABLED;
@@ -129,7 +130,7 @@ void Robot::periodic()
     else
     {
         estimateDeckOrientation();
-        if (imu.pos.is_airborne)
+        if (m_imu.isAirborne())
         {
             m_robotState = ROBOT_STATE_AIRBORNE;
         }
@@ -231,8 +232,8 @@ void Robot::balancingPeriodic()
     char buffer[128];
     snprintf(buffer, sizeof(buffer), "Drive power L/R = %f %f", power_L, power_R);
     std::string msg(buffer);
-    g_myRobotNode->writeLog(msg);    
-    
+    g_myRobotNode->writeLog(msg);
+
     m_myMotors.setPower(Motor::MOTOR_TYPE::LWheel, power_L);
     m_myMotors.setPower(Motor::MOTOR_TYPE::RWheel, power_R);
 }

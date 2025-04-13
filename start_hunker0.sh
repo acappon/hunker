@@ -1,2 +1,2 @@
-bash /usr/local/bin/start_hunker.sh
+sudo bash /usr/local/bin/start_hunker.sh
 

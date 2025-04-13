@@ -1,22 +1,10 @@
 
+#include "common.h"
+
 extern "C"
 {
 #include <lgpio.h>
 }
-
-#include <rclcpp/rclcpp.hpp>
-#include <std_msgs/msg/bool.hpp>
-#include <std_msgs/msg/int32.hpp>
-#include <std_msgs/msg/string.hpp>
-
-#include "sensor_msgs/msg/joy.hpp"
-
-#include "MyGpio.hpp"
-#include "FaultIndicator.hpp"
-#include "Motor.h"
-#include "IMU_bno055.h"
-#include "Robot.h"
-#include "RobotNode.hpp"
 
 extern std::shared_ptr<RobotNode> g_myRobotNode;
 
@@ -29,12 +17,12 @@ MyGpio::~MyGpio()
     m_lgpio_chip = lgGpiochipClose(m_lgpio_chip);
 }
 
-bool MyGpio::init()
+bool MyGpio::initEnableAndFaultLED()
 {
     int iRet = -999;
 
     // Open the GPIO chip
-    int chipnum = 4;   // GPIO chip #4 is the one for Raspberry Pi 5
+    int chipnum = 4; // GPIO chip #4 is the one for Raspberry Pi 5
     m_lgpio_chip = lgGpiochipOpen(chipnum);
     if (m_lgpio_chip < 0)
     {
@@ -72,7 +60,7 @@ bool MyGpio::initWheel(MyGpio::GPIO_PIN enable, MyGpio::GPIO_PIN dir, MyGpio::GP
 
     if (isValidPin(enable))
     {
-        iRet = lgGpioClaimOutput(m_lgpio_chip, LG_SET_ACTIVE_LOW, enable, 0);
+        iRet = lgGpioClaimOutput(m_lgpio_chip, LG_SET_PULL_UP, enable, 0);
         if (iRet < 0)
         {
             g_myRobotNode->writeLog("Failed to claim GPIO for wheel enable line");
@@ -81,7 +69,7 @@ bool MyGpio::initWheel(MyGpio::GPIO_PIN enable, MyGpio::GPIO_PIN dir, MyGpio::GP
 
     if (isValidPin(dir))
     {
-        iRet = lgGpioClaimOutput(m_lgpio_chip, LG_SET_ACTIVE_LOW, dir, 0);
+        iRet = lgGpioClaimOutput(m_lgpio_chip, LG_SET_PULL_UP, dir, 0);
         {
             g_myRobotNode->writeLog("Failed to claim direction GPIO line");
         }
@@ -89,7 +77,7 @@ bool MyGpio::initWheel(MyGpio::GPIO_PIN enable, MyGpio::GPIO_PIN dir, MyGpio::GP
 
     if (isValidPin(pwm))
     {
-        iRet = lgGpioClaimOutput(m_lgpio_chip, LG_SET_ACTIVE_LOW, pwm, 0);
+        iRet = lgGpioClaimOutput(m_lgpio_chip, LG_SET_PULL_UP, pwm, 0);
         if (iRet < 0)
         {
             g_myRobotNode->writeLog("Failed to claim PWM GPIO line");
@@ -98,7 +86,7 @@ bool MyGpio::initWheel(MyGpio::GPIO_PIN enable, MyGpio::GPIO_PIN dir, MyGpio::GP
 
     if (isValidPin(count))
     {
-        iRet = lgGpioClaimInput(m_lgpio_chip, LG_SET_ACTIVE_LOW, count);
+        iRet = lgGpioClaimInput(m_lgpio_chip, LG_SET_PULL_UP, count);
         if (iRet < 0)
         {
             g_myRobotNode->writeLog("Failed to claim count GPIO line");
@@ -110,7 +98,7 @@ bool MyGpio::initWheel(MyGpio::GPIO_PIN enable, MyGpio::GPIO_PIN dir, MyGpio::GP
 
 bool MyGpio::isValidPin(MyGpio::GPIO_PIN pin)
 {
-    if( pin < 0 || pin > 26)
+    if (pin < 0 || pin > 26)
     {
         return false;
     }
@@ -123,7 +111,7 @@ bool MyGpio::gpioWrite(MyGpio::GPIO_PIN pin, bool value)
     if (isValidPin(pin))
     {
         iRet = lgGpioWrite(m_lgpio_chip, pin, value ? 1 : 0);
-        if(iRet != 0)
+        if (iRet != 0)
         {
             g_myRobotNode->writeLog("Failed to write to GPIO pin %d , iRet = %s", pin, lguErrorText(iRet));
         }
@@ -143,7 +131,7 @@ bool MyGpio::gpioRead(MyGpio::GPIO_PIN pin)
 
 void MyGpio::setEnableLED(bool state)
 {
-    bool not_state = !state;   // To turn on the LED, set GPIO to 0
+    bool not_state = !state; // To turn on the LED, set GPIO to 0
 
     if (!gpioWrite(GPIO_PIN::GPIO_LED_ENABLE, not_state))
     {
@@ -153,7 +141,7 @@ void MyGpio::setEnableLED(bool state)
 
 void MyGpio::setFaultLED(bool state)
 {
-    bool not_state = !state;   // To turn on the LED, set GPIO to 0
+    bool not_state = !state; // To turn on the LED, set GPIO to 0
 
     if (!gpioWrite(GPIO_PIN::GPIO_LED_FAULT, not_state))
     {

@@ -39,7 +39,7 @@ public:
     void hunkeredPeriodic();
 
 public:
-    IMU_bno055 imu;
+    BNO080 m_imu;
     Motor m_myMotors;
 
 private:

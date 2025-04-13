@@ -1,24 +1,4 @@
-#include <chrono>
-#include <dirent.h>
-#include <fstream>
-#include <execinfo.h>
-#include <cstring>
-
-#include <rclcpp/rclcpp.hpp>
-/*
-#include <std_msgs/msg/bool.hpp>
-#include <std_msgs/msg/int32.hpp>
-#include <std_msgs/msg/string.hpp>
-*/
-
-#include "sensor_msgs/msg/joy.hpp"
-
-#include "MyGpio.hpp"
-#include "FaultIndicator.hpp"
-#include "Motor.h"
-#include "IMU_bno055.h"
-#include "Robot.h"
-#include "RobotNode.hpp"
+#include "common.h"
 
 extern std::shared_ptr<RobotNode> g_myRobotNode;
 
@@ -31,13 +11,12 @@ void RobotNode::init()
 {
     try
     {
-        m_robot.init();
-
         m_isControllerConnected = false;
         m_isRobotEnabled = false;
         m_isRobotEmergencyStopped = false;
 
-        m_myGpio.init();
+        m_myGpio.initEnableAndFaultLED();
+        m_robot.init();
 
         m_last_joy_msg_time = this->now() - rclcpp::Duration(10, 0);
 

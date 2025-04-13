@@ -1,12 +1,7 @@
-#include "rclcpp/rclcpp.hpp"
+
 #include <csignal>
-#include "sensor_msgs/msg/joy.hpp"
-#include "MyGpio.hpp"
-#include "FaultIndicator.hpp"
-#include "Motor.h"
-#include "IMU_bno055.h"
-#include "Robot.h"
-#include "RobotNode.hpp"
+
+#include "common.h"
 
 std::shared_ptr<RobotNode> g_myRobotNode = nullptr;
 

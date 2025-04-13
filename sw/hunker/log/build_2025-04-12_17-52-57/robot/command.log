@@ -1,0 +1,4 @@
+Invoking command in '/home/viking/hunker/sw/hunker/build/robot': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/jazzy DEBUGINFOD_URLS=https://debuginfod.ubuntu.com /usr/bin/cmake --build /home/viking/hunker/sw/hunker/build/robot -- -j4 -l4
+Invoked command in '/home/viking/hunker/sw/hunker/build/robot' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/jazzy DEBUGINFOD_URLS=https://debuginfod.ubuntu.com /usr/bin/cmake --build /home/viking/hunker/sw/hunker/build/robot -- -j4 -l4
+Invoking command in '/home/viking/hunker/sw/hunker/build/robot': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/jazzy DEBUGINFOD_URLS=https://debuginfod.ubuntu.com /usr/bin/cmake --install /home/viking/hunker/sw/hunker/build/robot
+Invoked command in '/home/viking/hunker/sw/hunker/build/robot' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/jazzy DEBUGINFOD_URLS=https://debuginfod.ubuntu.com /usr/bin/cmake --install /home/viking/hunker/sw/hunker/build/robot

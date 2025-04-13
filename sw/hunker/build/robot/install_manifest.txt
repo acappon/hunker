@@ -1,0 +1,16 @@
+/home/viking/hunker/sw/hunker/install/robot/lib/robot/RobotNode
+/home/viking/hunker/sw/hunker/install/robot/share/ament_index/resource_index/package_run_dependencies/robot
+/home/viking/hunker/sw/hunker/install/robot/share/ament_index/resource_index/parent_prefix_path/robot
+/home/viking/hunker/sw/hunker/install/robot/share/robot/environment/ament_prefix_path.sh
+/home/viking/hunker/sw/hunker/install/robot/share/robot/environment/ament_prefix_path.dsv
+/home/viking/hunker/sw/hunker/install/robot/share/robot/environment/path.sh
+/home/viking/hunker/sw/hunker/install/robot/share/robot/environment/path.dsv
+/home/viking/hunker/sw/hunker/install/robot/share/robot/local_setup.bash
+/home/viking/hunker/sw/hunker/install/robot/share/robot/local_setup.sh
+/home/viking/hunker/sw/hunker/install/robot/share/robot/local_setup.zsh
+/home/viking/hunker/sw/hunker/install/robot/share/robot/local_setup.dsv
+/home/viking/hunker/sw/hunker/install/robot/share/robot/package.dsv
+/home/viking/hunker/sw/hunker/install/robot/share/ament_index/resource_index/packages/robot
+/home/viking/hunker/sw/hunker/install/robot/share/robot/cmake/robotConfig.cmake
+/home/viking/hunker/sw/hunker/install/robot/share/robot/cmake/robotConfig-version.cmake
+/home/viking/hunker/sw/hunker/install/robot/share/robot/package.xml

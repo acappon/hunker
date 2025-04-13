@@ -1,0 +1,22 @@
+[0.015s] Invoking command in '/home/viking/hunker/sw/hunker/build/robot': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/jazzy DEBUGINFOD_URLS=https://debuginfod.ubuntu.com /usr/bin/cmake --build /home/viking/hunker/sw/hunker/build/robot -- -j4 -l4
+[0.154s] [100%] Built target RobotNode
+[0.177s] Invoked command in '/home/viking/hunker/sw/hunker/build/robot' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/jazzy DEBUGINFOD_URLS=https://debuginfod.ubuntu.com /usr/bin/cmake --build /home/viking/hunker/sw/hunker/build/robot -- -j4 -l4
+[0.196s] Invoking command in '/home/viking/hunker/sw/hunker/build/robot': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/jazzy DEBUGINFOD_URLS=https://debuginfod.ubuntu.com /usr/bin/cmake --install /home/viking/hunker/sw/hunker/build/robot
+[0.212s] -- Install configuration: "Debug"
+[0.212s] -- Up-to-date: /home/viking/hunker/sw/hunker/install/robot/lib/robot/RobotNode
+[0.212s] -- Up-to-date: /home/viking/hunker/sw/hunker/install/robot/share/ament_index/resource_index/package_run_dependencies/robot
+[0.212s] -- Up-to-date: /home/viking/hunker/sw/hunker/install/robot/share/ament_index/resource_index/parent_prefix_path/robot
+[0.212s] -- Up-to-date: /home/viking/hunker/sw/hunker/install/robot/share/robot/environment/ament_prefix_path.sh
+[0.213s] -- Up-to-date: /home/viking/hunker/sw/hunker/install/robot/share/robot/environment/ament_prefix_path.dsv
+[0.213s] -- Up-to-date: /home/viking/hunker/sw/hunker/install/robot/share/robot/environment/path.sh
+[0.213s] -- Up-to-date: /home/viking/hunker/sw/hunker/install/robot/share/robot/environment/path.dsv
+[0.213s] -- Up-to-date: /home/viking/hunker/sw/hunker/install/robot/share/robot/local_setup.bash
+[0.213s] -- Up-to-date: /home/viking/hunker/sw/hunker/install/robot/share/robot/local_setup.sh
+[0.213s] -- Up-to-date: /home/viking/hunker/sw/hunker/install/robot/share/robot/local_setup.zsh
+[0.213s] -- Up-to-date: /home/viking/hunker/sw/hunker/install/robot/share/robot/local_setup.dsv
+[0.213s] -- Installing: /home/viking/hunker/sw/hunker/install/robot/share/robot/package.dsv
+[0.213s] -- Up-to-date: /home/viking/hunker/sw/hunker/install/robot/share/ament_index/resource_index/packages/robot
+[0.214s] -- Up-to-date: /home/viking/hunker/sw/hunker/install/robot/share/robot/cmake/robotConfig.cmake
+[0.214s] -- Up-to-date: /home/viking/hunker/sw/hunker/install/robot/share/robot/cmake/robotConfig-version.cmake
+[0.214s] -- Up-to-date: /home/viking/hunker/sw/hunker/install/robot/share/robot/package.xml
+[0.216s] Invoked command in '/home/viking/hunker/sw/hunker/build/robot' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/jazzy DEBUGINFOD_URLS=https://debuginfod.ubuntu.com /usr/bin/cmake --install /home/viking/hunker/sw/hunker/build/robot

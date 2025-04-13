@@ -1,16 +1,5 @@
 
-#include <chrono>
-#include <vector>
-#include <algorithm>
-
-#include "rclcpp/rclcpp.hpp"
-#include "sensor_msgs/msg/joy.hpp"
-#include "MyGpio.hpp"
-#include "FaultIndicator.hpp"
-#include "Motor.h"
-#include "IMU_bno055.h"
-#include "Robot.h"
-#include "RobotNode.hpp"
+#include "common.h"
 
 extern std::shared_ptr<RobotNode> g_myRobotNode;
 

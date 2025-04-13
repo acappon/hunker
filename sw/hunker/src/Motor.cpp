@@ -1,24 +1,10 @@
 
-#include <iostream>
-#include <fstream>
-#include <csignal>
-#include <memory>
+#include "common.h"
 
 extern "C"
 {
 #include <lgpio.h>
 }
-
-#include "rclcpp/rclcpp.hpp"
-#include "sensor_msgs/msg/joy.hpp"
-
-#include "IMU_bno055.h"
-#include "MyGpio.hpp"
-#include "FaultIndicator.hpp"
-#include "Motor.h"
-#include "IMU_bno055.h"
-#include "Robot.h"
-#include "RobotNode.hpp"
 
 extern std::shared_ptr<RobotNode> g_myRobotNode;
 

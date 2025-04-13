@@ -1,0 +1,62 @@
+[0.014s] Invoking command in '/home/viking/hunker/sw/hunker/build/robot': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/jazzy DEBUGINFOD_URLS=https://debuginfod.ubuntu.com /usr/bin/cmake /home/viking/hunker/sw/hunker -DCMAKE_INSTALL_PREFIX=/home/viking/hunker/sw/hunker/install/robot
+[0.323s] -- The C compiler identification is GNU 13.3.0
+[0.583s] -- The CXX compiler identification is GNU 13.3.0
+[0.620s] -- Detecting C compiler ABI info
+[0.802s] -- Detecting C compiler ABI info - done
+[0.817s] -- Check for working C compiler: /usr/bin/cc - skipped
+[0.820s] -- Detecting C compile features
+[0.821s] -- Detecting C compile features - done
+[0.839s] -- Detecting CXX compiler ABI info
+[1.048s] -- Detecting CXX compiler ABI info - done
+[1.068s] -- Check for working CXX compiler: /usr/bin/c++ - skipped
+[1.068s] -- Detecting CXX compile features
+[1.069s] -- Detecting CXX compile features - done
+[1.071s] -- Found ament_cmake: 2.5.3 (/opt/ros/jazzy/share/ament_cmake/cmake)
+[1.305s] -- Found Python3: /usr/bin/python3 (found version "3.12.3") found components: Interpreter 
+[1.478s] -- Found rclcpp: 28.1.6 (/opt/ros/jazzy/share/rclcpp/cmake)
+[1.535s] -- Found rosidl_generator_c: 4.6.5 (/opt/ros/jazzy/share/rosidl_generator_c/cmake)
+[1.556s] -- Found rosidl_generator_cpp: 4.6.5 (/opt/ros/jazzy/share/rosidl_generator_cpp/cmake)
+[1.581s] -- Using all available rosidl_typesupport_c: rosidl_typesupport_fastrtps_c;rosidl_typesupport_introspection_c
+[1.610s] -- Using all available rosidl_typesupport_cpp: rosidl_typesupport_fastrtps_cpp;rosidl_typesupport_introspection_cpp
+[1.715s] -- Found rmw_implementation_cmake: 7.3.1 (/opt/ros/jazzy/share/rmw_implementation_cmake/cmake)
+[1.719s] -- Found rmw_fastrtps_cpp: 8.4.1 (/opt/ros/jazzy/share/rmw_fastrtps_cpp/cmake)
+[1.868s] -- Found OpenSSL: /usr/lib/aarch64-linux-gnu/libcrypto.so (found version "3.0.13")  
+[1.899s] -- Found FastRTPS: /opt/ros/jazzy/include (Required is at least version "2.13") 
+[1.937s] -- Using RMW implementation 'rmw_fastrtps_cpp' as default
+[2.037s] -- Found std_msgs: 5.3.5 (/opt/ros/jazzy/share/std_msgs/cmake)
+[2.057s] -- Found sensor_msgs: 5.3.5 (/opt/ros/jazzy/share/sensor_msgs/cmake)
+[2.267s] -- Configuring done (2.2s)
+[2.286s] -- Generating done (0.0s)
+[2.292s] -- Build files have been written to: /home/viking/hunker/sw/hunker/build/robot
+[2.317s] Invoked command in '/home/viking/hunker/sw/hunker/build/robot' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/jazzy DEBUGINFOD_URLS=https://debuginfod.ubuntu.com /usr/bin/cmake /home/viking/hunker/sw/hunker -DCMAKE_INSTALL_PREFIX=/home/viking/hunker/sw/hunker/install/robot
+[2.319s] Invoking command in '/home/viking/hunker/sw/hunker/build/robot': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/jazzy DEBUGINFOD_URLS=https://debuginfod.ubuntu.com /usr/bin/cmake --build /home/viking/hunker/sw/hunker/build/robot -- -j4 -l4
+[2.415s] [ 25%] [32mBuilding CXX object CMakeFiles/RobotNode.dir/src/FaultIndicator.cpp.o[0m
+[2.417s] [ 25%] [32mBuilding CXX object CMakeFiles/RobotNode.dir/src/RobotNode.cpp.o[0m
+[2.418s] [ 37%] [32mBuilding CXX object CMakeFiles/RobotNode.dir/src/main.cpp.o[0m
+[2.418s] [ 50%] [32mBuilding CXX object CMakeFiles/RobotNode.dir/src/MyGpio.cpp.o[0m
+[10.865s] [ 62%] [32mBuilding CXX object CMakeFiles/RobotNode.dir/src/Motor.cpp.o[0m
+[10.889s] [ 75%] [32mBuilding CXX object CMakeFiles/RobotNode.dir/src/Robot.cpp.o[0m
+[10.920s] [ 87%] [32mBuilding CXX object CMakeFiles/RobotNode.dir/src/BNO080.cpp.o[0m
+[21.891s] [100%] [32m[1mLinking CXX executable RobotNode[0m
+[23.014s] [100%] Built target RobotNode
+[23.037s] Invoked command in '/home/viking/hunker/sw/hunker/build/robot' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/jazzy DEBUGINFOD_URLS=https://debuginfod.ubuntu.com /usr/bin/cmake --build /home/viking/hunker/sw/hunker/build/robot -- -j4 -l4
+[23.056s] Invoking command in '/home/viking/hunker/sw/hunker/build/robot': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/jazzy DEBUGINFOD_URLS=https://debuginfod.ubuntu.com /usr/bin/cmake --install /home/viking/hunker/sw/hunker/build/robot
+[23.071s] -- Install configuration: "Debug"
+[23.072s] -- Installing: /home/viking/hunker/sw/hunker/install/robot/lib/robot/RobotNode
+[23.092s] -- Set non-toolchain portion of runtime path of "/home/viking/hunker/sw/hunker/install/robot/lib/robot/RobotNode" to ""
+[23.092s] -- Installing: /home/viking/hunker/sw/hunker/install/robot/share/ament_index/resource_index/package_run_dependencies/robot
+[23.093s] -- Installing: /home/viking/hunker/sw/hunker/install/robot/share/ament_index/resource_index/parent_prefix_path/robot
+[23.093s] -- Installing: /home/viking/hunker/sw/hunker/install/robot/share/robot/environment/ament_prefix_path.sh
+[23.093s] -- Installing: /home/viking/hunker/sw/hunker/install/robot/share/robot/environment/ament_prefix_path.dsv
+[23.093s] -- Installing: /home/viking/hunker/sw/hunker/install/robot/share/robot/environment/path.sh
+[23.093s] -- Installing: /home/viking/hunker/sw/hunker/install/robot/share/robot/environment/path.dsv
+[23.094s] -- Installing: /home/viking/hunker/sw/hunker/install/robot/share/robot/local_setup.bash
+[23.094s] -- Installing: /home/viking/hunker/sw/hunker/install/robot/share/robot/local_setup.sh
+[23.094s] -- Installing: /home/viking/hunker/sw/hunker/install/robot/share/robot/local_setup.zsh
+[23.094s] -- Installing: /home/viking/hunker/sw/hunker/install/robot/share/robot/local_setup.dsv
+[23.094s] -- Installing: /home/viking/hunker/sw/hunker/install/robot/share/robot/package.dsv
+[23.095s] -- Installing: /home/viking/hunker/sw/hunker/install/robot/share/ament_index/resource_index/packages/robot
+[23.095s] -- Installing: /home/viking/hunker/sw/hunker/install/robot/share/robot/cmake/robotConfig.cmake
+[23.095s] -- Installing: /home/viking/hunker/sw/hunker/install/robot/share/robot/cmake/robotConfig-version.cmake
+[23.095s] -- Installing: /home/viking/hunker/sw/hunker/install/robot/share/robot/package.xml
+[23.098s] Invoked command in '/home/viking/hunker/sw/hunker/build/robot' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/jazzy DEBUGINFOD_URLS=https://debuginfod.ubuntu.com /usr/bin/cmake --install /home/viking/hunker/sw/hunker/build/robot
