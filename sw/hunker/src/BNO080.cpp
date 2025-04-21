@@ -22,8 +22,7 @@
     Please see LICENSE.md for further details.
 */
 
-#include <sys/ioctl.h>
-#include <linux/i2c-dev.h>
+#include <termios.h> // For UART configuration
 #include <fcntl.h>
 #include <unistd.h>
 #include <string>
@@ -45,73 +44,194 @@ BNO080::BNO080()
 
 BNO080::~BNO080()
 {
-    if (m_i2c_fd > 0)
-    {
-        m_i2c_fd = lgI2cClose(m_i2c_fd);
-    }
+    closeUART();
 }
 
 // Attempt communication with the device
 // Return true if we got a 'Polo' back from Marco
-bool BNO080::begin(void)
+bool BNO080::begin(const char *uartDevice, int baudRate)
 {
-    if (!openI2C("/dev/i2c-1", BNO080_DEFAULT_ADDRESS))
-    {
-        return (false);
+    return configureUART(uartDevice, baudRate);
+}
+
+bool BNO080::configureUART(const char *device, int baudRate) 
+{
+    m_uart_fd = ::open(device, O_RDWR | O_NOCTTY); // Use the global namespace to avoid ambiguity
+    if (m_uart_fd == -1) {
+        return false; // Failed to open UART
+    }
+    
+    // Flush the UART buffers to remove any stale data
+    tcflush(m_uart_fd, TCIOFLUSH);
+
+    memset(&m_uart_config, 0, sizeof(m_uart_config));
+    if (tcgetattr(m_uart_fd, &m_uart_config) != 0) {
+        close(m_uart_fd);
+        return false; // Failed to get UART attributes
     }
 
-    // Begin by resetting the IMU
-    softReset();
+    // Set baud rate
+    cfsetispeed(&m_uart_config, baudRate);
+    cfsetospeed(&m_uart_config, baudRate);
 
-    // Check communication with device
-    shtpData[0] = SHTP_REPORT_PRODUCT_ID_REQUEST; // Request the product ID and reset info
-    shtpData[1] = 0;                              // Reserved
+    // Configure UART: 8-N-1 (8 data bits, no parity, 1 stop bit)
+    m_uart_config.c_cflag = CS8 | CLOCAL | CREAD; // 8 data bits, local connection, enable receiver
+    m_uart_config.c_cflag &= ~PARENB;            // No parity
+    m_uart_config.c_cflag &= ~CSTOPB;            // 1 stop bit
 
-    // Transmit packet on channel 2, 2 bytes
-    if (!sendPacket(CHANNEL_CONTROL, 2))
-    {
-        return (false);
+    // Disable hardware flow control
+    m_uart_config.c_cflag &= ~CRTSCTS;
+
+    // Configure raw input/output mode
+    m_uart_config.c_iflag = IGNPAR; // Ignore framing and parity errors
+    m_uart_config.c_oflag = 0;      // Raw output
+    m_uart_config.c_lflag = 0;      // Raw input (non-canonical mode)
+
+    // Set VMIN and VTIME for blocking read with timeout
+    m_uart_config.c_cc[VMIN] = 1;  // Wait for at least 1 byte
+    m_uart_config.c_cc[VTIME] = 10; // Timeout after 1 second (10 deciseconds)
+
+    // Apply the configuration
+    if (tcsetattr(m_uart_fd, TCSANOW, &m_uart_config) != 0) {
+        close(m_uart_fd);
+        return false; // Failed to set UART attributes
     }
 
-    // Now we wait for response
-    if (receivePacket() == true)
+    return true;
+}
+
+void BNO080::closeUART()
+{
+    if (m_uart_fd != -1)
     {
-        std::string msg = "receivePacket() OK: " + getPacketText();
-        perror("msg.c_str()");
-        if (shtpData[0] == SHTP_REPORT_PRODUCT_ID_RESPONSE)
+        close(m_uart_fd);
+        m_uart_fd = -1;
+    }
+}
+
+int BNO080::writeUART(const unsigned char *data, size_t length)
+{
+    if (m_uart_fd == -1)
+        return -1;
+
+    size_t totalBytesWritten = 0;
+    while (totalBytesWritten < length)
+    {
+        ssize_t bytesWritten = write(m_uart_fd, data + totalBytesWritten, length - totalBytesWritten);
+        if (bytesWritten < 0)
         {
-            return (true);
+            return -1; // Error occurred
+        }
+        totalBytesWritten += bytesWritten;
+    }
+
+    return totalBytesWritten; // Return the total number of bytes written
+}
+
+int BNO080::readUART(unsigned char *buffer, size_t length)
+{
+    if (m_uart_fd == -1)
+        return -1;
+
+    size_t totalBytesRead = 0;
+    while (totalBytesRead < length)
+    {
+        ssize_t bytesRead = read(m_uart_fd, buffer + totalBytesRead, length - totalBytesRead);
+        if (bytesRead < 0)
+        {
+            // Error occurred
+            return -1;
+        }
+        else if (bytesRead == 0)
+        {
+            // No more data available (end of file or timeout)
+            break;
+        }
+        totalBytesRead += bytesRead;
+    }
+
+    return totalBytesRead; // Return the total number of bytes read
+}
+
+bool BNO080::sendPacket(unsigned char channelNumber, unsigned char dataLength)
+{
+    if (dataLength + 4 > MAX_PACKET_SIZE)
+    {
+        return false; // Ensure the packet does not exceed the buffer size
+    }
+
+    unsigned char packet[MAX_PACKET_SIZE];
+
+    // Construct the 4-byte SHTP header
+    unsigned short packetLength = dataLength + 4; // Total length = header + payload
+    packet[0] = packetLength & 0xFF;              // Packet length LSB
+    packet[1] = (packetLength >> 8) & 0x7F;       // Packet length MSB (clear continuation flag)
+    packet[2] = channelNumber;                    // Channel number
+    packet[3] = sequenceNumber[channelNumber]++;  // Sequence number for the channel
+
+    // Add the payload
+    memcpy(packet + 4, shtpData, dataLength);
+
+    // Send the packet over UART
+    int bytesSent = writeUART(packet, packetLength);
+    return (bytesSent == packetLength);
+}
+
+bool BNO080::receivePacket()
+{
+    unsigned char buffer[MAX_PACKET_SIZE] = {0};
+
+    // Wait for 4 byte read (for header)
+    int bytesRead = readUART(buffer, 4);
+    if (bytesRead == 4)
+    {
+        // Copy the header to shtpHeader
+        memcpy(shtpHeader, buffer, 4);
+
+        // Check if the packet is valid
+        unsigned short packetLength = (shtpHeader[1] << 8) | shtpHeader[0];
+        if (packetLength > MAX_PACKET_SIZE)
+        {
+            return false; // Invalid packet length
+        }
+
+        // Read the rest of the packet
+        bytesRead = readUART(buffer, packetLength - 4);
+        if (bytesRead == packetLength - 4)
+        {
+            memcpy(shtpData, buffer, bytesRead);
+            return true;
         }
     }
 
-    return (false); // Something went wrong
+    return false;
 }
 
-// Open the I2C device and set the slave address.
-bool BNO080::openI2C(const char *device, int address)
+// Returns true if data is available on the UART interface
+bool BNO080::isDataAvailable(int timeoutMs)
 {
-    bool bRet = true;
+    if (m_uart_fd == -1)
+        return false;
 
-    int i2cDev = 1; // I2C bus number (commonly 1 on many SBCs)
-    int i2cAddr = BNO080_DEFAULT_ADDRESS;
-    int i2cFlags = 0; // No special flags
+    fd_set readfds;
+    struct timeval timeout;
 
-    m_i2c_fd = lgI2cOpen(i2cDev, i2cAddr, i2cFlags);
-    if (m_i2c_fd < 0)
+    // Initialize the file descriptor set
+    FD_ZERO(&readfds);
+    FD_SET(m_uart_fd, &readfds);
+
+    // Set the timeout
+    timeout.tv_sec = timeoutMs / 1000;           // Seconds
+    timeout.tv_usec = (timeoutMs % 1000) * 1000; // Microseconds
+
+    // Wait for data to become available
+    int result = select(m_uart_fd + 1, &readfds, NULL, NULL, &timeout);
+    if (result > 0 && FD_ISSET(m_uart_fd, &readfds))
     {
-        std::string errMsg = "lgI2cOpen() failed, " + std::to_string(m_i2c_fd);
-        perror(errMsg.c_str());
-        bRet = false;
+        return true; // Data is available
     }
 
-    return bRet;
-}
-
-// Updates the latest variables if possible
-// Returns false if new readings are not available
-bool BNO080::dataAvailable(void)
-{
-    return (getReadings() != 0);
+    return false; // No data available or timeout occurred
 }
 
 unsigned short BNO080::getReadings(void)
@@ -985,49 +1105,68 @@ bool BNO080::readFRSdata(unsigned short recordID, unsigned char startLocation, u
     }
 }
 
+void BNO080::flushAllIncomingData()
+{
+    // Read all incoming data and flush it
+    unsigned char buffer[64];
+    int i=0;
+    for(int i = 0; i < 20; i++)
+    {
+        if(isDataAvailable(10))
+        {
+            i--;  // Keep reading until it times out 20 times
+            read(m_uart_fd, buffer, 1);
+        }
+    }
+}
+
 // Send command to reset IC
 // Read all advertisement packets from sensor
 // The sensor has been seen to reset twice if we attempt too much too quickly.
 // This seems to work reliably.
-void BNO080::softReset(void)
+std::string BNO080::softReset(void)
 {
-    shtpData[0] = 1; // Reset
+    std::string sRet;
+    shtpData[0] = SHTP_REPORT_COMMAND_REQUEST; // Command request
+    shtpData[1] = 1;                          // Reset command
+    shtpData[2] = 0;                          // Reserved
+    shtpData[3] = 0;                          // Reserved
 
     // Attempt to start communication with sensor
-    if (!sendPacket(CHANNEL_EXECUTABLE, 1)) // Transmit packet on channel 1, 1 byte
+    if (!sendPacket(CHANNEL_EXECUTABLE, 4)) 
     {
-        return; // If we can't send the packet, don't continue
+        sRet = "Failed sending reset command";
+        return sRet; // If we can't send the packet, don't continue
     }
+    sRet = "Reset command sent";
+    return sRet;
+}
 
-    if (waitForI2C())
+std::string BNO080::requestProductID()
+{
+    std::string sRet;
+
+    shtpData[0] = SHTP_REPORT_PRODUCT_ID_REQUEST; // Request the product ID and reset info
+    shtpData[1] = 0;                              // Reserved
+
+    // Transmit packet on channel 2, 2 bytes
+    if(!sendPacket(CHANNEL_CONTROL, 2))
     {
-        if (!receivePacket())
-        {
-            return; // If we can't receive the packet, don't continue
-        }
-    }
-    else
-    {
-        perror("waitForI2C timed out");
-    }
+        sRet = "Failed reset, sending product ID request";
+        return sRet; // If we can't send the packet, don't continue
+    }   
+    sRet = "Product ID request sent";
+    return sRet;    
 }
 
 // Set the operating mode to "On"
 //(This one is for @jerabaul29)
-void BNO080::modeOn(void)
+void BNO080::modeOn()
 {
     shtpData[0] = 2; // On
 
     // Attempt to start communication with sensor
     sendPacket(CHANNEL_EXECUTABLE, 1); // Transmit packet on channel 1, 1 byte
-
-    // Read all incoming data and flush it
-    sleep_ms(50);
-    while (receivePacket() == true)
-        ; // delay(1);
-    sleep_ms(50);
-    while (receivePacket() == true)
-        ; // delay(1);
 }
 
 // Set the operating mode to "Sleep"
@@ -1038,14 +1177,6 @@ void BNO080::modeSleep(void)
 
     // Attempt to start communication with sensor
     sendPacket(CHANNEL_EXECUTABLE, 1); // Transmit packet on channel 1, 1 byte
-
-    // Read all incoming data and flush it
-    sleep_ms(50);
-    while (receivePacket() == true)
-        ; // delay(1);
-    sleep_ms(50);
-    while (receivePacket() == true)
-        ; // delay(1);
 }
 
 // Indicates if we've received a Reset Complete packet. Once it's been read,
@@ -1424,171 +1555,6 @@ void BNO080::saveCalibration()
 
     // Using this shtpData packet, send a command
     sendCommand(COMMAND_DCD); // Save DCD command
-}
-
-// Wait a certain time for incoming I2C bytes before giving up
-// Returns false if failed
-bool BNO080::waitForI2C()
-{
-    // Loop up to 100 times, waiting 1ms each iteration.
-    for (unsigned char counter = 0; counter < 100; counter++)
-    {
-        int available = 0;
-        if (ioctl(m_i2c_fd, FIONREAD, &available) == -1)
-        {
-            perror("ioctl FIONREAD failed");
-             return 0;
-        }
-        if (available > 0)
-        {
-            return true; // Data is available to read.
-        }
-    }
-    return false; // Timed out waiting for data.
-}
-
-
-// Sends multiple requests to sensor until all data bytes are received from sensor
-// The shtpData buffer has max capacity of MAX_PACKET_SIZE. Any bytes over this amount will be lost.
-// Arduino I2C read limit is 32 bytes. Header is 4 bytes, so max data we can read per interation is 28 bytes
-bool BNO080::getData(unsigned short bytesRemaining)
-{
-    unsigned short dataSpot = 0; // Start at the beginning of shtpData array.
-    // Define a chunk size. Arduino used (I2C_BUFFER_LENGTH - 4) because of its limit (typically 28 bytes).
-    // On Linux this limitation does not exist, but you can still use a chunk size if desired.
-    const unsigned short CHUNK_SIZE = 28;
-
-    while (bytesRemaining > 0)
-    {
-        // Determine the number of bytes to read in this chunk.
-        unsigned short numberOfBytesToRead = (bytesRemaining > CHUNK_SIZE) ? CHUNK_SIZE : bytesRemaining;
-
-        // Optionally wait until data is available on the I2C bus.
-        if (!waitForI2C())
-        {
-            perror("getData: waitForI2C timeout");
-            return false;
-        }
-
-        // Read and discard the 4 header bytes.
-        unsigned char header[4];
-        int ret = read(m_i2c_fd, (char *)header, 4);
-        if (ret != 4)
-        {
-            perror("getData: read header");
-            return false;
-        }
-
-        // Read the actual data into shtpData.
-        ret = read(m_i2c_fd, (char *)shtpData + dataSpot, numberOfBytesToRead);
-        if (ret != numberOfBytesToRead)
-        {
-            perror("getData: read data chunk");
-            return false;
-        }
-
-        dataSpot += numberOfBytesToRead;
-        bytesRemaining -= numberOfBytesToRead;
-    }
-    return true;
-}
-
-// Given the data packet, send the header then the data
-// Returns false if sensor does not ACK
-// TODO - Arduino has a max 32 byte send. Break sending into multi packets if needed.
-bool BNO080::sendPacket(unsigned char channelNumber, unsigned char dataLength)
-{
-    // The packet header is 4 bytes: length LSB, length MSB, channel, and sequence number.
-    unsigned char packetLength = dataLength + 4;
-    char buf[256] = {0};             // Ensure your buffer is large enough
-    buf[0] = packetLength & 0xFF;             // Packet length LSB
-    buf[1] = (packetLength >> 8) & 0xFF;      // Packet length MSB
-    buf[2] = channelNumber;                   // Channel number
-    buf[3] = sequenceNumber[channelNumber]++; // Use a per-channel sequence counter
-
-    // Copy the data from shtpData into buf after the header.
-    memcpy(buf + 4, shtpData, dataLength);
-
-    // Write the whole packet.
-    int iRet = lgI2cWriteBlockData(m_i2c_fd, channelNumber, buf, packetLength);
-    if (iRet < 0)
-    {
-        std::string errMsg = "i2c write error: " + std::to_string(iRet);
-        perror(errMsg.c_str());
-        return false; // Error writing to I2C
-    }
-
-    return true;
-}
-
-// Check to see if there is any new data available
-// Read the contents of the incoming packet into the shtpData array
-bool BNO080::receivePacket(void)
-{
-    if(!waitForI2C())
-    {
-        perror("receivePacket: waitForI2C timeout");
-        return false;
-    }
-
-    // First read the 4-byte packet header.
-    char header[4] = {0};
-    int i=0, iResult = 0;
-    for (i = 0; i < 4; i++)
-    {
-        iResult = lgI2cReadByte(m_i2c_fd);
-        if (iResult < 0)
-        {
-            std::string errMsg = "i2c header read error: " + std::to_string(iResult);
-            perror(errMsg.c_str());
-            return false; // Error reading header from I2C
-        }
-        else
-        {
-            header[i] = iResult & 0xFF;
-        }
-    }
-
-    // Store the header into shtpHeader.
-    shtpHeader[0] = header[0];
-    shtpHeader[1] = header[1];
-    shtpHeader[2] = header[2];
-    shtpHeader[3] = header[3];
-
-    // Calculate the number of data bytes.
-    unsigned short dataLength = ((unsigned short)header[1] << 8) | header[0];
-    dataLength &= ~(1 << 15); // Clear the continuation flag.
-    if (dataLength == 0)
-        return false; // No data
-    else if (dataLength > MAX_PACKET_SIZE)
-        return false; // Invalid packet
-
-    dataLength -= 4; // Remove header bytes
-
-    // Read the data bytes into shtpData.
-    memset(shtpData, 0, sizeof(shtpData)); // Clear the shtpData array
-    for (i = 0; i < dataLength; i++)
-    {
-        iResult = lgI2cReadByte(m_i2c_fd);
-        if (iResult < 0)
-        {
-            std::string errMsg = "i2c data read error: " + std::to_string(iResult);
-            perror(errMsg.c_str());
-            return false; // Error reading header from I2C
-        }
-        else
-        {
-            shtpData[i] = iResult & 0xFF;
-        }
-    }
-
-    // Optionally, check for any special conditions (e.g. EXECUTABLE_RESET_COMPLETE)
-    if (shtpHeader[2] == CHANNEL_EXECUTABLE && shtpData[0] == EXECUTABLE_RESET_COMPLETE)
-    {
-        _hasReset = true;
-    }
-
-    return true;
 }
 
 // Pretty prints the contents of the current shtp header and data packets

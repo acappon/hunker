@@ -7,8 +7,15 @@ RobotNode::RobotNode()
 {
 }
 
+RobotNode::~RobotNode()
+{
+    stopIMUThread();
+}
+
 void RobotNode::init()
 {
+    std::string sRet;
+
     try
     {
         m_isControllerConnected = false;
@@ -34,12 +41,48 @@ void RobotNode::init()
         m_robotTimer = this->create_wall_timer(
             std::chrono::milliseconds(20),
             std::bind(&RobotNode::robotFunction, this));
+
+        // Start the IMU thread
+        //m_runIMUThread = true;
+        //m_imuThread = std::thread(&RobotNode::imuThreadFunction, this);
+
+        if (!m_imu.begin("/dev/ttyAMA0", B115200))
+        {
+            g_myRobotNode->writeLog("Failed to initialize UART");
+            return;
+        }
+        
+        m_imu.sleep_ms(100); // Wait for the IMU thread to start
+        sRet = m_imu.softReset();
+        m_imu.sleep_ms(200); // Wait for the IMU reset
+        m_imu.flushAllIncomingData();
+        m_imu.sleep_ms(100); // Wait for the IMU to be ready
+
+        sRet = m_imu.requestProductID();
+
+        m_imu.receivePacket();
+        sRet = m_imu.getHexText_8(m_imu.shtpData, 20);
+        writeLog("Product ID: %s", sRet.c_str());       
+
+
+
+        m_imu.enableAccelerometer(100);
+        m_imu.modeOn();
     }
     catch (const std::exception &e)
     {
         writeLog("Exception in RobotNode::init()");
         m_faultIndicator.setFault(FaultIndicator::FAULT_TYPE::FAULT_EXCEPTION, true);
         writeLog(e.what());
+    }
+}
+
+void RobotNode::stopIMUThread()
+{
+    m_runIMUThread = false; // Signal the thread to stop
+    if (m_imuThread.joinable())
+    {
+        m_imuThread.join(); // Wait for the thread to finish
     }
 }
 
@@ -109,6 +152,19 @@ void RobotNode::robotFunction()
         writeLog("Stack trace: %s", getStackTrace().c_str());
 
         m_faultIndicator.setFault(FaultIndicator::FAULT_TYPE::FAULT_EXCEPTION, true);
+    }
+}
+
+void RobotNode::imuThreadFunction()
+{
+    std::string sRet;
+    unsigned char buffer[256]; // Buffer for receiving IMU messages
+
+    while (m_runIMUThread)
+    {
+        unsigned short wRet = m_imu.getReadings();
+        sRet = wRet + "   " + m_imu.getPacketText();
+        writeLog(sRet);
     }
 }
 

@@ -39,7 +39,6 @@ public:
     void hunkeredPeriodic();
 
 public:
-    BNO080 m_imu;
     Motor m_myMotors;
 
 private:

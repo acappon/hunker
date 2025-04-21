@@ -18,11 +18,6 @@ void Robot::init()
     m_robotState = ROBOT_STATE_DISABLED;
     m_deck_pitch = 0.0;
     m_deck_roll = 0.0;
-
-    m_imu.begin();
-    m_imu.modeOn();
-    m_imu.enableRawAccelerometer(20); 
-    m_imu.waitForI2C();
  
     m_myMotors.init();
 
@@ -117,12 +112,6 @@ bool Robot::isFullyFolded()
 
 void Robot::periodic()
 {
-    short wRet = m_imu.getReadings();
-    if(wRet != 0)
-    {
-        std::string msg = m_imu.getPacketText();
-        g_myRobotNode->writeLog(msg);    
-    }
     if (!g_myRobotNode->isRobotEnabled())
     {
         m_robotState = ROBOT_STATE_DISABLED;
@@ -130,7 +119,7 @@ void Robot::periodic()
     else
     {
         estimateDeckOrientation();
-        if (m_imu.isAirborne())
+        if (g_myRobotNode->m_imu.isAirborne())
         {
             m_robotState = ROBOT_STATE_AIRBORNE;
         }

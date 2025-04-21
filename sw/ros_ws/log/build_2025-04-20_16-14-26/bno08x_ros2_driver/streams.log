@@ -1,0 +1,83 @@
+[0.029s] Invoking command in '/home/viking/hunker/sw/ros_ws/build/bno08x_ros2_driver': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/jazzy DEBUGINFOD_URLS=https://debuginfod.ubuntu.com /usr/bin/cmake /home/viking/hunker/sw/ros_ws/src/bno08x_ros2_driver -DCMAKE_INSTALL_PREFIX=/home/viking/hunker/sw/ros_ws/install/bno08x_ros2_driver
+[0.366s] -- The C compiler identification is GNU 13.3.0
+[0.607s] -- The CXX compiler identification is GNU 13.3.0
+[0.638s] -- Detecting C compiler ABI info
+[0.817s] -- Detecting C compiler ABI info - done
+[0.832s] -- Check for working C compiler: /usr/bin/cc - skipped
+[0.834s] -- Detecting C compile features
+[0.835s] -- Detecting C compile features - done
+[0.853s] -- Detecting CXX compiler ABI info
+[1.137s] -- Detecting CXX compiler ABI info - done
+[1.149s] -- Check for working CXX compiler: /usr/bin/c++ - skipped
+[1.149s] -- Detecting CXX compile features
+[1.150s] -- Detecting CXX compile features - done
+[1.155s] -- Found ament_cmake: 2.5.3 (/opt/ros/jazzy/share/ament_cmake/cmake)
+[1.416s] -- Found Python3: /usr/bin/python3 (found version "3.12.3") found components: Interpreter 
+[1.671s] -- Found rclcpp: 28.1.6 (/opt/ros/jazzy/share/rclcpp/cmake)
+[1.728s] -- Found rosidl_generator_c: 4.6.5 (/opt/ros/jazzy/share/rosidl_generator_c/cmake)
+[1.748s] -- Found rosidl_generator_cpp: 4.6.5 (/opt/ros/jazzy/share/rosidl_generator_cpp/cmake)
+[1.774s] -- Using all available rosidl_typesupport_c: rosidl_typesupport_fastrtps_c;rosidl_typesupport_introspection_c
+[1.801s] -- Using all available rosidl_typesupport_cpp: rosidl_typesupport_fastrtps_cpp;rosidl_typesupport_introspection_cpp
+[1.908s] -- Found rmw_implementation_cmake: 7.3.1 (/opt/ros/jazzy/share/rmw_implementation_cmake/cmake)
+[1.912s] -- Found rmw_fastrtps_cpp: 8.4.1 (/opt/ros/jazzy/share/rmw_fastrtps_cpp/cmake)
+[2.046s] -- Found OpenSSL: /usr/lib/aarch64-linux-gnu/libcrypto.so (found version "3.0.13")  
+[2.075s] -- Found FastRTPS: /opt/ros/jazzy/include (Required is at least version "2.13") 
+[2.111s] -- Using RMW implementation 'rmw_fastrtps_cpp' as default
+[2.218s] -- Found sensor_msgs: 5.3.5 (/opt/ros/jazzy/share/sensor_msgs/cmake)
+[2.315s] -- Found ament_cmake_gmock: 2.5.3 (/opt/ros/jazzy/share/ament_cmake_gmock/cmake)
+[2.322s] -- Found ament_cmake_gtest: 2.5.3 (/opt/ros/jazzy/share/ament_cmake_gtest/cmake)
+[2.331s] -- Found gmock sources under '/opt/ros/jazzy/src/gmock_vendor': C++ tests using 'Google Mock' will be built
+[2.344s] -- Found gtest sources under '/opt/ros/jazzy/src/gtest_vendor': C++ tests using 'Google Test' will be built
+[2.630s] -- Configuring done (2.6s)
+[2.675s] -- Generating done (0.0s)
+[2.688s] -- Build files have been written to: /home/viking/hunker/sw/ros_ws/build/bno08x_ros2_driver
+[2.723s] Invoked command in '/home/viking/hunker/sw/ros_ws/build/bno08x_ros2_driver' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/jazzy DEBUGINFOD_URLS=https://debuginfod.ubuntu.com /usr/bin/cmake /home/viking/hunker/sw/ros_ws/src/bno08x_ros2_driver -DCMAKE_INSTALL_PREFIX=/home/viking/hunker/sw/ros_ws/install/bno08x_ros2_driver
+[2.726s] Invoking command in '/home/viking/hunker/sw/ros_ws/build/bno08x_ros2_driver': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/jazzy DEBUGINFOD_URLS=https://debuginfod.ubuntu.com /usr/bin/cmake --build /home/viking/hunker/sw/ros_ws/build/bno08x_ros2_driver -- -j4 -l4
+[2.840s] [  6%] [32mBuilding CXX object gmock/CMakeFiles/gmock.dir/opt/ros/jazzy/src/gtest_vendor/src/gtest-all.cc.o[0m
+[2.857s] [ 12%] [32mBuilding C object include/sh2/CMakeFiles/sh2_library.dir/sh2.c.o[0m
+[2.860s] [ 18%] [32mBuilding C object include/sh2/CMakeFiles/sh2_library.dir/sh2_SensorValue.c.o[0m
+[2.898s] [ 25%] [32mBuilding CXX object gmock/CMakeFiles/gmock_main.dir/src/gmock_main.cc.o[0m
+[3.073s] [ 31%] [32mBuilding C object include/sh2/CMakeFiles/sh2_library.dir/sh2_util.c.o[0m
+[3.180s] [ 37%] [32mBuilding C object include/sh2/CMakeFiles/sh2_library.dir/shtp.c.o[0m
+[3.184s] [ 43%] [32mBuilding CXX object gmock/CMakeFiles/gmock.dir/src/gmock-all.cc.o[0m
+[3.305s] [ 50%] [32m[1mLinking C static library libsh2_library.a[0m
+[3.457s] [ 50%] Built target sh2_library
+[3.553s] [ 56%] [32mBuilding CXX object CMakeFiles/bno08x_driver.dir/src/bno08x.cpp.o[0m
+[5.334s] [ 62%] [32mBuilding CXX object CMakeFiles/bno08x_driver.dir/src/bno08x_ros.cpp.o[0m
+[7.010s] [ 68%] [32m[1mLinking CXX static library libgmock_main.a[0m
+[7.232s] [ 68%] Built target gmock_main
+[7.280s] [ 75%] [32mBuilding CXX object CMakeFiles/bno08x_driver.dir/src/ros_node.cpp.o[0m
+[15.167s] [ 81%] [32m[1mLinking CXX static library libgmock.a[0m
+[15.481s] [ 81%] Built target gmock
+[15.534s] [ 87%] [32mBuilding CXX object CMakeFiles/test_i2c_mock.dir/test/i2c_interface_mock_test.cpp.o[0m
+[20.535s] [ 93%] [32m[1mLinking CXX executable test_i2c_mock[0m
+[20.990s] [100%] [32m[1mLinking CXX executable bno08x_driver[0m
+[21.625s] [100%] Built target test_i2c_mock
+[21.728s] [100%] Built target bno08x_driver
+[21.749s] Invoked command in '/home/viking/hunker/sw/ros_ws/build/bno08x_ros2_driver' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/jazzy DEBUGINFOD_URLS=https://debuginfod.ubuntu.com /usr/bin/cmake --build /home/viking/hunker/sw/ros_ws/build/bno08x_ros2_driver -- -j4 -l4
+[21.767s] Invoking command in '/home/viking/hunker/sw/ros_ws/build/bno08x_ros2_driver': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/jazzy DEBUGINFOD_URLS=https://debuginfod.ubuntu.com /usr/bin/cmake --install /home/viking/hunker/sw/ros_ws/build/bno08x_ros2_driver
+[21.782s] -- Install configuration: ""
+[21.782s] -- Installing: /home/viking/hunker/sw/ros_ws/install/bno08x_ros2_driver/lib/bno08x_ros2_driver/bno08x_driver
+[21.786s] -- Set non-toolchain portion of runtime path of "/home/viking/hunker/sw/ros_ws/install/bno08x_ros2_driver/lib/bno08x_ros2_driver/bno08x_driver" to ""
+[21.786s] -- Installing: /home/viking/hunker/sw/ros_ws/install/bno08x_ros2_driver/share/bno08x_ros2_driver/config
+[21.787s] -- Installing: /home/viking/hunker/sw/ros_ws/install/bno08x_ros2_driver/share/bno08x_ros2_driver/config/bno085_i2c.yaml
+[21.787s] -- Installing: /home/viking/hunker/sw/ros_ws/install/bno08x_ros2_driver/share/bno08x_ros2_driver/config/bno085_uart.yaml
+[21.787s] -- Installing: /home/viking/hunker/sw/ros_ws/install/bno08x_ros2_driver/share/bno08x_ros2_driver/launch
+[21.787s] -- Installing: /home/viking/hunker/sw/ros_ws/install/bno08x_ros2_driver/share/bno08x_ros2_driver/launch/bno085_i2c.launch.py
+[21.787s] -- Installing: /home/viking/hunker/sw/ros_ws/install/bno08x_ros2_driver/share/bno08x_ros2_driver/launch/bno085_uart.launch.py
+[21.788s] -- Installing: /home/viking/hunker/sw/ros_ws/install/bno08x_ros2_driver/share/ament_index/resource_index/package_run_dependencies/bno08x_ros2_driver
+[21.788s] -- Installing: /home/viking/hunker/sw/ros_ws/install/bno08x_ros2_driver/share/ament_index/resource_index/parent_prefix_path/bno08x_ros2_driver
+[21.788s] -- Installing: /home/viking/hunker/sw/ros_ws/install/bno08x_ros2_driver/share/bno08x_ros2_driver/environment/ament_prefix_path.sh
+[21.788s] -- Installing: /home/viking/hunker/sw/ros_ws/install/bno08x_ros2_driver/share/bno08x_ros2_driver/environment/ament_prefix_path.dsv
+[21.788s] -- Installing: /home/viking/hunker/sw/ros_ws/install/bno08x_ros2_driver/share/bno08x_ros2_driver/environment/path.sh
+[21.789s] -- Installing: /home/viking/hunker/sw/ros_ws/install/bno08x_ros2_driver/share/bno08x_ros2_driver/environment/path.dsv
+[21.789s] -- Installing: /home/viking/hunker/sw/ros_ws/install/bno08x_ros2_driver/share/bno08x_ros2_driver/local_setup.bash
+[21.789s] -- Installing: /home/viking/hunker/sw/ros_ws/install/bno08x_ros2_driver/share/bno08x_ros2_driver/local_setup.sh
+[21.789s] -- Installing: /home/viking/hunker/sw/ros_ws/install/bno08x_ros2_driver/share/bno08x_ros2_driver/local_setup.zsh
+[21.789s] -- Installing: /home/viking/hunker/sw/ros_ws/install/bno08x_ros2_driver/share/bno08x_ros2_driver/local_setup.dsv
+[21.790s] -- Installing: /home/viking/hunker/sw/ros_ws/install/bno08x_ros2_driver/share/bno08x_ros2_driver/package.dsv
+[21.790s] -- Installing: /home/viking/hunker/sw/ros_ws/install/bno08x_ros2_driver/share/ament_index/resource_index/packages/bno08x_ros2_driver
+[21.790s] -- Installing: /home/viking/hunker/sw/ros_ws/install/bno08x_ros2_driver/share/bno08x_ros2_driver/cmake/bno08x_ros2_driverConfig.cmake
+[21.790s] -- Installing: /home/viking/hunker/sw/ros_ws/install/bno08x_ros2_driver/share/bno08x_ros2_driver/cmake/bno08x_ros2_driverConfig-version.cmake
+[21.790s] -- Installing: /home/viking/hunker/sw/ros_ws/install/bno08x_ros2_driver/share/bno08x_ros2_driver/package.xml
+[21.794s] Invoked command in '/home/viking/hunker/sw/ros_ws/build/bno08x_ros2_driver' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/jazzy DEBUGINFOD_URLS=https://debuginfod.ubuntu.com /usr/bin/cmake --install /home/viking/hunker/sw/ros_ws/build/bno08x_ros2_driver

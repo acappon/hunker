@@ -1,0 +1,10 @@
+/home/viking/hunker/sw/hunker/build/CMakeFiles/uninstall.dir
+/home/viking/hunker/sw/hunker/build/CMakeFiles/robot_uninstall.dir
+/home/viking/hunker/sw/hunker/build/CMakeFiles/RobotNode.dir
+/home/viking/hunker/sw/hunker/build/CMakeFiles/test.dir
+/home/viking/hunker/sw/hunker/build/CMakeFiles/edit_cache.dir
+/home/viking/hunker/sw/hunker/build/CMakeFiles/rebuild_cache.dir
+/home/viking/hunker/sw/hunker/build/CMakeFiles/list_install_components.dir
+/home/viking/hunker/sw/hunker/build/CMakeFiles/install.dir
+/home/viking/hunker/sw/hunker/build/CMakeFiles/install/local.dir
+/home/viking/hunker/sw/hunker/build/CMakeFiles/install/strip.dir

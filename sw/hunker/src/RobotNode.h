@@ -5,7 +5,9 @@ class RobotNode : public rclcpp::Node
 {
 public:
     RobotNode();
+    ~RobotNode();
     void init();
+    void stopIMUThread();
 
     void writeLog(const std::string &msg, ...);
     bool isRobotEnabled();
@@ -43,9 +45,13 @@ public:
     MyGpio m_myGpio;
     FaultIndicator m_faultIndicator;
 
+    BNO080 m_imu;
+
 private: // functions
     void safetyFunction();
     void robotFunction();
+    void imuThreadFunction(); // Thread function for receiving IMU messages
+
     void checkControllerConnection();
     void checkRobotEnableDisable();
     void updateLEDs();
@@ -59,7 +65,7 @@ private: // functions
 
 private: // data
     Robot m_robot;
-
+ 
     rclcpp::Subscription<sensor_msgs::msg::Joy>::SharedPtr m_joystick_sub;
 
     rclcpp::Time m_last_joy_msg_time;
@@ -69,6 +75,9 @@ private: // data
 
     rclcpp::TimerBase::SharedPtr m_safetyTimer;
     rclcpp::TimerBase::SharedPtr m_robotTimer;
+
+    std::thread m_imuThread;          // Thread for IMU communication
+    std::atomic<bool> m_runIMUThread; // Flag to control the thread's execution
 };
 
 #endif // ROBOT_NODE_HPP

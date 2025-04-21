@@ -1,0 +1,28 @@
+[ 31%] Built target sh2_library
+[ 43%] Built target gmock_main
+[ 62%] Built target gmock
+[ 87%] Built target bno08x_driver
+[100%] Built target test_i2c_mock
+-- Install configuration: ""
+-- Up-to-date: /home/viking/hunker/sw/ros_ws/install/bno08x_ros2_driver/lib/bno08x_ros2_driver/bno08x_driver
+-- Up-to-date: /home/viking/hunker/sw/ros_ws/install/bno08x_ros2_driver/share/bno08x_ros2_driver/config
+-- Up-to-date: /home/viking/hunker/sw/ros_ws/install/bno08x_ros2_driver/share/bno08x_ros2_driver/config/bno085_i2c.yaml
+-- Installing: /home/viking/hunker/sw/ros_ws/install/bno08x_ros2_driver/share/bno08x_ros2_driver/config/bno085_uart.yaml
+-- Up-to-date: /home/viking/hunker/sw/ros_ws/install/bno08x_ros2_driver/share/bno08x_ros2_driver/launch
+-- Up-to-date: /home/viking/hunker/sw/ros_ws/install/bno08x_ros2_driver/share/bno08x_ros2_driver/launch/bno085_i2c.launch.py
+-- Up-to-date: /home/viking/hunker/sw/ros_ws/install/bno08x_ros2_driver/share/bno08x_ros2_driver/launch/bno085_uart.launch.py
+-- Up-to-date: /home/viking/hunker/sw/ros_ws/install/bno08x_ros2_driver/share/ament_index/resource_index/package_run_dependencies/bno08x_ros2_driver
+-- Up-to-date: /home/viking/hunker/sw/ros_ws/install/bno08x_ros2_driver/share/ament_index/resource_index/parent_prefix_path/bno08x_ros2_driver
+-- Up-to-date: /home/viking/hunker/sw/ros_ws/install/bno08x_ros2_driver/share/bno08x_ros2_driver/environment/ament_prefix_path.sh
+-- Up-to-date: /home/viking/hunker/sw/ros_ws/install/bno08x_ros2_driver/share/bno08x_ros2_driver/environment/ament_prefix_path.dsv
+-- Up-to-date: /home/viking/hunker/sw/ros_ws/install/bno08x_ros2_driver/share/bno08x_ros2_driver/environment/path.sh
+-- Up-to-date: /home/viking/hunker/sw/ros_ws/install/bno08x_ros2_driver/share/bno08x_ros2_driver/environment/path.dsv
+-- Up-to-date: /home/viking/hunker/sw/ros_ws/install/bno08x_ros2_driver/share/bno08x_ros2_driver/local_setup.bash
+-- Up-to-date: /home/viking/hunker/sw/ros_ws/install/bno08x_ros2_driver/share/bno08x_ros2_driver/local_setup.sh
+-- Up-to-date: /home/viking/hunker/sw/ros_ws/install/bno08x_ros2_driver/share/bno08x_ros2_driver/local_setup.zsh
+-- Up-to-date: /home/viking/hunker/sw/ros_ws/install/bno08x_ros2_driver/share/bno08x_ros2_driver/local_setup.dsv
+-- Installing: /home/viking/hunker/sw/ros_ws/install/bno08x_ros2_driver/share/bno08x_ros2_driver/package.dsv
+-- Up-to-date: /home/viking/hunker/sw/ros_ws/install/bno08x_ros2_driver/share/ament_index/resource_index/packages/bno08x_ros2_driver
+-- Up-to-date: /home/viking/hunker/sw/ros_ws/install/bno08x_ros2_driver/share/bno08x_ros2_driver/cmake/bno08x_ros2_driverConfig.cmake
+-- Up-to-date: /home/viking/hunker/sw/ros_ws/install/bno08x_ros2_driver/share/bno08x_ros2_driver/cmake/bno08x_ros2_driverConfig-version.cmake
+-- Up-to-date: /home/viking/hunker/sw/ros_ws/install/bno08x_ros2_driver/share/bno08x_ros2_driver/package.xml

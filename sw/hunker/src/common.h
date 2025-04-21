@@ -3,6 +3,7 @@
 #include <fstream>
 #include <execinfo.h>
 #include <cstring>
+#include <termios.h> // For UART configuration
 
 #include <rclcpp/rclcpp.hpp>
 #include "sensor_msgs/msg/joy.hpp"

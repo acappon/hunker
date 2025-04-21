@@ -12,9 +12,6 @@ public:
         GPIO_LED_ENABLE = 4,
         GPIO_LED_FAULT = 17,
 
-        GPIO_I2C_SCL = 2,
-        GPIO_I2C_SDA = 3,
-
         // GPIOs are chosen for each wheel to be close to each other on the
         // connector
         GPIO_R_WHEEL_ENABLE = 27,

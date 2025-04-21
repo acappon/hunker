@@ -1,0 +1,306 @@
+[0.000000] (-) TimerEvent: {}
+[0.000540] (bno08x_ros2_driver) JobQueued: {'identifier': 'bno08x_ros2_driver', 'dependencies': OrderedDict()}
+[0.000930] (bno08x_ros2_driver) JobStarted: {'identifier': 'bno08x_ros2_driver'}
+[0.026230] (bno08x_ros2_driver) JobProgress: {'identifier': 'bno08x_ros2_driver', 'progress': 'cmake'}
+[0.027393] (bno08x_ros2_driver) Command: {'cmd': ['/usr/bin/cmake', '/home/viking/hunker/sw/ros_ws/src/bno08x_ros2_driver', '-DCMAKE_INSTALL_PREFIX=/home/viking/hunker/sw/ros_ws/install/bno08x_ros2_driver'], 'cwd': '/home/viking/hunker/sw/ros_ws/build/bno08x_ros2_driver', 'env': OrderedDict({'LESSOPEN': '| /usr/bin/lesspipe %s', 'USER': 'viking', 'SSH_CLIENT': '172.24.1.227 33676 22', 'GZ_CONFIG_PATH': '/opt/ros/jazzy/opt/sdformat_vendor/share/gz', 'XDG_SESSION_TYPE': 'tty', 'SHLVL': '1', 'LD_LIBRARY_PATH': '/opt/ros/jazzy/opt/sdformat_vendor/lib:/opt/ros/jazzy/opt/rviz_ogre_vendor/lib:/opt/ros/jazzy/lib/aarch64-linux-gnu:/opt/ros/jazzy/opt/gz_math_vendor/lib:/opt/ros/jazzy/opt/gz_utils_vendor/lib:/opt/ros/jazzy/opt/gz_tools_vendor/lib:/opt/ros/jazzy/opt/gz_cmake_vendor/lib:/opt/ros/jazzy/lib', 'HOME': '/home/viking', 'OLDPWD': '/home/viking/hunker/sw/ros_ws/src', 'SSH_TTY': '/dev/pts/0', 'ROS_PYTHON_VERSION': '3', 'DBUS_SESSION_BUS_ADDRESS': 'unix:path=/run/user/1002/bus', 'DEBUGINFOD_URLS': 'https://debuginfod.ubuntu.com', 'ROS_DISTRO': 'jazzy', 'LOGNAME': 'viking', '_': '/usr/bin/colcon', 'ROS_VERSION': '2', 'XDG_SESSION_CLASS': 'user', 'TERM': 'xterm-256color', 'XDG_SESSION_ID': '17', 'PATH': '/opt/ros/jazzy/opt/gz_tools_vendor/bin:/opt/ros/jazzy/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin', 'XDG_RUNTIME_DIR': '/run/user/1002', 'LANG': 'en_US.UTF-8', 'LS_COLORS': 'rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=00:su=37;41:sg=30;43:ca=00:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arc=01;31:*.arj=01;31:*.taz=01;31:*.lha=01;31:*.lz4=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.tzo=01;31:*.t7z=01;31:*.zip=01;31:*.z=01;31:*.dz=01;31:*.gz=01;31:*.lrz=01;31:*.lz=01;31:*.lzo=01;31:*.xz=01;31:*.zst=01;31:*.tzst=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.alz=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.cab=01;31:*.wim=01;31:*.swm=01;31:*.dwm=01;31:*.esd=01;31:*.avif=01;35:*.jpg=01;35:*.jpeg=01;35:*.mjpg=01;35:*.mjpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.webp=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.m4a=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.oga=00;36:*.opus=00;36:*.spx=00;36:*.xspf=00;36:*~=00;90:*#=00;90:*.bak=00;90:*.crdownload=00;90:*.dpkg-dist=00;90:*.dpkg-new=00;90:*.dpkg-old=00;90:*.dpkg-tmp=00;90:*.old=00;90:*.orig=00;90:*.part=00;90:*.rej=00;90:*.rpmnew=00;90:*.rpmorig=00;90:*.rpmsave=00;90:*.swp=00;90:*.tmp=00;90:*.ucf-dist=00;90:*.ucf-new=00;90:*.ucf-old=00;90:', 'ROS_DOMAIN_ID': '0', 'AMENT_PREFIX_PATH': '/opt/ros/jazzy', 'SHELL': '/bin/bash', 'LESSCLOSE': '/usr/bin/lesspipe %s %s', 'ROS_AUTOMATIC_DISCOVERY_RANGE': 'SUBNET', 'PWD': '/home/viking/hunker/sw/ros_ws/build/bno08x_ros2_driver', 'LC_ALL': 'en_US.UTF-8', 'SSH_CONNECTION': '172.24.1.227 33676 172.24.1.100 22', 'XDG_DATA_DIRS': '/usr/share/gnome:/usr/local/share:/usr/share:/var/lib/snapd/desktop', 'PYTHONPATH': '/opt/ros/jazzy/lib/python3.12/site-packages', 'COLCON': '1', 'CMAKE_PREFIX_PATH': '/opt/ros/jazzy/opt/sdformat_vendor:/opt/ros/jazzy/opt/gz_math_vendor:/opt/ros/jazzy/opt/gz_utils_vendor:/opt/ros/jazzy/opt/gz_tools_vendor:/opt/ros/jazzy/opt/gz_cmake_vendor:/opt/ros/jazzy'}), 'shell': False}
+[0.099517] (-) TimerEvent: {}
+[0.200547] (-) TimerEvent: {}
+[0.300902] (-) TimerEvent: {}
+[0.366543] (bno08x_ros2_driver) StdoutLine: {'line': b'-- The C compiler identification is GNU 13.3.0\n'}
+[0.401054] (-) TimerEvent: {}
+[0.501459] (-) TimerEvent: {}
+[0.601812] (-) TimerEvent: {}
+[0.607357] (bno08x_ros2_driver) StdoutLine: {'line': b'-- The CXX compiler identification is GNU 13.3.0\n'}
+[0.639099] (bno08x_ros2_driver) StdoutLine: {'line': b'-- Detecting C compiler ABI info\n'}
+[0.701934] (-) TimerEvent: {}
+[0.802503] (-) TimerEvent: {}
+[0.817637] (bno08x_ros2_driver) StdoutLine: {'line': b'-- Detecting C compiler ABI info - done\n'}
+[0.832439] (bno08x_ros2_driver) StdoutLine: {'line': b'-- Check for working C compiler: /usr/bin/cc - skipped\n'}
+[0.835057] (bno08x_ros2_driver) StdoutLine: {'line': b'-- Detecting C compile features\n'}
+[0.836210] (bno08x_ros2_driver) StdoutLine: {'line': b'-- Detecting C compile features - done\n'}
+[0.853694] (bno08x_ros2_driver) StdoutLine: {'line': b'-- Detecting CXX compiler ABI info\n'}
+[0.902657] (-) TimerEvent: {}
+[1.003223] (-) TimerEvent: {}
+[1.104379] (-) TimerEvent: {}
+[1.138092] (bno08x_ros2_driver) StdoutLine: {'line': b'-- Detecting CXX compiler ABI info - done\n'}
+[1.149461] (bno08x_ros2_driver) StdoutLine: {'line': b'-- Check for working CXX compiler: /usr/bin/c++ - skipped\n'}
+[1.149933] (bno08x_ros2_driver) StdoutLine: {'line': b'-- Detecting CXX compile features\n'}
+[1.150874] (bno08x_ros2_driver) StdoutLine: {'line': b'-- Detecting CXX compile features - done\n'}
+[1.155578] (bno08x_ros2_driver) StdoutLine: {'line': b'-- Found ament_cmake: 2.5.3 (/opt/ros/jazzy/share/ament_cmake/cmake)\n'}
+[1.204622] (-) TimerEvent: {}
+[1.305092] (-) TimerEvent: {}
+[1.405531] (-) TimerEvent: {}
+[1.416602] (bno08x_ros2_driver) StdoutLine: {'line': b'-- Found Python3: /usr/bin/python3 (found version "3.12.3") found components: Interpreter \n'}
+[1.505657] (-) TimerEvent: {}
+[1.609086] (-) TimerEvent: {}
+[1.671612] (bno08x_ros2_driver) StdoutLine: {'line': b'-- Found rclcpp: 28.1.6 (/opt/ros/jazzy/share/rclcpp/cmake)\n'}
+[1.709191] (-) TimerEvent: {}
+[1.728333] (bno08x_ros2_driver) StdoutLine: {'line': b'-- Found rosidl_generator_c: 4.6.5 (/opt/ros/jazzy/share/rosidl_generator_c/cmake)\n'}
+[1.748681] (bno08x_ros2_driver) StdoutLine: {'line': b'-- Found rosidl_generator_cpp: 4.6.5 (/opt/ros/jazzy/share/rosidl_generator_cpp/cmake)\n'}
+[1.774328] (bno08x_ros2_driver) StdoutLine: {'line': b'-- Using all available rosidl_typesupport_c: rosidl_typesupport_fastrtps_c;rosidl_typesupport_introspection_c\n'}
+[1.801919] (bno08x_ros2_driver) StdoutLine: {'line': b'-- Using all available rosidl_typesupport_cpp: rosidl_typesupport_fastrtps_cpp;rosidl_typesupport_introspection_cpp\n'}
+[1.809275] (-) TimerEvent: {}
+[1.908422] (bno08x_ros2_driver) StdoutLine: {'line': b'-- Found rmw_implementation_cmake: 7.3.1 (/opt/ros/jazzy/share/rmw_implementation_cmake/cmake)\n'}
+[1.909357] (-) TimerEvent: {}
+[1.912587] (bno08x_ros2_driver) StdoutLine: {'line': b'-- Found rmw_fastrtps_cpp: 8.4.1 (/opt/ros/jazzy/share/rmw_fastrtps_cpp/cmake)\n'}
+[2.009494] (-) TimerEvent: {}
+[2.046954] (bno08x_ros2_driver) StdoutLine: {'line': b'-- Found OpenSSL: /usr/lib/aarch64-linux-gnu/libcrypto.so (found version "3.0.13")  \n'}
+[2.075534] (bno08x_ros2_driver) StdoutLine: {'line': b'-- Found FastRTPS: /opt/ros/jazzy/include (Required is at least version "2.13") \n'}
+[2.109612] (-) TimerEvent: {}
+[2.111467] (bno08x_ros2_driver) StdoutLine: {'line': b"-- Using RMW implementation 'rmw_fastrtps_cpp' as default\n"}
+[2.209746] (-) TimerEvent: {}
+[2.219069] (bno08x_ros2_driver) StdoutLine: {'line': b'-- Found sensor_msgs: 5.3.5 (/opt/ros/jazzy/share/sensor_msgs/cmake)\n'}
+[2.309898] (-) TimerEvent: {}
+[2.315672] (bno08x_ros2_driver) StdoutLine: {'line': b'-- Found ament_cmake_gmock: 2.5.3 (/opt/ros/jazzy/share/ament_cmake_gmock/cmake)\n'}
+[2.322702] (bno08x_ros2_driver) StdoutLine: {'line': b'-- Found ament_cmake_gtest: 2.5.3 (/opt/ros/jazzy/share/ament_cmake_gtest/cmake)\n'}
+[2.332054] (bno08x_ros2_driver) StdoutLine: {'line': b"-- Found gmock sources under '/opt/ros/jazzy/src/gmock_vendor': C++ tests using 'Google Mock' will be built\n"}
+[2.344470] (bno08x_ros2_driver) StdoutLine: {'line': b"-- Found gtest sources under '/opt/ros/jazzy/src/gtest_vendor': C++ tests using 'Google Test' will be built\n"}
+[2.410063] (-) TimerEvent: {}
+[2.510812] (-) TimerEvent: {}
+[2.611781] (-) TimerEvent: {}
+[2.630545] (bno08x_ros2_driver) StdoutLine: {'line': b'-- Configuring done (2.6s)\n'}
+[2.675342] (bno08x_ros2_driver) StdoutLine: {'line': b'-- Generating done (0.0s)\n'}
+[2.688936] (bno08x_ros2_driver) StdoutLine: {'line': b'-- Build files have been written to: /home/viking/hunker/sw/ros_ws/build/bno08x_ros2_driver\n'}
+[2.712011] (-) TimerEvent: {}
+[2.724024] (bno08x_ros2_driver) CommandEnded: {'returncode': 0}
+[2.724980] (bno08x_ros2_driver) JobProgress: {'identifier': 'bno08x_ros2_driver', 'progress': 'build'}
+[2.726763] (bno08x_ros2_driver) Command: {'cmd': ['/usr/bin/cmake', '--build', '/home/viking/hunker/sw/ros_ws/build/bno08x_ros2_driver', '--', '-j4', '-l4'], 'cwd': '/home/viking/hunker/sw/ros_ws/build/bno08x_ros2_driver', 'env': OrderedDict({'LESSOPEN': '| /usr/bin/lesspipe %s', 'USER': 'viking', 'SSH_CLIENT': '172.24.1.227 33676 22', 'GZ_CONFIG_PATH': '/opt/ros/jazzy/opt/sdformat_vendor/share/gz', 'XDG_SESSION_TYPE': 'tty', 'SHLVL': '1', 'LD_LIBRARY_PATH': '/opt/ros/jazzy/opt/sdformat_vendor/lib:/opt/ros/jazzy/opt/rviz_ogre_vendor/lib:/opt/ros/jazzy/lib/aarch64-linux-gnu:/opt/ros/jazzy/opt/gz_math_vendor/lib:/opt/ros/jazzy/opt/gz_utils_vendor/lib:/opt/ros/jazzy/opt/gz_tools_vendor/lib:/opt/ros/jazzy/opt/gz_cmake_vendor/lib:/opt/ros/jazzy/lib', 'HOME': '/home/viking', 'OLDPWD': '/home/viking/hunker/sw/ros_ws/src', 'SSH_TTY': '/dev/pts/0', 'ROS_PYTHON_VERSION': '3', 'DBUS_SESSION_BUS_ADDRESS': 'unix:path=/run/user/1002/bus', 'DEBUGINFOD_URLS': 'https://debuginfod.ubuntu.com', 'ROS_DISTRO': 'jazzy', 'LOGNAME': 'viking', '_': '/usr/bin/colcon', 'ROS_VERSION': '2', 'XDG_SESSION_CLASS': 'user', 'TERM': 'xterm-256color', 'XDG_SESSION_ID': '17', 'PATH': '/opt/ros/jazzy/opt/gz_tools_vendor/bin:/opt/ros/jazzy/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin', 'XDG_RUNTIME_DIR': '/run/user/1002', 'LANG': 'en_US.UTF-8', 'LS_COLORS': 'rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=00:su=37;41:sg=30;43:ca=00:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arc=01;31:*.arj=01;31:*.taz=01;31:*.lha=01;31:*.lz4=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.tzo=01;31:*.t7z=01;31:*.zip=01;31:*.z=01;31:*.dz=01;31:*.gz=01;31:*.lrz=01;31:*.lz=01;31:*.lzo=01;31:*.xz=01;31:*.zst=01;31:*.tzst=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.alz=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.cab=01;31:*.wim=01;31:*.swm=01;31:*.dwm=01;31:*.esd=01;31:*.avif=01;35:*.jpg=01;35:*.jpeg=01;35:*.mjpg=01;35:*.mjpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.webp=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.m4a=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.oga=00;36:*.opus=00;36:*.spx=00;36:*.xspf=00;36:*~=00;90:*#=00;90:*.bak=00;90:*.crdownload=00;90:*.dpkg-dist=00;90:*.dpkg-new=00;90:*.dpkg-old=00;90:*.dpkg-tmp=00;90:*.old=00;90:*.orig=00;90:*.part=00;90:*.rej=00;90:*.rpmnew=00;90:*.rpmorig=00;90:*.rpmsave=00;90:*.swp=00;90:*.tmp=00;90:*.ucf-dist=00;90:*.ucf-new=00;90:*.ucf-old=00;90:', 'ROS_DOMAIN_ID': '0', 'AMENT_PREFIX_PATH': '/opt/ros/jazzy', 'SHELL': '/bin/bash', 'LESSCLOSE': '/usr/bin/lesspipe %s %s', 'ROS_AUTOMATIC_DISCOVERY_RANGE': 'SUBNET', 'PWD': '/home/viking/hunker/sw/ros_ws/build/bno08x_ros2_driver', 'LC_ALL': 'en_US.UTF-8', 'SSH_CONNECTION': '172.24.1.227 33676 172.24.1.100 22', 'XDG_DATA_DIRS': '/usr/share/gnome:/usr/local/share:/usr/share:/var/lib/snapd/desktop', 'PYTHONPATH': '/opt/ros/jazzy/lib/python3.12/site-packages', 'COLCON': '1', 'CMAKE_PREFIX_PATH': '/opt/ros/jazzy/opt/sdformat_vendor:/opt/ros/jazzy/opt/gz_math_vendor:/opt/ros/jazzy/opt/gz_utils_vendor:/opt/ros/jazzy/opt/gz_tools_vendor:/opt/ros/jazzy/opt/gz_cmake_vendor:/opt/ros/jazzy'}), 'shell': False}
+[2.812114] (-) TimerEvent: {}
+[2.840957] (bno08x_ros2_driver) StdoutLine: {'line': b'[  6%] \x1b[32mBuilding CXX object gmock/CMakeFiles/gmock.dir/opt/ros/jazzy/src/gtest_vendor/src/gtest-all.cc.o\x1b[0m\n'}
+[2.857513] (bno08x_ros2_driver) StdoutLine: {'line': b'[ 12%] \x1b[32mBuilding C object include/sh2/CMakeFiles/sh2_library.dir/sh2.c.o\x1b[0m\n'}
+[2.860690] (bno08x_ros2_driver) StdoutLine: {'line': b'[ 18%] \x1b[32mBuilding C object include/sh2/CMakeFiles/sh2_library.dir/sh2_SensorValue.c.o\x1b[0m\n'}
+[2.898909] (bno08x_ros2_driver) StdoutLine: {'line': b'[ 25%] \x1b[32mBuilding CXX object gmock/CMakeFiles/gmock_main.dir/src/gmock_main.cc.o\x1b[0m\n'}
+[2.913064] (-) TimerEvent: {}
+[3.014388] (-) TimerEvent: {}
+[3.073217] (bno08x_ros2_driver) StdoutLine: {'line': b'[ 31%] \x1b[32mBuilding C object include/sh2/CMakeFiles/sh2_library.dir/sh2_util.c.o\x1b[0m\n'}
+[3.115013] (-) TimerEvent: {}
+[3.180505] (bno08x_ros2_driver) StdoutLine: {'line': b'[ 37%] \x1b[32mBuilding C object include/sh2/CMakeFiles/sh2_library.dir/shtp.c.o\x1b[0m\n'}
+[3.184982] (bno08x_ros2_driver) StdoutLine: {'line': b'[ 43%] \x1b[32mBuilding CXX object gmock/CMakeFiles/gmock.dir/src/gmock-all.cc.o\x1b[0m\n'}
+[3.216260] (-) TimerEvent: {}
+[3.305890] (bno08x_ros2_driver) StdoutLine: {'line': b'[ 50%] \x1b[32m\x1b[1mLinking C static library libsh2_library.a\x1b[0m\n'}
+[3.318211] (-) TimerEvent: {}
+[3.419410] (-) TimerEvent: {}
+[3.458049] (bno08x_ros2_driver) StdoutLine: {'line': b'[ 50%] Built target sh2_library\n'}
+[3.521053] (-) TimerEvent: {}
+[3.553531] (bno08x_ros2_driver) StdoutLine: {'line': b'[ 56%] \x1b[32mBuilding CXX object CMakeFiles/bno08x_driver.dir/src/bno08x.cpp.o\x1b[0m\n'}
+[3.622073] (-) TimerEvent: {}
+[3.722977] (-) TimerEvent: {}
+[3.824520] (-) TimerEvent: {}
+[3.924990] (-) TimerEvent: {}
+[4.028127] (-) TimerEvent: {}
+[4.129443] (-) TimerEvent: {}
+[4.234166] (-) TimerEvent: {}
+[4.335427] (-) TimerEvent: {}
+[4.439742] (-) TimerEvent: {}
+[4.540907] (-) TimerEvent: {}
+[4.641381] (-) TimerEvent: {}
+[4.742723] (-) TimerEvent: {}
+[4.843578] (-) TimerEvent: {}
+[4.946833] (-) TimerEvent: {}
+[5.048882] (-) TimerEvent: {}
+[5.149338] (-) TimerEvent: {}
+[5.251331] (-) TimerEvent: {}
+[5.334653] (bno08x_ros2_driver) StdoutLine: {'line': b'[ 62%] \x1b[32mBuilding CXX object CMakeFiles/bno08x_driver.dir/src/bno08x_ros.cpp.o\x1b[0m\n'}
+[5.353073] (-) TimerEvent: {}
+[5.455119] (-) TimerEvent: {}
+[5.558077] (-) TimerEvent: {}
+[5.661084] (-) TimerEvent: {}
+[5.761576] (-) TimerEvent: {}
+[5.862384] (-) TimerEvent: {}
+[5.964294] (-) TimerEvent: {}
+[6.066378] (-) TimerEvent: {}
+[6.167868] (-) TimerEvent: {}
+[6.268402] (-) TimerEvent: {}
+[6.368896] (-) TimerEvent: {}
+[6.474309] (-) TimerEvent: {}
+[6.584940] (-) TimerEvent: {}
+[6.687250] (-) TimerEvent: {}
+[6.787668] (-) TimerEvent: {}
+[6.893190] (-) TimerEvent: {}
+[6.994055] (-) TimerEvent: {}
+[7.010054] (bno08x_ros2_driver) StdoutLine: {'line': b'[ 68%] \x1b[32m\x1b[1mLinking CXX static library libgmock_main.a\x1b[0m\n'}
+[7.095931] (-) TimerEvent: {}
+[7.197081] (-) TimerEvent: {}
+[7.232585] (bno08x_ros2_driver) StdoutLine: {'line': b'[ 68%] Built target gmock_main\n'}
+[7.280235] (bno08x_ros2_driver) StdoutLine: {'line': b'[ 75%] \x1b[32mBuilding CXX object CMakeFiles/bno08x_driver.dir/src/ros_node.cpp.o\x1b[0m\n'}
+[7.299039] (-) TimerEvent: {}
+[7.399539] (-) TimerEvent: {}
+[7.500991] (-) TimerEvent: {}
+[7.604238] (-) TimerEvent: {}
+[7.706652] (-) TimerEvent: {}
+[7.807472] (-) TimerEvent: {}
+[7.909680] (-) TimerEvent: {}
+[8.012486] (-) TimerEvent: {}
+[8.112926] (-) TimerEvent: {}
+[8.214026] (-) TimerEvent: {}
+[8.318191] (-) TimerEvent: {}
+[8.420303] (-) TimerEvent: {}
+[8.521729] (-) TimerEvent: {}
+[8.624251] (-) TimerEvent: {}
+[8.726089] (-) TimerEvent: {}
+[8.826509] (-) TimerEvent: {}
+[8.927178] (-) TimerEvent: {}
+[9.028292] (-) TimerEvent: {}
+[9.135085] (-) TimerEvent: {}
+[9.238519] (-) TimerEvent: {}
+[9.343305] (-) TimerEvent: {}
+[9.451353] (-) TimerEvent: {}
+[9.557198] (-) TimerEvent: {}
+[9.657786] (-) TimerEvent: {}
+[9.761447] (-) TimerEvent: {}
+[9.865856] (-) TimerEvent: {}
+[9.966525] (-) TimerEvent: {}
+[10.077102] (-) TimerEvent: {}
+[10.178092] (-) TimerEvent: {}
+[10.279164] (-) TimerEvent: {}
+[10.380481] (-) TimerEvent: {}
+[10.481173] (-) TimerEvent: {}
+[10.581888] (-) TimerEvent: {}
+[10.683447] (-) TimerEvent: {}
+[10.786066] (-) TimerEvent: {}
+[10.886489] (-) TimerEvent: {}
+[10.986986] (-) TimerEvent: {}
+[11.087463] (-) TimerEvent: {}
+[11.188121] (-) TimerEvent: {}
+[11.289742] (-) TimerEvent: {}
+[11.391092] (-) TimerEvent: {}
+[11.493068] (-) TimerEvent: {}
+[11.593726] (-) TimerEvent: {}
+[11.694212] (-) TimerEvent: {}
+[11.794650] (-) TimerEvent: {}
+[11.897576] (-) TimerEvent: {}
+[11.998219] (-) TimerEvent: {}
+[12.098789] (-) TimerEvent: {}
+[12.200537] (-) TimerEvent: {}
+[12.301383] (-) TimerEvent: {}
+[12.404339] (-) TimerEvent: {}
+[12.505506] (-) TimerEvent: {}
+[12.609685] (-) TimerEvent: {}
+[12.710372] (-) TimerEvent: {}
+[12.812343] (-) TimerEvent: {}
+[12.914682] (-) TimerEvent: {}
+[13.015201] (-) TimerEvent: {}
+[13.117183] (-) TimerEvent: {}
+[13.217604] (-) TimerEvent: {}
+[13.318082] (-) TimerEvent: {}
+[13.424109] (-) TimerEvent: {}
+[13.529632] (-) TimerEvent: {}
+[13.634058] (-) TimerEvent: {}
+[13.735759] (-) TimerEvent: {}
+[13.837477] (-) TimerEvent: {}
+[13.938073] (-) TimerEvent: {}
+[14.039049] (-) TimerEvent: {}
+[14.140240] (-) TimerEvent: {}
+[14.240654] (-) TimerEvent: {}
+[14.342135] (-) TimerEvent: {}
+[14.444236] (-) TimerEvent: {}
+[14.546645] (-) TimerEvent: {}
+[14.649524] (-) TimerEvent: {}
+[14.751055] (-) TimerEvent: {}
+[14.851507] (-) TimerEvent: {}
+[14.955558] (-) TimerEvent: {}
+[15.060649] (-) TimerEvent: {}
+[15.162398] (-) TimerEvent: {}
+[15.167192] (bno08x_ros2_driver) StdoutLine: {'line': b'[ 81%] \x1b[32m\x1b[1mLinking CXX static library libgmock.a\x1b[0m\n'}
+[15.264086] (-) TimerEvent: {}
+[15.364572] (-) TimerEvent: {}
+[15.465303] (-) TimerEvent: {}
+[15.481915] (bno08x_ros2_driver) StdoutLine: {'line': b'[ 81%] Built target gmock\n'}
+[15.534419] (bno08x_ros2_driver) StdoutLine: {'line': b'[ 87%] \x1b[32mBuilding CXX object CMakeFiles/test_i2c_mock.dir/test/i2c_interface_mock_test.cpp.o\x1b[0m\n'}
+[15.566052] (-) TimerEvent: {}
+[15.666871] (-) TimerEvent: {}
+[15.768158] (-) TimerEvent: {}
+[15.868738] (-) TimerEvent: {}
+[15.970435] (-) TimerEvent: {}
+[16.071075] (-) TimerEvent: {}
+[16.173618] (-) TimerEvent: {}
+[16.274202] (-) TimerEvent: {}
+[16.375745] (-) TimerEvent: {}
+[16.476391] (-) TimerEvent: {}
+[16.576916] (-) TimerEvent: {}
+[16.678760] (-) TimerEvent: {}
+[16.779236] (-) TimerEvent: {}
+[16.879627] (-) TimerEvent: {}
+[16.980546] (-) TimerEvent: {}
+[17.081333] (-) TimerEvent: {}
+[17.181767] (-) TimerEvent: {}
+[17.283150] (-) TimerEvent: {}
+[17.383587] (-) TimerEvent: {}
+[17.484658] (-) TimerEvent: {}
+[17.585694] (-) TimerEvent: {}
+[17.687360] (-) TimerEvent: {}
+[17.790349] (-) TimerEvent: {}
+[17.892144] (-) TimerEvent: {}
+[17.992566] (-) TimerEvent: {}
+[18.093051] (-) TimerEvent: {}
+[18.194030] (-) TimerEvent: {}
+[18.297067] (-) TimerEvent: {}
+[18.397456] (-) TimerEvent: {}
+[18.497862] (-) TimerEvent: {}
+[18.598270] (-) TimerEvent: {}
+[18.698839] (-) TimerEvent: {}
+[18.799402] (-) TimerEvent: {}
+[18.900951] (-) TimerEvent: {}
+[19.002123] (-) TimerEvent: {}
+[19.103202] (-) TimerEvent: {}
+[19.205163] (-) TimerEvent: {}
+[19.305744] (-) TimerEvent: {}
+[19.406414] (-) TimerEvent: {}
+[19.506851] (-) TimerEvent: {}
+[19.607655] (-) TimerEvent: {}
+[19.708266] (-) TimerEvent: {}
+[19.809554] (-) TimerEvent: {}
+[19.912343] (-) TimerEvent: {}
+[20.012797] (-) TimerEvent: {}
+[20.113930] (-) TimerEvent: {}
+[20.214491] (-) TimerEvent: {}
+[20.314915] (-) TimerEvent: {}
+[20.415337] (-) TimerEvent: {}
+[20.515796] (-) TimerEvent: {}
+[20.535261] (bno08x_ros2_driver) StdoutLine: {'line': b'[ 93%] \x1b[32m\x1b[1mLinking CXX executable test_i2c_mock\x1b[0m\n'}
+[20.616659] (-) TimerEvent: {}
+[20.717676] (-) TimerEvent: {}
+[20.824328] (-) TimerEvent: {}
+[20.924993] (-) TimerEvent: {}
+[20.990518] (bno08x_ros2_driver) StdoutLine: {'line': b'[100%] \x1b[32m\x1b[1mLinking CXX executable bno08x_driver\x1b[0m\n'}
+[21.026126] (-) TimerEvent: {}
+[21.129411] (-) TimerEvent: {}
+[21.230274] (-) TimerEvent: {}
+[21.331247] (-) TimerEvent: {}
+[21.433055] (-) TimerEvent: {}
+[21.533926] (-) TimerEvent: {}
+[21.625965] (bno08x_ros2_driver) StdoutLine: {'line': b'[100%] Built target test_i2c_mock\n'}
+[21.634093] (-) TimerEvent: {}
+[21.728518] (bno08x_ros2_driver) StdoutLine: {'line': b'[100%] Built target bno08x_driver\n'}
+[21.734204] (-) TimerEvent: {}
+[21.750145] (bno08x_ros2_driver) CommandEnded: {'returncode': 0}
+[21.750936] (bno08x_ros2_driver) JobProgress: {'identifier': 'bno08x_ros2_driver', 'progress': 'install'}
+[21.767896] (bno08x_ros2_driver) Command: {'cmd': ['/usr/bin/cmake', '--install', '/home/viking/hunker/sw/ros_ws/build/bno08x_ros2_driver'], 'cwd': '/home/viking/hunker/sw/ros_ws/build/bno08x_ros2_driver', 'env': OrderedDict({'LESSOPEN': '| /usr/bin/lesspipe %s', 'USER': 'viking', 'SSH_CLIENT': '172.24.1.227 33676 22', 'GZ_CONFIG_PATH': '/opt/ros/jazzy/opt/sdformat_vendor/share/gz', 'XDG_SESSION_TYPE': 'tty', 'SHLVL': '1', 'LD_LIBRARY_PATH': '/opt/ros/jazzy/opt/sdformat_vendor/lib:/opt/ros/jazzy/opt/rviz_ogre_vendor/lib:/opt/ros/jazzy/lib/aarch64-linux-gnu:/opt/ros/jazzy/opt/gz_math_vendor/lib:/opt/ros/jazzy/opt/gz_utils_vendor/lib:/opt/ros/jazzy/opt/gz_tools_vendor/lib:/opt/ros/jazzy/opt/gz_cmake_vendor/lib:/opt/ros/jazzy/lib', 'HOME': '/home/viking', 'OLDPWD': '/home/viking/hunker/sw/ros_ws/src', 'SSH_TTY': '/dev/pts/0', 'ROS_PYTHON_VERSION': '3', 'DBUS_SESSION_BUS_ADDRESS': 'unix:path=/run/user/1002/bus', 'DEBUGINFOD_URLS': 'https://debuginfod.ubuntu.com', 'ROS_DISTRO': 'jazzy', 'LOGNAME': 'viking', '_': '/usr/bin/colcon', 'ROS_VERSION': '2', 'XDG_SESSION_CLASS': 'user', 'TERM': 'xterm-256color', 'XDG_SESSION_ID': '17', 'PATH': '/opt/ros/jazzy/opt/gz_tools_vendor/bin:/opt/ros/jazzy/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin', 'XDG_RUNTIME_DIR': '/run/user/1002', 'LANG': 'en_US.UTF-8', 'LS_COLORS': 'rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=00:su=37;41:sg=30;43:ca=00:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arc=01;31:*.arj=01;31:*.taz=01;31:*.lha=01;31:*.lz4=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.tzo=01;31:*.t7z=01;31:*.zip=01;31:*.z=01;31:*.dz=01;31:*.gz=01;31:*.lrz=01;31:*.lz=01;31:*.lzo=01;31:*.xz=01;31:*.zst=01;31:*.tzst=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.alz=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.cab=01;31:*.wim=01;31:*.swm=01;31:*.dwm=01;31:*.esd=01;31:*.avif=01;35:*.jpg=01;35:*.jpeg=01;35:*.mjpg=01;35:*.mjpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.webp=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.m4a=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.oga=00;36:*.opus=00;36:*.spx=00;36:*.xspf=00;36:*~=00;90:*#=00;90:*.bak=00;90:*.crdownload=00;90:*.dpkg-dist=00;90:*.dpkg-new=00;90:*.dpkg-old=00;90:*.dpkg-tmp=00;90:*.old=00;90:*.orig=00;90:*.part=00;90:*.rej=00;90:*.rpmnew=00;90:*.rpmorig=00;90:*.rpmsave=00;90:*.swp=00;90:*.tmp=00;90:*.ucf-dist=00;90:*.ucf-new=00;90:*.ucf-old=00;90:', 'ROS_DOMAIN_ID': '0', 'AMENT_PREFIX_PATH': '/opt/ros/jazzy', 'SHELL': '/bin/bash', 'LESSCLOSE': '/usr/bin/lesspipe %s %s', 'ROS_AUTOMATIC_DISCOVERY_RANGE': 'SUBNET', 'PWD': '/home/viking/hunker/sw/ros_ws/build/bno08x_ros2_driver', 'LC_ALL': 'en_US.UTF-8', 'SSH_CONNECTION': '172.24.1.227 33676 172.24.1.100 22', 'XDG_DATA_DIRS': '/usr/share/gnome:/usr/local/share:/usr/share:/var/lib/snapd/desktop', 'PYTHONPATH': '/opt/ros/jazzy/lib/python3.12/site-packages', 'COLCON': '1', 'CMAKE_PREFIX_PATH': '/opt/ros/jazzy/opt/sdformat_vendor:/opt/ros/jazzy/opt/gz_math_vendor:/opt/ros/jazzy/opt/gz_utils_vendor:/opt/ros/jazzy/opt/gz_tools_vendor:/opt/ros/jazzy/opt/gz_cmake_vendor:/opt/ros/jazzy'}), 'shell': False}
+[21.782320] (bno08x_ros2_driver) StdoutLine: {'line': b'-- Install configuration: ""\n'}
+[21.782720] (bno08x_ros2_driver) StdoutLine: {'line': b'-- Installing: /home/viking/hunker/sw/ros_ws/install/bno08x_ros2_driver/lib/bno08x_ros2_driver/bno08x_driver\n'}
+[21.787071] (bno08x_ros2_driver) StdoutLine: {'line': b'-- Set non-toolchain portion of runtime path of "/home/viking/hunker/sw/ros_ws/install/bno08x_ros2_driver/lib/bno08x_ros2_driver/bno08x_driver" to ""\n'}
+[21.787283] (bno08x_ros2_driver) StdoutLine: {'line': b'-- Installing: /home/viking/hunker/sw/ros_ws/install/bno08x_ros2_driver/share/bno08x_ros2_driver/config\n'}
+[21.787473] (bno08x_ros2_driver) StdoutLine: {'line': b'-- Installing: /home/viking/hunker/sw/ros_ws/install/bno08x_ros2_driver/share/bno08x_ros2_driver/config/bno085_i2c.yaml\n'}
+[21.787654] (bno08x_ros2_driver) StdoutLine: {'line': b'-- Installing: /home/viking/hunker/sw/ros_ws/install/bno08x_ros2_driver/share/bno08x_ros2_driver/config/bno085_uart.yaml\n'}
+[21.787807] (bno08x_ros2_driver) StdoutLine: {'line': b'-- Installing: /home/viking/hunker/sw/ros_ws/install/bno08x_ros2_driver/share/bno08x_ros2_driver/launch\n'}
+[21.787932] (bno08x_ros2_driver) StdoutLine: {'line': b'-- Installing: /home/viking/hunker/sw/ros_ws/install/bno08x_ros2_driver/share/bno08x_ros2_driver/launch/bno085_i2c.launch.py\n'}
+[21.788097] (bno08x_ros2_driver) StdoutLine: {'line': b'-- Installing: /home/viking/hunker/sw/ros_ws/install/bno08x_ros2_driver/share/bno08x_ros2_driver/launch/bno085_uart.launch.py\n'}
+[21.788406] (bno08x_ros2_driver) StdoutLine: {'line': b'-- Installing: /home/viking/hunker/sw/ros_ws/install/bno08x_ros2_driver/share/ament_index/resource_index/package_run_dependencies/bno08x_ros2_driver\n'}
+[21.788678] (bno08x_ros2_driver) StdoutLine: {'line': b'-- Installing: /home/viking/hunker/sw/ros_ws/install/bno08x_ros2_driver/share/ament_index/resource_index/parent_prefix_path/bno08x_ros2_driver\n'}
+[21.788943] (bno08x_ros2_driver) StdoutLine: {'line': b'-- Installing: /home/viking/hunker/sw/ros_ws/install/bno08x_ros2_driver/share/bno08x_ros2_driver/environment/ament_prefix_path.sh\n'}
+[21.789117] (bno08x_ros2_driver) StdoutLine: {'line': b'-- Installing: /home/viking/hunker/sw/ros_ws/install/bno08x_ros2_driver/share/bno08x_ros2_driver/environment/ament_prefix_path.dsv\n'}
+[21.789281] (bno08x_ros2_driver) StdoutLine: {'line': b'-- Installing: /home/viking/hunker/sw/ros_ws/install/bno08x_ros2_driver/share/bno08x_ros2_driver/environment/path.sh\n'}
+[21.789457] (bno08x_ros2_driver) StdoutLine: {'line': b'-- Installing: /home/viking/hunker/sw/ros_ws/install/bno08x_ros2_driver/share/bno08x_ros2_driver/environment/path.dsv\n'}
+[21.789649] (bno08x_ros2_driver) StdoutLine: {'line': b'-- Installing: /home/viking/hunker/sw/ros_ws/install/bno08x_ros2_driver/share/bno08x_ros2_driver/local_setup.bash\n'}
+[21.789823] (bno08x_ros2_driver) StdoutLine: {'line': b'-- Installing: /home/viking/hunker/sw/ros_ws/install/bno08x_ros2_driver/share/bno08x_ros2_driver/local_setup.sh\n'}
+[21.790045] (bno08x_ros2_driver) StdoutLine: {'line': b'-- Installing: /home/viking/hunker/sw/ros_ws/install/bno08x_ros2_driver/share/bno08x_ros2_driver/local_setup.zsh\n'}
+[21.790225] (bno08x_ros2_driver) StdoutLine: {'line': b'-- Installing: /home/viking/hunker/sw/ros_ws/install/bno08x_ros2_driver/share/bno08x_ros2_driver/local_setup.dsv\n'}
+[21.790383] (bno08x_ros2_driver) StdoutLine: {'line': b'-- Installing: /home/viking/hunker/sw/ros_ws/install/bno08x_ros2_driver/share/bno08x_ros2_driver/package.dsv\n'}
+[21.790603] (bno08x_ros2_driver) StdoutLine: {'line': b'-- Installing: /home/viking/hunker/sw/ros_ws/install/bno08x_ros2_driver/share/ament_index/resource_index/packages/bno08x_ros2_driver\n'}
+[21.790844] (bno08x_ros2_driver) StdoutLine: {'line': b'-- Installing: /home/viking/hunker/sw/ros_ws/install/bno08x_ros2_driver/share/bno08x_ros2_driver/cmake/bno08x_ros2_driverConfig.cmake\n'}
+[21.790994] (bno08x_ros2_driver) StdoutLine: {'line': b'-- Installing: /home/viking/hunker/sw/ros_ws/install/bno08x_ros2_driver/share/bno08x_ros2_driver/cmake/bno08x_ros2_driverConfig-version.cmake\n'}
+[21.791178] (bno08x_ros2_driver) StdoutLine: {'line': b'-- Installing: /home/viking/hunker/sw/ros_ws/install/bno08x_ros2_driver/share/bno08x_ros2_driver/package.xml\n'}
+[21.794649] (bno08x_ros2_driver) CommandEnded: {'returncode': 0}
+[21.833943] (bno08x_ros2_driver) JobEnded: {'identifier': 'bno08x_ros2_driver', 'rc': 0}
+[21.835016] (-) TimerEvent: {}
+[21.835128] (-) EventReactorShutdown: {}

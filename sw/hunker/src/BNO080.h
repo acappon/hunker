@@ -24,9 +24,6 @@
 
 #pragma once
 
-//The default I2C address for the BNO080 on the SparkX breakout is 0x4B. 0x4A is also possible.
-#define BNO080_DEFAULT_ADDRESS 0x4A
-
 //Platform specific configurations
 
 //Define the size of the I2C buffer based on the platform the user has
@@ -128,7 +125,7 @@ const char CHANNEL_GYRO = 5;
 #define TARE_AR_VR_STABILIZED_ROTATION_VECTOR 4
 #define TARE_AR_VR_STABILIZED_GAME_ROTATION_VECTOR 5
 
-#define MAX_PACKET_SIZE 128 //Packets can be up to 32k but we don't have that much RAM.
+#define MAX_PACKET_SIZE 256 //Packets can be up to 32k but we don't have that much RAM.
 #define MAX_METADATA_SIZE 9 //This is in words. There can be many but we mostly only care about the first 9 (Qs, range, etc)
 
 class BNO080
@@ -137,29 +134,30 @@ public:
     BNO080();
     ~BNO080();
 
-	bool begin(); //Returns true if the BNO080 is detected on the I2C bus   
+    bool begin(const char* uartDevice = "/dev/ttyAMA0", int baudRate = 115200); // Initialize UART
+    void closeUART(); // Close UART connection
 
-	void softReset();	  //Try to reset the IMU via software
-	bool hasReset(); //Returns true if the sensor has reported a reset. Reading this will unflag the reset.
-	unsigned char resetReason(); //Query the IMU for the reason it last reset
-	void modeOn();	  //Use the executable channel to turn the BNO on
-	void modeSleep();	  //Use the executable channel to put the BNO to sleep
+    void flushAllIncomingData();
+    std::string softReset();
+    std::string requestProductID();
+    
+    bool hasReset();
+    unsigned char resetReason();
+    void modeOn();
+    void modeSleep();
 
-	float qToFloat(short fixedPointValue, unsigned char qPoint); //Given a Q value, converts fixed point floating to regular floating point number
+    bool sendPacket(unsigned char channelNumber, unsigned char dataLength);
+    bool receivePacket();
+    bool isDataAvailable(int timeoutMs);
 
-	bool waitForI2C(); //Delay based polling for I2C traffic
-    bool waitForI2C_Blocking(int timeoutMs);
-
-	bool receivePacket(void);
-	bool getData(unsigned short bytesRemaining); //Given a number of bytes, send the requests in I2C_BUFFER_LENGTH chunks
-	bool sendPacket(unsigned char channelNumber, unsigned char dataLength);
     std::string getHexText_8(unsigned char* data, int length=1);
     std::string getHexText_16(unsigned short* data, int length=1);
     std::string getHexText_32(unsigned int* data, int length=1);
     std::string getPacketText(void);
 	std::string getHeaderText(void); //Prints the current shtp header (only)
  
-	void enableRotationVector(unsigned short timeBetweenReports);
+	float qToFloat(short fixedPointValue, unsigned char qPoint);
+    void enableRotationVector(unsigned short timeBetweenReports);
 	void enableGameRotationVector(unsigned short timeBetweenReports);
 	void enableARVRStabilizedRotationVector(unsigned short timeBetweenReports);
 	void enableARVRStabilizedGameRotationVector(unsigned short timeBetweenReports);
@@ -178,7 +176,6 @@ public:
 	void enableRawMagnetometer(unsigned short timeBetweenReports);
 	void enableGyroIntegratedRotationVector(unsigned short timeBetweenReports);
 
-	bool dataAvailable(void);
 	unsigned short getReadings(void);
 	unsigned short parseInputReport(void);   //Parse sensor readings out of report
 	unsigned short parseCommandReport(void); //Parse command responses out of report
@@ -288,7 +285,6 @@ public:
 	void frsReadRequest(unsigned short recordID, unsigned short readOffset, unsigned short blockSize);
 	bool readFRSdata(unsigned short recordID, unsigned char startLocation, unsigned char wordsToRead);
 
-    bool openI2C(const char* device, int address);
     void sleep_ms(int ms);
     bool isAirborne();
 
@@ -299,9 +295,14 @@ public:
 	unsigned char commandSequenceNumber = 0;				//Commands have a seqNum as well. These are inside command packet, the header uses its own seqNum per channel
 	unsigned int metaData[MAX_METADATA_SIZE];			//There is more than 10 words in a metadata record but we'll stop at Q point 3
 
+    bool configureUART(const char* device, int baudRate);
+    int writeUART(const unsigned char* data, size_t length);
+    int readUART(unsigned char* buffer, size_t length);
 private:
+
 	//Variables
-	unsigned char _deviceAddress; //Keeps track of I2C address. setI2CAddress changes this.
+    int m_uart_fd = -1; // UART file descriptor
+    struct termios m_uart_config; // UART configuration
 
 	bool _printDebug = false; //Flag to print debugging variables
 
@@ -337,6 +338,4 @@ private:
 	short magnetometer_Q1 = 4;
 	short angular_velocity_Q1 = 10;
 	short gravity_Q1 = 8;
-
-    int m_i2c_fd = -1;
 };
