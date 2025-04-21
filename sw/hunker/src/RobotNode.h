@@ -45,13 +45,21 @@ public:
     MyGpio m_myGpio;
     FaultIndicator m_faultIndicator;
 
-    BNO080 m_imu;
+    typedef enum{
+        X,
+        Y,
+        Z,
+        NUMBER_OF_AXES
+    } IMU_AXES;
+
+    std::array<double, NUMBER_OF_AXES> m_imu_orientation; 
+    std::array<double, NUMBER_OF_AXES> m_imu_linear_acceleration; 
+    std::array<double, NUMBER_OF_AXES> m_imu_angular_velocity; 
 
 private: // functions
     void safetyFunction();
     void robotFunction();
-    void imuThreadFunction(); // Thread function for receiving IMU messages
-
+ 
     void checkControllerConnection();
     void checkRobotEnableDisable();
     void updateLEDs();
@@ -62,11 +70,13 @@ private: // functions
     std::string getStackTrace();
 
     void joy_callback(const sensor_msgs::msg::Joy::SharedPtr msg);
+    void imu_callback(const sensor_msgs::msg::Imu::SharedPtr msg);
 
 private: // data
     Robot m_robot;
- 
+
     rclcpp::Subscription<sensor_msgs::msg::Joy>::SharedPtr m_joystick_sub;
+    rclcpp::Subscription<sensor_msgs::msg::Imu>::SharedPtr m_imu_sub;
 
     rclcpp::Time m_last_joy_msg_time;
     bool m_isControllerConnected;

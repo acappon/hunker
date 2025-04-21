@@ -119,7 +119,7 @@ void Robot::periodic()
     else
     {
         estimateDeckOrientation();
-        if (g_myRobotNode->m_imu.isAirborne())
+        if (false)    //g_myRobotNode->m_imu.isAirborne())
         {
             m_robotState = ROBOT_STATE_AIRBORNE;
         }

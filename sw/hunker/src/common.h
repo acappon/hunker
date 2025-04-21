@@ -7,10 +7,10 @@
 
 #include <rclcpp/rclcpp.hpp>
 #include "sensor_msgs/msg/joy.hpp"
+#include "sensor_msgs/msg/imu.hpp"
 
 #include "MyGpio.h"
 #include "FaultIndicator.h"
 #include "Motor.h"
-#include "BNO080.h"
 #include "Robot.h"
 #include "RobotNode.h"

@@ -28,11 +28,22 @@ void RobotNode::init()
         m_last_joy_msg_time = this->now() - rclcpp::Duration(10, 0);
 
         // Subscribe to joystick messages
-        auto qos = rclcpp::QoS(rclcpp::QoSInitialization::from_rmw(rmw_qos_profile_sensor_data));
-        qos.keep_last(10)
+        auto qos_joy = rclcpp::QoS(rclcpp::QoSInitialization::from_rmw(rmw_qos_profile_sensor_data));
+        qos_joy.keep_last(10)
+            .best_effort()
+            .durability_volatile();
+        m_joystick_sub = this->create_subscription<sensor_msgs::msg::Joy>(
+            "joy", qos_joy, 
+            std::bind(&RobotNode::joy_callback, this, std::placeholders::_1));
+
+        // Create a subscription to the /imu topic
+        auto qos_imu = rclcpp::QoS(rclcpp::QoSInitialization::from_rmw(rmw_qos_profile_sensor_data));
+        qos_imu.keep_last(10)
             .reliable()
             .durability_volatile();
-        m_joystick_sub = this->create_subscription<sensor_msgs::msg::Joy>("joy", qos, std::bind(&RobotNode::joy_callback, this, std::placeholders::_1));
+        m_imu_sub = this->create_subscription<sensor_msgs::msg::Imu>(
+            "/imu", qos_imu,
+            std::bind(&RobotNode::imu_callback, this, std::placeholders::_1));
 
         m_safetyTimer = this->create_wall_timer(
             std::chrono::milliseconds(250),
@@ -41,33 +52,6 @@ void RobotNode::init()
         m_robotTimer = this->create_wall_timer(
             std::chrono::milliseconds(20),
             std::bind(&RobotNode::robotFunction, this));
-
-        // Start the IMU thread
-        //m_runIMUThread = true;
-        //m_imuThread = std::thread(&RobotNode::imuThreadFunction, this);
-
-        if (!m_imu.begin("/dev/ttyAMA0", B115200))
-        {
-            g_myRobotNode->writeLog("Failed to initialize UART");
-            return;
-        }
-        
-        m_imu.sleep_ms(100); // Wait for the IMU thread to start
-        sRet = m_imu.softReset();
-        m_imu.sleep_ms(200); // Wait for the IMU reset
-        m_imu.flushAllIncomingData();
-        m_imu.sleep_ms(100); // Wait for the IMU to be ready
-
-        sRet = m_imu.requestProductID();
-
-        m_imu.receivePacket();
-        sRet = m_imu.getHexText_8(m_imu.shtpData, 20);
-        writeLog("Product ID: %s", sRet.c_str());       
-
-
-
-        m_imu.enableAccelerometer(100);
-        m_imu.modeOn();
     }
     catch (const std::exception &e)
     {
@@ -152,19 +136,6 @@ void RobotNode::robotFunction()
         writeLog("Stack trace: %s", getStackTrace().c_str());
 
         m_faultIndicator.setFault(FaultIndicator::FAULT_TYPE::FAULT_EXCEPTION, true);
-    }
-}
-
-void RobotNode::imuThreadFunction()
-{
-    std::string sRet;
-    unsigned char buffer[256]; // Buffer for receiving IMU messages
-
-    while (m_runIMUThread)
-    {
-        unsigned short wRet = m_imu.getReadings();
-        sRet = wRet + "   " + m_imu.getPacketText();
-        writeLog(sRet);
     }
 }
 
@@ -347,4 +318,29 @@ void RobotNode::joy_callback(const sensor_msgs::msg::Joy::SharedPtr msg)
     m_joy_buttons[JOY_LOGITECH] = msg->buttons[10];
     m_joy_buttons[JOY_L3] = msg->buttons[11];
     m_joy_buttons[JOY_R3] = msg->buttons[12];
+}
+
+// Callback function for IMU messages
+void RobotNode::imu_callback(const sensor_msgs::msg::Imu::SharedPtr msg)
+{
+
+    m_imu_orientation[IMU_AXES::X] = msg->orientation.x;
+    m_imu_orientation[IMU_AXES::Y] = msg->orientation.y;
+    m_imu_orientation[IMU_AXES::Z] = msg->orientation.z;
+
+    m_imu_linear_acceleration[IMU_AXES::X] = msg->linear_acceleration.x;
+    m_imu_linear_acceleration[IMU_AXES::Y] = msg->linear_acceleration.y;
+    m_imu_linear_acceleration[IMU_AXES::Z] = msg->linear_acceleration.z;
+
+    m_imu_angular_velocity[IMU_AXES::X] = msg->angular_velocity.x;
+    m_imu_angular_velocity[IMU_AXES::Y] = msg->angular_velocity.y;
+    m_imu_angular_velocity[IMU_AXES::Z] = msg->angular_velocity.z;
+
+    RCLCPP_INFO(this->get_logger(), "Received IMU data:");
+    RCLCPP_INFO(this->get_logger(), "Orientation: x=%f, y=%f, z=%f, w=%f",
+                msg->orientation.x, msg->orientation.y, msg->orientation.z, msg->orientation.w);
+    RCLCPP_INFO(this->get_logger(), "Angular Velocity: x=%f, y=%f, z=%f",
+                msg->angular_velocity.x, msg->angular_velocity.y, msg->angular_velocity.z);
+    RCLCPP_INFO(this->get_logger(), "Linear Acceleration: x=%f, y=%f, z=%f",
+                msg->linear_acceleration.x, msg->linear_acceleration.y, msg->linear_acceleration.z);
 }
