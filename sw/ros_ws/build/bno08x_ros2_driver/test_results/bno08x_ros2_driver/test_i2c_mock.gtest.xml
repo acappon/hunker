@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="bno08x_ros2_driver" tests="1" failures="0" time="0.001" errors="1" skipped="0">
+  <testcase classname="bno08x_ros2_driver" name="test_i2c_mock.gtest.missing_result" time="0.001">
+    <error message="The test did not generate a result file:&#10;&#10;[Errno 13] Permission denied: '/home/viking/hunker/sw/ros_ws/build/bno08x_ros2_driver/test_i2c_mock'"/>
+  </testcase>
+</testsuite>

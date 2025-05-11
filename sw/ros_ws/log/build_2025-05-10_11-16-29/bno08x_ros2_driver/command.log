@@ -1,0 +1,2 @@
+Invoking command in '/home/viking/hunker/sw/ros_ws/build/bno08x_ros2_driver': DEBUGINFOD_URLS=https://debuginfod.ubuntu.com /usr/bin/cmake --build /home/viking/hunker/sw/ros_ws/build/bno08x_ros2_driver -- -j4 -l4
+Invoked command in '/home/viking/hunker/sw/ros_ws/build/bno08x_ros2_driver' returned '2': DEBUGINFOD_URLS=https://debuginfod.ubuntu.com /usr/bin/cmake --build /home/viking/hunker/sw/ros_ws/build/bno08x_ros2_driver -- -j4 -l4

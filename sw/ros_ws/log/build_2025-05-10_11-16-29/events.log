@@ -1,0 +1,116 @@
+[0.000000] (-) TimerEvent: {}
+[0.000417] (bno08x_ros2_driver) JobQueued: {'identifier': 'bno08x_ros2_driver', 'dependencies': OrderedDict()}
+[0.000773] (bno08x_ros2_driver) JobStarted: {'identifier': 'bno08x_ros2_driver'}
+[0.017022] (bno08x_ros2_driver) JobProgress: {'identifier': 'bno08x_ros2_driver', 'progress': 'cmake'}
+[0.018055] (bno08x_ros2_driver) JobProgress: {'identifier': 'bno08x_ros2_driver', 'progress': 'build'}
+[0.019033] (bno08x_ros2_driver) Command: {'cmd': ['/usr/bin/cmake', '--build', '/home/viking/hunker/sw/ros_ws/build/bno08x_ros2_driver', '--', '-j4', '-l4'], 'cwd': '/home/viking/hunker/sw/ros_ws/build/bno08x_ros2_driver', 'env': OrderedDict({'LESSOPEN': '| /usr/bin/lesspipe %s', 'USER': 'viking', 'SSH_CLIENT': '10.42.76.4 39302 22', 'XDG_SESSION_TYPE': 'tty', 'SHLVL': '1', 'HOME': '/home/viking', 'OLDPWD': '/home/viking', 'SSH_TTY': '/dev/pts/0', 'DBUS_SESSION_BUS_ADDRESS': 'unix:path=/run/user/1002/bus', 'DEBUGINFOD_URLS': 'https://debuginfod.ubuntu.com', 'LOGNAME': 'viking', '_': '/usr/bin/colcon', 'XDG_SESSION_CLASS': 'user', 'TERM': 'xterm-256color', 'XDG_SESSION_ID': '2', 'PATH': '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin', 'XDG_RUNTIME_DIR': '/run/user/1002', 'LANG': 'C.UTF-8', 'LS_COLORS': 'rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=00:su=37;41:sg=30;43:ca=00:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arc=01;31:*.arj=01;31:*.taz=01;31:*.lha=01;31:*.lz4=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.tzo=01;31:*.t7z=01;31:*.zip=01;31:*.z=01;31:*.dz=01;31:*.gz=01;31:*.lrz=01;31:*.lz=01;31:*.lzo=01;31:*.xz=01;31:*.zst=01;31:*.tzst=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.alz=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.cab=01;31:*.wim=01;31:*.swm=01;31:*.dwm=01;31:*.esd=01;31:*.avif=01;35:*.jpg=01;35:*.jpeg=01;35:*.mjpg=01;35:*.mjpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.webp=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.m4a=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.oga=00;36:*.opus=00;36:*.spx=00;36:*.xspf=00;36:*~=00;90:*#=00;90:*.bak=00;90:*.crdownload=00;90:*.dpkg-dist=00;90:*.dpkg-new=00;90:*.dpkg-old=00;90:*.dpkg-tmp=00;90:*.old=00;90:*.orig=00;90:*.part=00;90:*.rej=00;90:*.rpmnew=00;90:*.rpmorig=00;90:*.rpmsave=00;90:*.swp=00;90:*.tmp=00;90:*.ucf-dist=00;90:*.ucf-new=00;90:*.ucf-old=00;90:', 'SHELL': '/bin/bash', 'LESSCLOSE': '/usr/bin/lesspipe %s %s', 'PWD': '/home/viking/hunker/sw/ros_ws/build/bno08x_ros2_driver', 'SSH_CONNECTION': '10.42.76.4 39302 10.42.76.5 22', 'XDG_DATA_DIRS': '/usr/share/gnome:/usr/local/share:/usr/share:/var/lib/snapd/desktop', 'COLCON': '1'}), 'shell': False}
+[0.099658] (-) TimerEvent: {}
+[0.200074] (-) TimerEvent: {}
+[0.296980] (bno08x_ros2_driver) StdoutLine: {'line': b'-- Found ament_cmake: 2.5.4 (/opt/ros/jazzy/share/ament_cmake/cmake)\n'}
+[0.300142] (-) TimerEvent: {}
+[0.400427] (-) TimerEvent: {}
+[0.500835] (-) TimerEvent: {}
+[0.601209] (-) TimerEvent: {}
+[0.701543] (-) TimerEvent: {}
+[0.801949] (-) TimerEvent: {}
+[0.902314] (-) TimerEvent: {}
+[1.002682] (-) TimerEvent: {}
+[1.103046] (-) TimerEvent: {}
+[1.203404] (-) TimerEvent: {}
+[1.303725] (-) TimerEvent: {}
+[1.404041] (-) TimerEvent: {}
+[1.504375] (-) TimerEvent: {}
+[1.604714] (-) TimerEvent: {}
+[1.705030] (-) TimerEvent: {}
+[1.805372] (-) TimerEvent: {}
+[1.905733] (-) TimerEvent: {}
+[2.006064] (-) TimerEvent: {}
+[2.106389] (-) TimerEvent: {}
+[2.206827] (-) TimerEvent: {}
+[2.307135] (-) TimerEvent: {}
+[2.407586] (-) TimerEvent: {}
+[2.508432] (-) TimerEvent: {}
+[2.609222] (-) TimerEvent: {}
+[2.710188] (-) TimerEvent: {}
+[2.810886] (-) TimerEvent: {}
+[2.911644] (-) TimerEvent: {}
+[3.012418] (-) TimerEvent: {}
+[3.113177] (-) TimerEvent: {}
+[3.213824] (-) TimerEvent: {}
+[3.314222] (-) TimerEvent: {}
+[3.414751] (-) TimerEvent: {}
+[3.515366] (-) TimerEvent: {}
+[3.615937] (-) TimerEvent: {}
+[3.716779] (-) TimerEvent: {}
+[3.817255] (-) TimerEvent: {}
+[3.917866] (-) TimerEvent: {}
+[4.018454] (-) TimerEvent: {}
+[4.118948] (-) TimerEvent: {}
+[4.219617] (-) TimerEvent: {}
+[4.320300] (-) TimerEvent: {}
+[4.420931] (-) TimerEvent: {}
+[4.521467] (-) TimerEvent: {}
+[4.622048] (-) TimerEvent: {}
+[4.722920] (-) TimerEvent: {}
+[4.823476] (-) TimerEvent: {}
+[4.924250] (-) TimerEvent: {}
+[5.025055] (-) TimerEvent: {}
+[5.125568] (-) TimerEvent: {}
+[5.226006] (-) TimerEvent: {}
+[5.326522] (-) TimerEvent: {}
+[5.426942] (-) TimerEvent: {}
+[5.527811] (-) TimerEvent: {}
+[5.628228] (-) TimerEvent: {}
+[5.728608] (-) TimerEvent: {}
+[5.829289] (-) TimerEvent: {}
+[5.929815] (-) TimerEvent: {}
+[6.030176] (-) TimerEvent: {}
+[6.130722] (-) TimerEvent: {}
+[6.231634] (-) TimerEvent: {}
+[6.332025] (-) TimerEvent: {}
+[6.432405] (-) TimerEvent: {}
+[6.532945] (-) TimerEvent: {}
+[6.633352] (-) TimerEvent: {}
+[6.734047] (-) TimerEvent: {}
+[6.834889] (-) TimerEvent: {}
+[6.935618] (-) TimerEvent: {}
+[7.036543] (-) TimerEvent: {}
+[7.137319] (-) TimerEvent: {}
+[7.238125] (-) TimerEvent: {}
+[7.339060] (-) TimerEvent: {}
+[7.439838] (-) TimerEvent: {}
+[7.540533] (-) TimerEvent: {}
+[7.641173] (-) TimerEvent: {}
+[7.741913] (-) TimerEvent: {}
+[7.842604] (-) TimerEvent: {}
+[7.943008] (-) TimerEvent: {}
+[8.043405] (-) TimerEvent: {}
+[8.144198] (-) TimerEvent: {}
+[8.244999] (-) TimerEvent: {}
+[8.345610] (-) TimerEvent: {}
+[8.446255] (-) TimerEvent: {}
+[8.546566] (-) TimerEvent: {}
+[8.646920] (-) TimerEvent: {}
+[8.707193] (bno08x_ros2_driver) StderrLine: {'line': b'Traceback (most recent call last):\n'}
+[8.707584] (bno08x_ros2_driver) StderrLine: {'line': b'  File "/opt/ros/jazzy/share/ament_cmake_core/cmake/package_templates/templates_2_cmake.py", line 21, in <module>\n'}
+[8.707752] (bno08x_ros2_driver) StderrLine: {'line': b'    from ament_package.templates import get_environment_hook_template_path\n'}
+[8.707851] (bno08x_ros2_driver) StderrLine: {'line': b"ModuleNotFoundError: No module named 'ament_package'\n"}
+[8.747058] (-) TimerEvent: {}
+[8.782714] (bno08x_ros2_driver) StderrLine: {'line': b'\x1b[31mCMake Error at /opt/ros/jazzy/share/ament_cmake_core/cmake/ament_cmake_package_templates-extras.cmake:41 (message):\n'}
+[8.782993] (bno08x_ros2_driver) StderrLine: {'line': b'  execute_process(/usr/bin/python3\n'}
+[8.783085] (bno08x_ros2_driver) StderrLine: {'line': b'  /opt/ros/jazzy/share/ament_cmake_core/cmake/package_templates/templates_2_cmake.py\n'}
+[8.783164] (bno08x_ros2_driver) StderrLine: {'line': b'  /home/viking/hunker/sw/ros_ws/build/bno08x_ros2_driver/ament_cmake_package_templates/templates.cmake)\n'}
+[8.783239] (bno08x_ros2_driver) StderrLine: {'line': b'  returned error code 1\n'}
+[8.783321] (bno08x_ros2_driver) StderrLine: {'line': b'Call Stack (most recent call first):\n'}
+[8.783402] (bno08x_ros2_driver) StderrLine: {'line': b'  /opt/ros/jazzy/share/ament_cmake_core/cmake/ament_cmake_coreConfig.cmake:41 (include)\n'}
+[8.783480] (bno08x_ros2_driver) StderrLine: {'line': b'  /opt/ros/jazzy/share/ament_cmake/cmake/ament_cmake_export_dependencies-extras.cmake:15 (find_package)\n'}
+[8.783557] (bno08x_ros2_driver) StderrLine: {'line': b'  /opt/ros/jazzy/share/ament_cmake/cmake/ament_cmakeConfig.cmake:41 (include)\n'}
+[8.783634] (bno08x_ros2_driver) StderrLine: {'line': b'  CMakeLists.txt:19 (find_package)\n'}
+[8.783875] (bno08x_ros2_driver) StderrLine: {'line': b'\n'}
+[8.783953] (bno08x_ros2_driver) StderrLine: {'line': b'\x1b[0m\n'}
+[8.784025] (bno08x_ros2_driver) StdoutLine: {'line': b'-- Configuring incomplete, errors occurred!\n'}
+[8.799711] (bno08x_ros2_driver) StderrLine: {'line': b'gmake: *** [Makefile:432: cmake_check_build_system] Error 1\n'}
+[8.803358] (bno08x_ros2_driver) CommandEnded: {'returncode': 2}
+[8.847123] (-) TimerEvent: {}
+[8.881903] (bno08x_ros2_driver) JobEnded: {'identifier': 'bno08x_ros2_driver', 'rc': 2}
+[8.892449] (-) EventReactorShutdown: {}

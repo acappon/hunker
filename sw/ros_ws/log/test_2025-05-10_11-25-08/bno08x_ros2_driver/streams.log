@@ -1,0 +1,42 @@
+[0.033s] Invoking command in '/home/viking/hunker/sw/ros_ws/build/bno08x_ros2_driver': DEBUGINFOD_URLS=https://debuginfod.ubuntu.com /usr/bin/ctest -C Release -D ExperimentalTest --no-compress-output -V --force-new-ctest-process
+[0.048s] UpdateCTestConfiguration  from :/home/viking/hunker/sw/ros_ws/build/bno08x_ros2_driver/CTestConfiguration.ini
+[0.048s] Parse Config file:/home/viking/hunker/sw/ros_ws/build/bno08x_ros2_driver/CTestConfiguration.ini
+[0.048s]    Site: jelly
+[0.048s]    Build name: (empty)
+[0.048s]  Add coverage exclude regular expressions.
+[0.048s] Create new tag: 20250510-1525 - Experimental
+[0.048s] UpdateCTestConfiguration  from :/home/viking/hunker/sw/ros_ws/build/bno08x_ros2_driver/CTestConfiguration.ini
+[0.048s] Parse Config file:/home/viking/hunker/sw/ros_ws/build/bno08x_ros2_driver/CTestConfiguration.ini
+[0.049s] Test project /home/viking/hunker/sw/ros_ws/build/bno08x_ros2_driver
+[0.049s] Constructing a list of tests
+[0.049s] Done constructing a list of tests
+[0.049s] Updating test list for fixtures
+[0.049s] Added 0 tests to meet fixture requirements
+[0.049s] Checking test dependency graph...
+[0.049s] Checking test dependency graph end
+[0.049s] test 1
+[0.049s]     Start 1: test_i2c_mock
+[0.050s] 
+[0.050s] 1: Test command: /usr/bin/python3 "-u" "/opt/ros/jazzy/share/ament_cmake_test/cmake/run_test.py" "/home/viking/hunker/sw/ros_ws/build/bno08x_ros2_driver/test_results/bno08x_ros2_driver/test_i2c_mock.gtest.xml" "--package-name" "bno08x_ros2_driver" "--output-file" "/home/viking/hunker/sw/ros_ws/build/bno08x_ros2_driver/ament_cmake_gmock/test_i2c_mock.txt" "--command" "/home/viking/hunker/sw/ros_ws/build/bno08x_ros2_driver/test_i2c_mock" "--gtest_output=xml:/home/viking/hunker/sw/ros_ws/build/bno08x_ros2_driver/test_results/bno08x_ros2_driver/test_i2c_mock.gtest.xml"
+[0.050s] 1: Working Directory: /home/viking/hunker/sw/ros_ws/build/bno08x_ros2_driver
+[0.050s] 1: Test timeout computed to be: 60
+[0.136s] 1: -- run_test.py: invoking following command in '/home/viking/hunker/sw/ros_ws/build/bno08x_ros2_driver':
+[0.136s] 1:  - /home/viking/hunker/sw/ros_ws/build/bno08x_ros2_driver/test_i2c_mock --gtest_output=xml:/home/viking/hunker/sw/ros_ws/build/bno08x_ros2_driver/test_results/bno08x_ros2_driver/test_i2c_mock.gtest.xml
+[0.136s] 1: -- run_test.py: invocation failed: [Errno 13] Permission denied: '/home/viking/hunker/sw/ros_ws/build/bno08x_ros2_driver/test_i2c_mock'
+[0.136s] 1: -- run_test.py: generate result file '/home/viking/hunker/sw/ros_ws/build/bno08x_ros2_driver/test_results/bno08x_ros2_driver/test_i2c_mock.gtest.xml' with failed test
+[0.136s] 1: -- run_test.py: verify result file '/home/viking/hunker/sw/ros_ws/build/bno08x_ros2_driver/test_results/bno08x_ros2_driver/test_i2c_mock.gtest.xml'
+[0.163s] 1/1 Test #1: test_i2c_mock ....................***Failed    0.11 sec
+[0.163s] 
+[0.164s] 0% tests passed[0;0m, [0;31m1 tests failed[0;0m out of 1
+[0.164s] 
+[0.164s] Label Time Summary:
+[0.164s] gmock    =   0.11 sec*proc (1 test)
+[0.164s] 
+[0.164s] Total Test time (real) =   0.12 sec
+[0.164s] 
+[0.164s] The following tests FAILED:
+[0.164s] 	[0;31m  1 - test_i2c_mock (Failed)[0;0m
+[0.164s] Errors while running CTest
+[0.164s] Output from these tests are in: /home/viking/hunker/sw/ros_ws/build/bno08x_ros2_driver/Testing/Temporary/LastTest.log
+[0.165s] Use "--rerun-failed --output-on-failure" to re-run the failed cases verbosely.
+[0.167s] Invoked command in '/home/viking/hunker/sw/ros_ws/build/bno08x_ros2_driver' returned '8': DEBUGINFOD_URLS=https://debuginfod.ubuntu.com /usr/bin/ctest -C Release -D ExperimentalTest --no-compress-output -V --force-new-ctest-process

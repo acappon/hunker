@@ -1,0 +1,8 @@
+-- run_test.py: invoking following command in '/home/viking/hunker/sw/ros_ws/build/bno08x_ros2_driver':
+ - /home/viking/hunker/sw/ros_ws/build/bno08x_ros2_driver/test_i2c_mock --gtest_output=xml:/home/viking/hunker/sw/ros_ws/build/bno08x_ros2_driver/test_results/bno08x_ros2_driver/test_i2c_mock.gtest.xml
+
+
+
+-- run_test.py: invocation failed: [Errno 13] Permission denied: '/home/viking/hunker/sw/ros_ws/build/bno08x_ros2_driver/test_i2c_mock'
+-- run_test.py: generate result file '/home/viking/hunker/sw/ros_ws/build/bno08x_ros2_driver/test_results/bno08x_ros2_driver/test_i2c_mock.gtest.xml' with failed test
+-- run_test.py: verify result file '/home/viking/hunker/sw/ros_ws/build/bno08x_ros2_driver/test_results/bno08x_ros2_driver/test_i2c_mock.gtest.xml'

@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Site BuildName="(empty)"
+	BuildStamp="20250510-1525-Experimental"
+	Name="jelly"
+	Generator="ctest-3.28.3"
+	CompilerName="/usr/bin/c++"
+	CompilerVersion="13.3.0"
+	OSName="Linux"
+	Hostname="HUNKER"
+	OSRelease="6.8.0-1024-raspi"
+	OSVersion="#28-Ubuntu SMP PREEMPT_DYNAMIC Thu Apr 17 12:20:20 UTC 2025"
+	OSPlatform="aarch64"
+	Is64Bits="1"
+	VendorString=""
+	VendorID="Unknown Manufacturer"
+	FamilyID="8"
+	ModelID="0"
+	ProcessorCacheSize="0"
+	NumberOfLogicalCPU="4"
+	NumberOfPhysicalCPU="1"
+	TotalVirtualMemory="1023"
+	TotalPhysicalMemory="7937"
+	LogicalProcessorsPerPhysical="4"
+	ProcessorClockFrequency="0"
+	>
+	<Testing>
+		<StartDateTime>May 10 11:25 EDT</StartDateTime>
+		<StartTestTime>1746890708</StartTestTime>
+		<TestList>
+			<Test>./test_i2c_mock</Test>
+		</TestList>
+		<Test Status="failed">
+			<Name>test_i2c_mock</Name>
+			<Path>.</Path>
+			<FullName>./test_i2c_mock</FullName>
+			<FullCommandLine>/usr/bin/python3 "-u" "/opt/ros/jazzy/share/ament_cmake_test/cmake/run_test.py" "/home/viking/hunker/sw/ros_ws/build/bno08x_ros2_driver/test_results/bno08x_ros2_driver/test_i2c_mock.gtest.xml" "--package-name" "bno08x_ros2_driver" "--output-file" "/home/viking/hunker/sw/ros_ws/build/bno08x_ros2_driver/ament_cmake_gmock/test_i2c_mock.txt" "--command" "/home/viking/hunker/sw/ros_ws/build/bno08x_ros2_driver/test_i2c_mock" "--gtest_output=xml:/home/viking/hunker/sw/ros_ws/build/bno08x_ros2_driver/test_results/bno08x_ros2_driver/test_i2c_mock.gtest.xml"</FullCommandLine>
+			<Results>
+				<NamedMeasurement type="text/string" name="Exit Code">
+					<Value>Failed</Value>
+				</NamedMeasurement>
+				<NamedMeasurement type="text/string" name="Exit Value">
+					<Value>1</Value>
+				</NamedMeasurement>
+				<NamedMeasurement type="numeric/double" name="Execution Time">
+					<Value>0.113578</Value>
+				</NamedMeasurement>
+				<NamedMeasurement type="numeric/double" name="Processors">
+					<Value>1</Value>
+				</NamedMeasurement>
+				<NamedMeasurement type="text/string" name="Completion Status">
+					<Value>Completed</Value>
+				</NamedMeasurement>
+				<NamedMeasurement type="text/string" name="Command Line">
+					<Value>/usr/bin/python3 "-u" "/opt/ros/jazzy/share/ament_cmake_test/cmake/run_test.py" "/home/viking/hunker/sw/ros_ws/build/bno08x_ros2_driver/test_results/bno08x_ros2_driver/test_i2c_mock.gtest.xml" "--package-name" "bno08x_ros2_driver" "--output-file" "/home/viking/hunker/sw/ros_ws/build/bno08x_ros2_driver/ament_cmake_gmock/test_i2c_mock.txt" "--command" "/home/viking/hunker/sw/ros_ws/build/bno08x_ros2_driver/test_i2c_mock" "--gtest_output=xml:/home/viking/hunker/sw/ros_ws/build/bno08x_ros2_driver/test_results/bno08x_ros2_driver/test_i2c_mock.gtest.xml"</Value>
+				</NamedMeasurement>
+				<NamedMeasurement type="text/string" name="Environment">
+					<Value>#CTEST_RESOURCE_GROUP_COUNT=</Value>
+				</NamedMeasurement>
+				<Measurement>
+					<Value>-- run_test.py: invoking following command in '/home/viking/hunker/sw/ros_ws/build/bno08x_ros2_driver':
+ - /home/viking/hunker/sw/ros_ws/build/bno08x_ros2_driver/test_i2c_mock --gtest_output=xml:/home/viking/hunker/sw/ros_ws/build/bno08x_ros2_driver/test_results/bno08x_ros2_driver/test_i2c_mock.gtest.xml
+-- run_test.py: invocation failed: [Errno 13] Permission denied: '/home/viking/hunker/sw/ros_ws/build/bno08x_ros2_driver/test_i2c_mock'
+-- run_test.py: generate result file '/home/viking/hunker/sw/ros_ws/build/bno08x_ros2_driver/test_results/bno08x_ros2_driver/test_i2c_mock.gtest.xml' with failed test
+-- run_test.py: verify result file '/home/viking/hunker/sw/ros_ws/build/bno08x_ros2_driver/test_results/bno08x_ros2_driver/test_i2c_mock.gtest.xml'
+</Value>
+				</Measurement>
+			</Results>
+			<Labels>
+				<Label>gmock</Label>
+			</Labels>
+		</Test>
+		<EndDateTime>May 10 11:25 EDT</EndDateTime>
+		<EndTestTime>1746890708</EndTestTime>
+		<ElapsedMinutes>0</ElapsedMinutes>
+	</Testing>
+</Site>

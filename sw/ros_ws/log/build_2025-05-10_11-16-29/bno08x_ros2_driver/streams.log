@@ -1,0 +1,21 @@
+[0.019s] Invoking command in '/home/viking/hunker/sw/ros_ws/build/bno08x_ros2_driver': DEBUGINFOD_URLS=https://debuginfod.ubuntu.com /usr/bin/cmake --build /home/viking/hunker/sw/ros_ws/build/bno08x_ros2_driver -- -j4 -l4
+[0.296s] -- Found ament_cmake: 2.5.4 (/opt/ros/jazzy/share/ament_cmake/cmake)
+[8.706s] Traceback (most recent call last):
+[8.707s]   File "/opt/ros/jazzy/share/ament_cmake_core/cmake/package_templates/templates_2_cmake.py", line 21, in <module>
+[8.707s]     from ament_package.templates import get_environment_hook_template_path
+[8.707s] ModuleNotFoundError: No module named 'ament_package'
+[8.782s] [31mCMake Error at /opt/ros/jazzy/share/ament_cmake_core/cmake/ament_cmake_package_templates-extras.cmake:41 (message):
+[8.782s]   execute_process(/usr/bin/python3
+[8.782s]   /opt/ros/jazzy/share/ament_cmake_core/cmake/package_templates/templates_2_cmake.py
+[8.782s]   /home/viking/hunker/sw/ros_ws/build/bno08x_ros2_driver/ament_cmake_package_templates/templates.cmake)
+[8.782s]   returned error code 1
+[8.782s] Call Stack (most recent call first):
+[8.782s]   /opt/ros/jazzy/share/ament_cmake_core/cmake/ament_cmake_coreConfig.cmake:41 (include)
+[8.782s]   /opt/ros/jazzy/share/ament_cmake/cmake/ament_cmake_export_dependencies-extras.cmake:15 (find_package)
+[8.783s]   /opt/ros/jazzy/share/ament_cmake/cmake/ament_cmakeConfig.cmake:41 (include)
+[8.783s]   CMakeLists.txt:19 (find_package)
+[8.783s] 
+[8.783s] [0m
+[8.783s] -- Configuring incomplete, errors occurred!
+[8.799s] gmake: *** [Makefile:432: cmake_check_build_system] Error 1
+[8.803s] Invoked command in '/home/viking/hunker/sw/ros_ws/build/bno08x_ros2_driver' returned '2': DEBUGINFOD_URLS=https://debuginfod.ubuntu.com /usr/bin/cmake --build /home/viking/hunker/sw/ros_ws/build/bno08x_ros2_driver -- -j4 -l4

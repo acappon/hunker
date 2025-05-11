@@ -1,0 +1,26 @@
+Start testing: May 10 11:25 EDT
+----------------------------------------------------------
+1/1 Testing: test_i2c_mock
+1/1 Test: test_i2c_mock
+Command: "/usr/bin/python3" "-u" "/opt/ros/jazzy/share/ament_cmake_test/cmake/run_test.py" "/home/viking/hunker/sw/ros_ws/build/bno08x_ros2_driver/test_results/bno08x_ros2_driver/test_i2c_mock.gtest.xml" "--package-name" "bno08x_ros2_driver" "--output-file" "/home/viking/hunker/sw/ros_ws/build/bno08x_ros2_driver/ament_cmake_gmock/test_i2c_mock.txt" "--command" "/home/viking/hunker/sw/ros_ws/build/bno08x_ros2_driver/test_i2c_mock" "--gtest_output=xml:/home/viking/hunker/sw/ros_ws/build/bno08x_ros2_driver/test_results/bno08x_ros2_driver/test_i2c_mock.gtest.xml"
+Directory: /home/viking/hunker/sw/ros_ws/build/bno08x_ros2_driver
+"test_i2c_mock" start time: May 10 11:25 EDT
+Output:
+----------------------------------------------------------
+-- run_test.py: invoking following command in '/home/viking/hunker/sw/ros_ws/build/bno08x_ros2_driver':
+ - /home/viking/hunker/sw/ros_ws/build/bno08x_ros2_driver/test_i2c_mock --gtest_output=xml:/home/viking/hunker/sw/ros_ws/build/bno08x_ros2_driver/test_results/bno08x_ros2_driver/test_i2c_mock.gtest.xml
+-- run_test.py: invocation failed: [Errno 13] Permission denied: '/home/viking/hunker/sw/ros_ws/build/bno08x_ros2_driver/test_i2c_mock'
+-- run_test.py: generate result file '/home/viking/hunker/sw/ros_ws/build/bno08x_ros2_driver/test_results/bno08x_ros2_driver/test_i2c_mock.gtest.xml' with failed test
+-- run_test.py: verify result file '/home/viking/hunker/sw/ros_ws/build/bno08x_ros2_driver/test_results/bno08x_ros2_driver/test_i2c_mock.gtest.xml'
+<end of output>
+Test time =   0.11 sec
+----------------------------------------------------------
+Test Failed.
+"test_i2c_mock" end time: May 10 11:25 EDT
+"test_i2c_mock" time elapsed: 00:00:00
+----------------------------------------------------------
+
+End testing: May 10 11:25 EDT
+
+gmock =   0.11 sec*proc
+

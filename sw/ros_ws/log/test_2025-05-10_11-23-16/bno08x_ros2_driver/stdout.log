@@ -1,0 +1,37 @@
+UpdateCTestConfiguration  from :/home/viking/hunker/sw/ros_ws/build/bno08x_ros2_driver/CTestConfiguration.ini
+Parse Config file:/home/viking/hunker/sw/ros_ws/build/bno08x_ros2_driver/CTestConfiguration.ini
+   Site: jelly
+   Build name: (empty)
+ Add coverage exclude regular expressions.
+Create new tag: 20250510-1523 - Experimental
+UpdateCTestConfiguration  from :/home/viking/hunker/sw/ros_ws/build/bno08x_ros2_driver/CTestConfiguration.ini
+Parse Config file:/home/viking/hunker/sw/ros_ws/build/bno08x_ros2_driver/CTestConfiguration.ini
+Test project /home/viking/hunker/sw/ros_ws/build/bno08x_ros2_driver
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 1
+    Start 1: test_i2c_mock
+
+1: Test command: /usr/bin/python3 "-u" "/opt/ros/jazzy/share/ament_cmake_test/cmake/run_test.py" "/home/viking/hunker/sw/ros_ws/build/bno08x_ros2_driver/test_results/bno08x_ros2_driver/test_i2c_mock.gtest.xml" "--package-name" "bno08x_ros2_driver" "--output-file" "/home/viking/hunker/sw/ros_ws/build/bno08x_ros2_driver/ament_cmake_gmock/test_i2c_mock.txt" "--command" "/home/viking/hunker/sw/ros_ws/build/bno08x_ros2_driver/test_i2c_mock" "--gtest_output=xml:/home/viking/hunker/sw/ros_ws/build/bno08x_ros2_driver/test_results/bno08x_ros2_driver/test_i2c_mock.gtest.xml"
+1: Working Directory: /home/viking/hunker/sw/ros_ws/build/bno08x_ros2_driver
+1: Test timeout computed to be: 60
+1: -- run_test.py: invoking following command in '/home/viking/hunker/sw/ros_ws/build/bno08x_ros2_driver':
+1:  - /home/viking/hunker/sw/ros_ws/build/bno08x_ros2_driver/test_i2c_mock --gtest_output=xml:/home/viking/hunker/sw/ros_ws/build/bno08x_ros2_driver/test_results/bno08x_ros2_driver/test_i2c_mock.gtest.xml
+1: -- run_test.py: invocation failed: [Errno 13] Permission denied: '/home/viking/hunker/sw/ros_ws/build/bno08x_ros2_driver/test_i2c_mock'
+1: -- run_test.py: generate result file '/home/viking/hunker/sw/ros_ws/build/bno08x_ros2_driver/test_results/bno08x_ros2_driver/test_i2c_mock.gtest.xml' with failed test
+1: -- run_test.py: verify result file '/home/viking/hunker/sw/ros_ws/build/bno08x_ros2_driver/test_results/bno08x_ros2_driver/test_i2c_mock.gtest.xml'
+1/1 Test #1: test_i2c_mock ....................***Failed    0.12 sec
+
+0% tests passed[0;0m, [0;31m1 tests failed[0;0m out of 1
+
+Label Time Summary:
+gmock    =   0.12 sec*proc (1 test)
+
+Total Test time (real) =   0.12 sec
+
+The following tests FAILED:
+	[0;31m  1 - test_i2c_mock (Failed)[0;0m
