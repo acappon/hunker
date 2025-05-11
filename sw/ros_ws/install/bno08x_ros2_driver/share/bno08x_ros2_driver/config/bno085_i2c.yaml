@@ -18,9 +18,9 @@ bno08x_driver:
       device: "/dev/ttyACM0"  
 
     publish:
-      magnetic_field: 
-        enabled: true
-        rate: 100   # max 100 Hz
+#      magnetic_field: 
+#        enabled: true
+#        rate: 100   # max 100 Hz
       imu:
         enabled: true
         rate: 100   # max 400 Hz 
