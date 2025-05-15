@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.5)
 project(robot)
 
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+
 # Set the directory containing ament_cmakeConfig.cmake
 set(ament_cmake_DIR "/opt/ros/jazzy/share/ament_cmake/cmake")
 find_package(ament_cmake REQUIRED)
@@ -11,7 +13,6 @@ include_directories(${rclcpp_INCLUDE_DIRS})
 include_directories(${sensor_msgs_INCLUDE_DIRS})
 
 # Find the lgpio library
-set(lgpio_DIR "/path/to/lgpio")
 find_package(lgpio REQUIRED)
 
 add_executable(RobotNode src/main.cpp src/RobotNode.cpp src/FaultIndicator.cpp src/MyGpio.cpp src/Motor.cpp src/Robot.cpp)

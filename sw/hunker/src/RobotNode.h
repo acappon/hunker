@@ -79,6 +79,7 @@ private: // data
     rclcpp::Subscription<sensor_msgs::msg::Imu>::SharedPtr m_imu_sub;
 
     rclcpp::Time m_last_joy_msg_time;
+    rclcpp::Time m_last_imu_msg_time;
     bool m_isControllerConnected;
     bool m_isRobotEnabled;
     bool m_isRobotEmergencyStopped;

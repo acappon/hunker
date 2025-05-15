@@ -25,7 +25,7 @@ void RobotNode::init()
         m_myGpio.initEnableAndFaultLED();
         m_robot.init();
 
-        m_last_joy_msg_time = this->now() - rclcpp::Duration(10, 0);
+        m_last_joy_msg_time = m_last_imu_msg_time = this->now() - rclcpp::Duration(10, 0);
 
         // Subscribe to joystick messages
         auto qos_joy = rclcpp::QoS(rclcpp::QoSInitialization::from_rmw(rmw_qos_profile_sensor_data));
@@ -74,6 +74,22 @@ void RobotNode::writeLog(const std::string &msg, ...)
 {
     try
     {
+        static std::string prevMsg;
+        if(msg == prevMsg)
+        {
+            return; // Avoid duplicate messages
+        }   
+        prevMsg = msg;
+        if (msg.empty())
+        {
+            return; // Avoid empty messages
+        }
+        if (msg.length() > 1000)
+        {
+            writeLog("Message too long, truncating to 1000 characters");
+            return;
+        }
+        
         va_list vl;
         va_start(vl, msg);
         RCLCPP_INFO(this->get_logger(), msg.c_str(), vl);
@@ -323,6 +339,7 @@ void RobotNode::joy_callback(const sensor_msgs::msg::Joy::SharedPtr msg)
 // Callback function for IMU messages
 void RobotNode::imu_callback(const sensor_msgs::msg::Imu::SharedPtr msg)
 {
+    m_last_imu_msg_time = this->now();
 
     m_imu_orientation[IMU_AXES::X] = msg->orientation.x;
     m_imu_orientation[IMU_AXES::Y] = msg->orientation.y;
@@ -335,12 +352,4 @@ void RobotNode::imu_callback(const sensor_msgs::msg::Imu::SharedPtr msg)
     m_imu_angular_velocity[IMU_AXES::X] = msg->angular_velocity.x;
     m_imu_angular_velocity[IMU_AXES::Y] = msg->angular_velocity.y;
     m_imu_angular_velocity[IMU_AXES::Z] = msg->angular_velocity.z;
-
-    RCLCPP_INFO(this->get_logger(), "Received IMU data:");
-    RCLCPP_INFO(this->get_logger(), "Orientation: x=%f, y=%f, z=%f, w=%f",
-                msg->orientation.x, msg->orientation.y, msg->orientation.z, msg->orientation.w);
-    RCLCPP_INFO(this->get_logger(), "Angular Velocity: x=%f, y=%f, z=%f",
-                msg->angular_velocity.x, msg->angular_velocity.y, msg->angular_velocity.z);
-    RCLCPP_INFO(this->get_logger(), "Linear Acceleration: x=%f, y=%f, z=%f",
-                msg->linear_acceleration.x, msg->linear_acceleration.y, msg->linear_acceleration.z);
 }
