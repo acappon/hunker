@@ -128,7 +128,7 @@ void Motor::setPower(Motor::MOTOR_TYPE typ, double power) // -1.0 to 1.0
             m_gpio_for_direction[typ],
             m_gpio_for_pwm[typ],
             power > 0.0,
-            power))
+            abs(power)))
     {
         g_myRobotNode->writeLog("Failed to set power for " + motorName(typ));
     }

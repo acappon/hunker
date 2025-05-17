@@ -56,13 +56,15 @@ bool MyGpio::initEnableAndFaultLED()
 
 bool MyGpio::initWheel(MyGpio::GPIO_PIN enable, MyGpio::GPIO_PIN dir, MyGpio::GPIO_PIN pwm, MyGpio::GPIO_PIN count)
 {
-    int iRet = -999;
+    bool bRet = true;
+    int iRet = -999;    
 
     if (isValidPin(enable))
     {
         iRet = lgGpioClaimOutput(m_lgpio_chip, LG_SET_PULL_UP, enable, 0);
         if (iRet < 0)
         {
+            bRet = false;
             g_myRobotNode->writeLog("Failed to claim GPIO for wheel enable line");
         }
     }
@@ -70,7 +72,9 @@ bool MyGpio::initWheel(MyGpio::GPIO_PIN enable, MyGpio::GPIO_PIN dir, MyGpio::GP
     if (isValidPin(dir))
     {
         iRet = lgGpioClaimOutput(m_lgpio_chip, LG_SET_PULL_UP, dir, 0);
+        if (iRet < 0)
         {
+            bRet = false;
             g_myRobotNode->writeLog("Failed to claim direction GPIO line");
         }
     }
@@ -80,6 +84,7 @@ bool MyGpio::initWheel(MyGpio::GPIO_PIN enable, MyGpio::GPIO_PIN dir, MyGpio::GP
         iRet = lgGpioClaimOutput(m_lgpio_chip, LG_SET_PULL_UP, pwm, 0);
         if (iRet < 0)
         {
+            bRet = false;
             g_myRobotNode->writeLog("Failed to claim PWM GPIO line");
         }
     }
@@ -89,16 +94,17 @@ bool MyGpio::initWheel(MyGpio::GPIO_PIN enable, MyGpio::GPIO_PIN dir, MyGpio::GP
         iRet = lgGpioClaimInput(m_lgpio_chip, LG_SET_PULL_UP, count);
         if (iRet < 0)
         {
+            bRet = false;
             g_myRobotNode->writeLog("Failed to claim count GPIO line");
         }
     }
 
-    return iRet;
+    return bRet;
 }
 
 bool MyGpio::isValidPin(MyGpio::GPIO_PIN pin)
 {
-    if (pin < 0 || pin > 26)
+    if (pin < 0 || pin > 27)
     {
         return false;
     }

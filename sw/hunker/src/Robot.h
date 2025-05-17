@@ -16,8 +16,9 @@ public:
 
     typedef enum
     {
-        ROBOT_FRAME,    // Tank drive.  Fwd/Back stick means fwd/back relative to robot.  Right/Left means % differential power per wheel
-        FIELD_FRAME,    // Requires IMU.  POwer on robot while standing behind it with controller pointed same direction.
+        TANK_ROBOT_FRAME,       // Tank drive.  Left/Right Fwd/Back stick means fwd/back relative to robot. 
+        ARCADE_ROBOT_FRAME,     // Arcade drive.  Fwd/Back RIGHT stick means fwd/back relative to robot.  Right/Left means % differential power per wheel
+        ARCADE_FIELD_FRAME,     // Requires IMU.  Power on robot while standing behind it with controller pointed same direction.
                         // Direction stick is pushed is direction robot will turn to, magnitude of push = speed
         NUMBER_OF_DRIVE_TYPES
     } DRIVE_TYPE;

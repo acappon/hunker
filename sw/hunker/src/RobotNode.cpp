@@ -255,7 +255,9 @@ void RobotNode::updateLEDs()
             }
             else
             {
-                writeLog("updateLEDs: Robot ENABLED, state %s", m_robot.getRobotStateText().c_str());
+                std::string sMsg = "updateLEDs: Robot ENABLED, state ";
+                sMsg += m_robot.getRobotStateText();
+                writeLog(sMsg);
                 flashEnableLED();
             }
         }

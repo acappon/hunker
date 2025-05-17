@@ -14,7 +14,7 @@ Robot::Robot()
 
 void Robot::init()
 {
-    m_driveType = ROBOT_FRAME;
+    m_driveType = TANK_ROBOT_FRAME;
     m_robotState = ROBOT_STATE_DISABLED;
     m_deck_pitch = 0.0;
     m_deck_roll = 0.0;
@@ -178,11 +178,16 @@ void Robot::balancingPeriodic()
     // TODO: Compare deck orientation to "up" vector, and adjust motor power to balance
 
     // On top of balance power, add control input from joystick
+    double joyLeft_FB = g_myRobotNode->m_joy_axes[RobotNode::LJOY_FWD_BACK];
     double joyRight_FB = g_myRobotNode->m_joy_axes[RobotNode::RJOY_FWD_BACK];
-
     double joyRight_LR = g_myRobotNode->m_joy_axes[RobotNode::RJOY_LEFT_RIGHT];
 
-    if (m_driveType == ROBOT_FRAME)
+    if (m_driveType == TANK_ROBOT_FRAME)
+    {
+        power_R += joyRight_FB;
+        power_L += joyLeft_FB;
+    }
+    else if (m_driveType == ARCADE_ROBOT_FRAME)
     {
         power_R += joyRight_FB;
         power_L += joyRight_FB;
@@ -190,7 +195,7 @@ void Robot::balancingPeriodic()
         power_R += joyRight_LR;
         power_L -= joyRight_LR;
     }
-    else if (m_driveType == FIELD_FRAME)
+    else if (m_driveType == ARCADE_FIELD_FRAME)
     {
         // TODO:  Take note of IMU heading at power up, which will correspond to direction of pushing right joystick forward
 
@@ -207,6 +212,8 @@ void Robot::balancingPeriodic()
         g_myRobotNode->writeLog("Unknown drive type %d", m_driveType);
         g_myRobotNode->emergencyStop();
     }
+
+    power_L *= -1.0;  // Invert left wheel power, because of the way the motors are mounted
 
     if (power_L > 1.0)
         power_L = 1.0;
