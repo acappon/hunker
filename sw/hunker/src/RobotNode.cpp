@@ -1,5 +1,6 @@
 #include "common.h"
 
+
 extern std::shared_ptr<RobotNode> g_myRobotNode;
 
 RobotNode::RobotNode()
@@ -10,6 +11,12 @@ RobotNode::RobotNode()
 RobotNode::~RobotNode()
 {
     stopIMUThread();
+
+    m_joystick_sub.reset();
+    m_feedback_publisher.reset();
+    m_imu_sub.reset();
+    m_safetyTimer.reset();
+    m_robotTimer.reset();
 }
 
 void RobotNode::init()
@@ -33,8 +40,12 @@ void RobotNode::init()
             .best_effort()
             .durability_volatile();
         m_joystick_sub = this->create_subscription<sensor_msgs::msg::Joy>(
-            "joy", qos_joy, 
+            "joy", qos_joy,
             std::bind(&RobotNode::joy_callback, this, std::placeholders::_1));
+
+        // Create a publisher for the feedback topic
+        m_feedback_publisher = this->create_publisher<sensor_msgs::msg::JoyFeedback>("joy/set_feedback", 10);
+
 
         // Create a subscription to the /imu topic
         auto qos_imu = rclcpp::QoS(rclcpp::QoSInitialization::from_rmw(rmw_qos_profile_sensor_data));
@@ -75,10 +86,10 @@ void RobotNode::writeLog(const std::string &msg, ...)
     try
     {
         static std::string prevMsg;
-        if(msg == prevMsg)
+        if (msg == prevMsg)
         {
             return; // Avoid duplicate messages
-        }   
+        }
         prevMsg = msg;
         if (msg.empty())
         {
@@ -89,7 +100,7 @@ void RobotNode::writeLog(const std::string &msg, ...)
             writeLog("Message too long, truncating to 1000 characters");
             return;
         }
-        
+
         va_list vl;
         va_start(vl, msg);
         RCLCPP_INFO(this->get_logger(), msg.c_str(), vl);
@@ -210,8 +221,19 @@ void RobotNode::checkRobotEnableDisable()
     {
         if (!isRobotEnabled())
         {
-            writeLog("Robot ENABLED");
-            enableRobot(true);
+            // It's not generally safe to enable while the joysticks are active, but this also covers
+            // the situation where the controller is turned on after the robot,
+            // (Default value for joystick axes is 1.0 until the sticks are moved)
+            if (areAllJoysticksInDeadzone())
+            {
+                writeLog("Robot ENABLED");
+                enableRobot(true);
+            }
+            else
+            {
+                writeLog("Joystick not in deadzone, not enabling robot");
+                sendXboxRumble();
+            }
         }
     }
 
@@ -354,4 +376,36 @@ void RobotNode::imu_callback(const sensor_msgs::msg::Imu::SharedPtr msg)
     m_imu_angular_velocity[IMU_AXES::X] = msg->angular_velocity.x;
     m_imu_angular_velocity[IMU_AXES::Y] = msg->angular_velocity.y;
     m_imu_angular_velocity[IMU_AXES::Z] = msg->angular_velocity.z;
+}
+
+void RobotNode::sendXboxRumble()
+{
+    double vibe_intensity = 0.5; // Vibration intensity (0.0 to 1.0)
+
+    // Left rumble
+    sensor_msgs::msg::JoyFeedback feedback_msg_left;
+    feedback_msg_left.type = sensor_msgs::msg::JoyFeedback::TYPE_RUMBLE;
+    feedback_msg_left.id = 0; // 0 for left rumble
+    feedback_msg_left.intensity = vibe_intensity;
+    m_feedback_publisher->publish(feedback_msg_left);
+
+    // Right rumble
+    sensor_msgs::msg::JoyFeedback feedback_msg_right;
+    feedback_msg_right.type = sensor_msgs::msg::JoyFeedback::TYPE_RUMBLE;
+    feedback_msg_right.id = 1; // 1 for right rumble
+    feedback_msg_right.intensity = vibe_intensity;
+    m_feedback_publisher->publish(feedback_msg_right);
+}
+
+bool RobotNode::areAllJoysticksInDeadzone()
+{
+    // Check if all joystick axes,(but not the trigger axes), are within the deadzone
+    for (int i = 0; i < 4; ++i)
+    {
+        if (abs(g_myRobotNode->m_joy_axes[i]) > JOYSTICK_DEADZONE)
+        {
+            return false;
+        }
+    }
+    return true;
 }

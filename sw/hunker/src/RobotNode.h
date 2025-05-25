@@ -1,6 +1,8 @@
 #ifndef ROBOT_NODE_HPP
 #define ROBOT_NODE_HPP
 
+#define JOYSTICK_DEADZONE 0.05
+
 class RobotNode : public rclcpp::Node
 {
 public:
@@ -72,10 +74,14 @@ private: // functions
     void joy_callback(const sensor_msgs::msg::Joy::SharedPtr msg);
     void imu_callback(const sensor_msgs::msg::Imu::SharedPtr msg);
 
+    bool areAllJoysticksInDeadzone();
+    void sendXboxRumble();
+
 private: // data
     Robot m_robot;
 
     rclcpp::Subscription<sensor_msgs::msg::Joy>::SharedPtr m_joystick_sub;
+    rclcpp::Publisher<sensor_msgs::msg::JoyFeedback>::SharedPtr m_feedback_publisher;
     rclcpp::Subscription<sensor_msgs::msg::Imu>::SharedPtr m_imu_sub;
 
     rclcpp::Time m_last_joy_msg_time;

@@ -7,6 +7,7 @@
 
 #include <rclcpp/rclcpp.hpp>
 #include "sensor_msgs/msg/joy.hpp"
+#include "sensor_msgs/msg/joy_feedback.hpp"
 #include "sensor_msgs/msg/imu.hpp"
 
 #include "MyGpio.h"
