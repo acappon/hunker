@@ -17,12 +17,12 @@ public:
         GPIO_R_WHEEL_ENABLE = 27,
         GPIO_R_WHEEL_DIR = 22,
         GPIO_R_WHEEL_PWM = 23,
-        GPIO_R_WHEEL_COUNT = 24,
+        GPIO_R_WHEEL_COUNT = 990,
 
-        GPIO_L_WHEEL_ENABLE = 10,
-        GPIO_L_WHEEL_DIR = 9,
-        GPIO_L_WHEEL_PWM = 11,
-        GPIO_L_WHEEL_COUNT = 25,
+        GPIO_L_WHEEL_ENABLE = 12,   
+        GPIO_L_WHEEL_DIR = 25,    
+        GPIO_L_WHEEL_PWM = 24,
+        GPIO_L_WHEEL_COUNT = 991,  
 
         GPIO_R_KNEE_ENABLE = 999,
         GPIO_R_KNEE_DIR = 998,
@@ -38,7 +38,7 @@ public:
     MyGpio();
     ~MyGpio();
     bool initEnableAndFaultLED();
-    bool initWheel(MyGpio::GPIO_PIN enable, MyGpio::GPIO_PIN dir, MyGpio::GPIO_PIN pwm, MyGpio::GPIO_PIN count);
+    bool initWheel(MyGpio::GPIO_PIN enable, MyGpio::GPIO_PIN dir, MyGpio::GPIO_PIN pwm);
 
     bool isValidPin(MyGpio::GPIO_PIN pin);
     bool gpioWrite(MyGpio::GPIO_PIN pin, bool value);
