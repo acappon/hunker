@@ -39,57 +39,19 @@ bool MyGpio::initEnableAndFaultLED()
         iRet = 0;
     }
 
-    iRet = lgGpioClaimOutput(m_lgpio_chip, LG_SET_PULL_UP, GPIO_PIN::GPIO_LED_ENABLE, 0);
+    iRet = lgGpioClaimOutput(m_lgpio_chip, LG_SET_PULL_NONE, GPIO_PIN::GPIO_LED_ENABLE, 0);
     if (iRet < 0)
     {
         g_myRobotNode->writeLog("Failed to claim GPIO for enable LED line");
     }
 
-    iRet = lgGpioClaimOutput(m_lgpio_chip, LG_SET_PULL_UP, GPIO_PIN::GPIO_LED_FAULT, 0);
+    iRet = lgGpioClaimOutput(m_lgpio_chip, LG_SET_PULL_NONE, GPIO_PIN::GPIO_LED_FAULT, 0);
     if (iRet < 0)
     {
         g_myRobotNode->writeLog("Failed to claim GPIO fault line");
     }
 
     return (iRet == 0);
-}
-
-bool MyGpio::initWheel(MyGpio::GPIO_PIN enable, MyGpio::GPIO_PIN dir, MyGpio::GPIO_PIN pwm)
-{
-    bool bRet = true;
-    int iRet = -999;    
-
-    if (isValidPin(enable))
-    {
-        iRet = lgGpioClaimOutput(m_lgpio_chip, LG_SET_PULL_UP, enable, 0);
-        if (iRet < 0)
-        {
-            bRet = false;
-            g_myRobotNode->writeLog("Failed to claim GPIO for wheel enable line");
-        }
-    }
-
-    if (isValidPin(dir))
-    {
-        iRet = lgGpioClaimOutput(m_lgpio_chip, LG_SET_PULL_UP, dir, 0);
-        if (iRet < 0)
-        {
-            bRet = false;
-            g_myRobotNode->writeLog("Failed to claim direction GPIO line");
-        }
-    }
-
-    if (isValidPin(pwm))
-    {
-        iRet = lgGpioClaimOutput(m_lgpio_chip, LG_SET_PULL_UP, pwm, 0);
-        if (iRet < 0)
-        {
-            bRet = false;
-            g_myRobotNode->writeLog("Failed to claim PWM GPIO line");
-        }
-    }
-
-    return bRet;
 }
 
 bool MyGpio::isValidPin(MyGpio::GPIO_PIN pin)
@@ -127,9 +89,7 @@ bool MyGpio::gpioRead(MyGpio::GPIO_PIN pin)
 
 void MyGpio::setEnableLED(bool state)
 {
-    bool not_state = !state; // To turn on the LED, set GPIO to 0
-
-    if (!gpioWrite(GPIO_PIN::GPIO_LED_ENABLE, not_state))
+    if (!gpioWrite(GPIO_PIN::GPIO_LED_ENABLE, state))
     {
         g_myRobotNode->writeLog("Failed to write to enable LED GPIO");
     }
@@ -137,9 +97,7 @@ void MyGpio::setEnableLED(bool state)
 
 void MyGpio::setFaultLED(bool state)
 {
-    bool not_state = !state; // To turn on the LED, set GPIO to 0
-
-    if (!gpioWrite(GPIO_PIN::GPIO_LED_FAULT, not_state))
+    if (!gpioWrite(GPIO_PIN::GPIO_LED_FAULT, state))
     {
         g_myRobotNode->writeLog("Failed to write to fault LED GPIO");
     }
@@ -147,34 +105,13 @@ void MyGpio::setFaultLED(bool state)
 
 void MyGpio::enableWheelMotors(bool isEnabled)
 {
-    if (!gpioWrite(GPIO_PIN::GPIO_R_WHEEL_ENABLE, isEnabled))
-    {
-        g_myRobotNode->writeLog("Failed to write to right wheel enable GPIO");
-    }
-
-    if (!gpioWrite(GPIO_PIN::GPIO_L_WHEEL_ENABLE, isEnabled))
-    {
-        g_myRobotNode->writeLog("Failed to write to left wheel enable GPIO");
-    }
+ 
+ 
+ 
 }
 
 bool MyGpio::setMotorPower(MyGpio::GPIO_PIN dirPin, MyGpio::GPIO_PIN pwmPin, bool isFwd, double power)
 {
-    // Set direction
-    if (!gpioWrite(dirPin, isFwd))
-    {
-        g_myRobotNode->writeLog("Failed to write to direction GPIO");
-        return false;
-    }
-
-    // Set PWM
-    int pwmDutyCycle = abs(power) * 100;
-    int iRet = lgTxPwm(m_lgpio_chip, pwmPin, 10000, pwmDutyCycle, 0, 0);
-    if (iRet < 0)
-    {
-        g_myRobotNode->writeLog("Failed to set PWM duty cycle");
-        return false;
-    }
 
     return true;
 }

@@ -9,36 +9,14 @@ public:
         // LED GPIOs are chosen to be close to the end of the connector, to keep
         // wires
         // shorter
-        GPIO_LED_ENABLE = 4,
-        GPIO_LED_FAULT = 17,
+        GPIO_LED_ENABLE = 17,
+        GPIO_LED_FAULT = 4,
 
-        // GPIOs are chosen for each wheel to be close to each other on the
-        // connector
-        GPIO_R_WHEEL_ENABLE = 27,
-        GPIO_R_WHEEL_DIR = 22,
-        GPIO_R_WHEEL_PWM = 23,
-        GPIO_R_WHEEL_COUNT = 990,
-
-        GPIO_L_WHEEL_ENABLE = 12,   
-        GPIO_L_WHEEL_DIR = 25,    
-        GPIO_L_WHEEL_PWM = 24,
-        GPIO_L_WHEEL_COUNT = 991,  
-
-        GPIO_R_KNEE_ENABLE = 999,
-        GPIO_R_KNEE_DIR = 998,
-        GPIO_R_KNEE_PWM = 997,
-        GPIO_R_KNEE_COUNT = 996,
-
-        GPIO_L_KNEE_ENABLE = 995,
-        GPIO_L_KNEE_DIR = 994,
-        GPIO_L_KNEE_PWM = 993,
-        GPIO_L_KNEE_COUNT = 992,
     } GPIO_PIN;
 
     MyGpio();
     ~MyGpio();
     bool initEnableAndFaultLED();
-    bool initWheel(MyGpio::GPIO_PIN enable, MyGpio::GPIO_PIN dir, MyGpio::GPIO_PIN pwm);
 
     bool isValidPin(MyGpio::GPIO_PIN pin);
     bool gpioWrite(MyGpio::GPIO_PIN pin, bool value);
