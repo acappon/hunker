@@ -4,6 +4,8 @@
 extern "C"
 {
 #include <lgpio.h>
+#include <SparkMax.h>
+#include <config/SparkMaxConfig.h>
 }
 
 extern std::shared_ptr<RobotNode> g_myRobotNode;
@@ -20,6 +22,7 @@ Motor::~Motor()
 
 int Motor::init()
 {
+    rev::spark::SparkMax neoMotor{1, rev::spark::SparkMax::MotorType::kBrushless};
 
     return 0;
 }
