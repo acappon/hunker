@@ -40,7 +40,7 @@ public:
     void hunkeredPeriodic();
 
 public:
-    Motor m_myMotors;
+    BalanceDrive m_myBalanceDrive;
 
 private:
     DRIVE_TYPE m_driveType;

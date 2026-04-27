@@ -19,10 +19,8 @@ void Robot::init()
     m_deck_pitch = 0.0;
     m_deck_roll = 0.0;
  
-    m_myMotors.init();
-
-    errno=0;
- }
+    m_myBalanceDrive.init();
+}
 
 Robot::~Robot()
 {
@@ -164,14 +162,13 @@ void Robot::periodic()
 
 void Robot::disabledPeriodic()
 {
-    m_myMotors.setPower(Motor::MOTOR_TYPE::RWheel, 0.0);
-    m_myMotors.setPower(Motor::MOTOR_TYPE::LWheel, 0.0);
-    // m_myMotors.setPower(Motor::MOTOR_TYPE::RKnee, 0.0);
-    // m_myMotors.setPower(Motor::MOTOR_TYPE::LKnee, 0.0);
+    m_myBalanceDrive.setEnable(false);
 }
 
 void Robot::balancingPeriodic()
 {
+    m_myBalanceDrive.setEnable(true);
+
     double power_R = 0.0; // Range -1.0 to 1.0
     double power_L = 0.0;
 
@@ -230,22 +227,25 @@ void Robot::balancingPeriodic()
     std::string msg(buffer);
     g_myRobotNode->writeLog(msg);
 
-    m_myMotors.setPower(Motor::MOTOR_TYPE::LWheel, power_L);
-    m_myMotors.setPower(Motor::MOTOR_TYPE::RWheel, power_R);
+    //m_myMotors.setPower(Motor::MOTOR_TYPE::LWheel, power_L);
+    //m_myMotors.setPower(Motor::MOTOR_TYPE::RWheel, power_R);
 }
 
 void Robot::airbornePeriodic()
 {
+    m_myBalanceDrive.setEnable(true);
     // TODO: Move leg toward middle of range of motion, if there, motor power == 0
 }
 
 void Robot::landingPeriodic()
 {
-    // TODO: Move leg toward fully folded, if there, motor power == 0
+     m_myBalanceDrive.setEnable(true);
+   // TODO: Move leg toward fully folded, if there, motor power == 0
 }
 
 void Robot::hunkeredPeriodic()
 {
-    // TODO: Maintain sufficient power to keep springs from extending legs
+     m_myBalanceDrive.setEnable(true);
+   // TODO: Maintain sufficient power to keep springs from extending legs
     // Probably zero if upriight, but will need power if upside down
 }

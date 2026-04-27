@@ -12,6 +12,6 @@
 
 #include "MyGpio.h"
 #include "FaultIndicator.h"
-#include "Motor.h"
+#include "BalanceDrive.h"
 #include "Robot.h"
 #include "RobotNode.h"

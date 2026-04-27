@@ -7,9 +7,13 @@
                 "/opt/ros/jazzy/include/**",
                 "/opt/ros/jazzy/include/sensor_msgs/sensor_msgs/msg/detail",
                 "/opt/ros/jazzy/include/rclcpp",
+                "/usr/local/include/frc",
+                "/usr/local/include/rev",
                 "/usr/include/linux",
                 "/opt/ros/jazzy/include/rcl_interfaces",
-                "/opt/ros/jazzy/include/rosidl_runtime_cpp"
+                "/opt/ros/jazzy/include/rosidl_runtime_cpp",
+                "/usr/local/include/frc",
+                "/usr/local/include/rev"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/gcc",
