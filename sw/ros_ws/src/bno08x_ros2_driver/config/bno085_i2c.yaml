@@ -17,11 +17,12 @@ bno08x_driver:
       enabled: false
       device: "/dev/ttyACM0"  
 
+    interrupt:
+      gpio_chip: "gpiochip0"   # check: gpiodetect
+      gpio_line: 24   
+      
     publish:
-#      magnetic_field: 
-#        enabled: true
-#        rate: 100   # max 100 Hz
       imu:
         enabled: true
-        rate: 100   # max 400 Hz 
+        rate: 400   # max 400 Hz 
                     # (anythihng above 100Hz depends on your hardware)

@@ -4,7 +4,7 @@
 int main(int argc, char **argv)
 {
     rclcpp::init(argc, argv);
-    std::shared_ptr<BNO08xROS> bno08x_node = std::make_shared<BNO08xROS>();
+    std::shared_ptr<BNO08x_ROS> bno08x_node = std::make_shared<BNO08x_ROS>();
     rclcpp::spin(bno08x_node);
     rclcpp::shutdown();
 

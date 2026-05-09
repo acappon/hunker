@@ -21,6 +21,8 @@ find_package(rclcpp REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(std_msgs REQUIRED)
 
+find_library(GPIOD_LIB gpiod REQUIRED)
+
 # Add include directories for main driver
 include_directories(
   include
@@ -49,6 +51,7 @@ target_compile_features(bno08x_driver PUBLIC cxx_std_17)
 
 # Link against sh2 library
 target_link_libraries(bno08x_driver
+  ${GPIOD_LIB}
   sh2_library
 )
 

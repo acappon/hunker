@@ -6,12 +6,13 @@ constexpr uint8_t ROTATION_VECTOR_RECEIVED = 0x01;
 constexpr uint8_t ACCELEROMETER_RECEIVED   = 0x02;
 constexpr uint8_t GYROSCOPE_RECEIVED       = 0x04;
 
-BNO08xROS::BNO08xROS()
+BNO08x_ROS::BNO08x_ROS()
     : Node("bno08x_ros")
 {  
     this->init_parameters();
     this->init_comms();
     this->init_sensor();
+    init_gpio();
 
     if (publish_imu_) {
         this->imu_publisher_ = this->create_publisher<sensor_msgs::msg::Imu>("/imu", 10);
@@ -19,30 +20,10 @@ BNO08xROS::BNO08xROS()
         RCLCPP_INFO(this->get_logger(), "IMU Rate: %d", imu_rate_);
     }
 
-    if (publish_magnetic_field_) {
-        mag_publisher_ = this->create_publisher<sensor_msgs::msg::MagneticField>(
-                                                                        "/magnetic_field", 10);
-        RCLCPP_INFO(this->get_logger(), "Magnetic Field Publisher created");
-        RCLCPP_INFO(this->get_logger(), "Magnetic Field Rate: %d", magnetic_field_rate_);
-    }
-
-    // Poll the sensor at the rate of the fastest sensor
-    this->imu_received_flag_ = 0;
-    if(this->imu_rate_ < this->magnetic_field_rate_){
-        this->poll_timer_ = this->create_wall_timer(
-            std::chrono::milliseconds(1000/this->magnetic_field_rate_), // Hz to ms
-            std::bind(&BNO08xROS::poll_timer_callback, this)
-        );
-    } else {
-        this->poll_timer_ = this->create_wall_timer(
-            std::chrono::milliseconds(1000/this->imu_rate_), // Hz to ms
-            std::bind(&BNO08xROS::poll_timer_callback, this)
-        );
-    }
     RCLCPP_INFO(this->get_logger(), "BNO08X ROS Node started.");
 }
 
-BNO08xROS::~BNO08xROS() {
+BNO08x_ROS::~BNO08x_ROS() {
     delete bno08x_;
     delete comm_interface_;
 }
@@ -52,7 +33,7 @@ BNO08xROS::~BNO08xROS() {
  * 
  * communication interface based on the parameters
  */
-void BNO08xROS::init_comms() {
+void BNO08x_ROS::init_comms() {
     bool i2c_enabled, uart_enabled;
     this->get_parameter("i2c.enabled", i2c_enabled);
     this->get_parameter("uart.enabled", uart_enabled);
@@ -93,11 +74,9 @@ void BNO08xROS::init_comms() {
  * This function initializes the parameters for the node
  * 
  */
-void BNO08xROS::init_parameters() {
+void BNO08x_ROS::init_parameters() {
     this->declare_parameter<std::string>("frame_id", "bno085");
 
-    this->declare_parameter<bool>("publish.magnetic_field.enabled", true);
-    this->declare_parameter<int>("publish.magnetic_field.rate", 100);
     this->declare_parameter<bool>("publish.imu.enabled", true);
     this->declare_parameter<int>("publish.imu.rate", 100);
 
@@ -107,12 +86,41 @@ void BNO08xROS::init_parameters() {
     this->declare_parameter<bool>("uart.enabled", false);
     this->declare_parameter<std::string>("uart.device", "/dev/ttyACM0");
 
+    this->declare_parameter<std::string>("interrupt.gpio_chip", "gpiochip0");
+    this->declare_parameter<int>        ("interrupt.gpio_line", 24);
+
     this->get_parameter("frame_id", frame_id_);
 
-    this->get_parameter("publish.magnetic_field.enabled", publish_magnetic_field_);
-    this->get_parameter("publish.magnetic_field.rate", magnetic_field_rate_);
     this->get_parameter("publish.imu.enabled", publish_imu_);
     this->get_parameter("publish.imu.rate", imu_rate_);
+
+    this->get_parameter("interrupt.gpio_chip", gpio_chip_name_);
+    this->get_parameter("interrupt.gpio_line", gpio_line_num_);
+}
+
+void BNO08x_ROS::init_gpio() {
+    gpio_chip_ = gpiod_chip_open_by_name(gpio_chip_name_.c_str());
+    if (!gpio_chip_) {
+        throw std::runtime_error("Failed to open GPIO chip: " + gpio_chip_name_);
+    }
+
+    int_line_ = gpiod_chip_get_line(gpio_chip_, gpio_line_num_);
+    if (!int_line_) {
+        gpiod_chip_close(gpio_chip_);
+        throw std::runtime_error("Failed to get GPIO line: " 
+                                  + std::to_string(gpio_line_num_));
+    }
+
+    // Active-low interrupt: watch for falling edge
+    // "bno085_int" is just a consumer label for debugging (shows in gpioinfo)
+    int ret = gpiod_line_request_falling_edge_events(int_line_, "bno085_int");
+    if (ret < 0) {
+        gpiod_chip_close(gpio_chip_);
+        throw std::runtime_error("Failed to request GPIO edge events");
+    }
+
+    RCLCPP_INFO(this->get_logger(), "GPIO interrupt configured: %s line %d",
+                gpio_chip_name_.c_str(), gpio_line_num_);
 }
 
 /**
@@ -121,10 +129,10 @@ void BNO08xROS::init_parameters() {
  * This function initializes the sensor and enables the required sensor reports
  * 
  */
-void BNO08xROS::init_sensor() {
+void BNO08x_ROS::init_sensor() {
 
     try {
-        bno08x_ = new BNO08x(comm_interface_, std::bind(&BNO08xROS::sensor_callback, this, 
+        bno08x_ = new BNO08x(comm_interface_, std::bind(&BNO08x_ROS::sensor_callback, this, 
                                         std::placeholders::_1, std::placeholders::_2), this);
     } catch (const std::bad_alloc& e) {
         RCLCPP_ERROR(this->get_logger(), 
@@ -137,10 +145,6 @@ void BNO08xROS::init_sensor() {
         throw std::runtime_error("BNO08x initialization failed");
     }
 
-    if(!this->bno08x_->enable_report(SH2_MAGNETIC_FIELD_CALIBRATED, 
-                                      1000000/this->magnetic_field_rate_)){     // Hz to us
-      RCLCPP_ERROR(this->get_logger(), "Failed to enable magnetic field sensor");
-    }
     if(!this->bno08x_->enable_report(SH2_ROTATION_VECTOR, 
                                         1000000/this->imu_rate_)){              // Hz to us
       RCLCPP_ERROR(this->get_logger(), "Failed to enable rotation vector sensor");
@@ -162,18 +166,9 @@ void BNO08xROS::init_sensor() {
  * @param sensor_value The sensor value from parsing the sensor event buffer
  * 
  */
-void BNO08xROS::sensor_callback(void *cookie, sh2_SensorValue_t *sensor_value) {
+void BNO08x_ROS::sensor_callback(void *cookie, sh2_SensorValue_t *sensor_value) {
 	DEBUG_LOG("Sensor Callback");
 	switch(sensor_value->sensorId){
-		case SH2_MAGNETIC_FIELD_CALIBRATED:
-			this->mag_msg_.magnetic_field.x = sensor_value->un.magneticField.x;
-			this->mag_msg_.magnetic_field.y = sensor_value->un.magneticField.y;
-			this->mag_msg_.magnetic_field.z = sensor_value->un.magneticField.z;
-			this->mag_msg_.header.frame_id = this->frame_id_;
-			this->mag_msg_.header.stamp.sec = this->get_clock()->now().seconds();
-			this->mag_msg_.header.stamp.nanosec = this->get_clock()->now().nanoseconds();
-			this->mag_publisher_->publish(this->mag_msg_);
-			break;
 		case SH2_ROTATION_VECTOR:
 			this->imu_msg_.orientation.x = sensor_value->un.rotationVector.i;
 			this->imu_msg_.orientation.y = sensor_value->un.rotationVector.j;
@@ -207,13 +202,47 @@ void BNO08xROS::sensor_callback(void *cookie, sh2_SensorValue_t *sensor_value) {
 
 }
 
-/**
- * @brief Poll the sensor for new events
- * 
- * This function is called periodically at the rate of the fastest sensor report
- * to get the buffered sensor events
- * called by the poll_timer_ timer
- */
-void BNO08xROS::poll_timer_callback() {
-	this->bno08x_->poll();
+// ── interrupt_thread_func ────────────────────────────────────────────────────
+// This replaces poll_timer_callback entirely.
+// Runs in its own thread, blocks on GPIO edge, then services the sensor.
+
+void BNO08x_ROS::interrupt_thread_func() {
+    RCLCPP_INFO(this->get_logger(), "Interrupt thread started");
+
+    // Timeout so we can check running_ flag and exit cleanly on shutdown
+    constexpr timespec timeout = {0, 50'000'000};   // 50ms watchdog
+
+    while (running_.load()) {
+        // Block here until falling edge or timeout
+        int ret = gpiod_line_event_wait(int_line_, &timeout);
+
+        if (ret < 0) {
+            RCLCPP_ERROR(this->get_logger(), "GPIO event wait error: %d", ret);
+            break;
+        }
+
+        if (ret == 0) {
+            // Timeout — no interrupt in 50ms.
+            // At 400Hz we expect one every 2.5ms, so 50ms means sensor stalled.
+            // Log a warning but keep running; sensor may recover.
+            RCLCPP_WARN_THROTTLE(this->get_logger(), *this->get_clock(), 
+                                 1000,   // throttle to once/sec
+                                 "BNO085: no interrupt in 50ms — sensor stalled?");
+            continue;
+        }
+
+        // ret == 1: edge detected — consume the event from the kernel buffer
+        gpiod_line_event event;
+        if (gpiod_line_event_read(int_line_, &event) < 0) {
+            RCLCPP_WARN(this->get_logger(), "Failed to read GPIO event");
+            continue;
+        }
+
+        // Service the sensor — this calls sensor_callback() synchronously
+        // We're in a regular thread so ROS2 publisher calls are safe
+        this->bno08x_->poll();
+    }
+
+    RCLCPP_INFO(this->get_logger(), "Interrupt thread exiting");
 }
+
