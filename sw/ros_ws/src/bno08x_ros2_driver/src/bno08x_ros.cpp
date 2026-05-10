@@ -16,7 +16,9 @@ BNO08x_ROS::BNO08x_ROS()
 
     if (publish_imu_)
     {
-        this->imu_publisher_ = this->create_publisher<sensor_msgs::msg::Imu>("/imu", 10);
+        imu_publisher_ = this->create_publisher<sensor_msgs::msg::Imu>(
+            "/imu",
+            rclcpp::SensorDataQoS());
         RCLCPP_INFO(this->get_logger(), "IMU Publisher created");
         RCLCPP_INFO(this->get_logger(), "IMU Rate: %d", imu_rate_);
     }
