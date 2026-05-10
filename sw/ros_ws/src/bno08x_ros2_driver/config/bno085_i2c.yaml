@@ -18,8 +18,8 @@ bno08x_driver:
       device: "/dev/ttyACM0"  
 
     interrupt:
-      gpio_chip: "gpiochip0"   # check: gpiodetect
-      gpio_line: 24   
+      gpio_chip: "gpiochip4"
+      gpio_line: 27 
       
     publish:
       imu:

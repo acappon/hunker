@@ -33,7 +33,7 @@ For more information, refer to the [datasheet](./docs/BNO080_085-Datasheet.pdf).
 | publish.imu.enabled	|bool	|true	|Enable publishing of IMU data.|
 | publish.imu.rate	|int	|100	|Rate at which to publish IMU data (Hz).|
 | i2c.enabled	|bool	|true	|Enable I2C communication.|
-| i2c.device	|string	|"/dev/i2c-7"	|I2C device path.|
+| i2c.device	|string	|"/dev/i2c-1"	|I2C device path.|
 | i2c.address	|string	|"0x4A"	|I2C address of the BNO08x sensor.|
 | uart.enabled	|bool	|false	|Enable UART communication.|
 | uart.device	|string	|"/dev/ttyACM0"	|UART device path.|

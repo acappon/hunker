@@ -27,13 +27,10 @@ private:
 
     // Callbacks
     void sensor_callback(void *cookie, sh2_SensorValue_t *sensor_value);
-    void poll_timer_callback();
-    void interrupt_thread_func();
+     void interrupt_thread_func();
 
     // ROS2
     rclcpp::Publisher<sensor_msgs::msg::Imu>::SharedPtr          imu_publisher_;
-    rclcpp::Publisher<sensor_msgs::msg::MagneticField>::SharedPtr mag_publisher_;
-    rclcpp::TimerBase::SharedPtr                                  poll_timer_;
 
     sensor_msgs::msg::Imu           imu_msg_;
     sensor_msgs::msg::MagneticField mag_msg_;
@@ -55,7 +52,7 @@ private:
     struct gpiod_chip    *gpio_chip_{nullptr};
     struct gpiod_line    *int_line_{nullptr};
     std::string           gpio_chip_name_;
-    int                   gpio_line_num_{24};
+    int                   gpio_line_num_{27};
 };
 
 #endif   // BNO08x_ROS_H

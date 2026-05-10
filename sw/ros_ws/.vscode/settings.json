@@ -1,3 +1,6 @@
 {
-    "cmake.sourceDirectory": "/home/viking/hunker/sw/ros_ws/src/bno08x_ros2_driver"
+    "cmake.sourceDirectory": "/home/viking/hunker/sw/ros_ws/src/bno08x_ros2_driver",
+    "files.associations": {
+        "atomic": "cpp"
+    }
 }
