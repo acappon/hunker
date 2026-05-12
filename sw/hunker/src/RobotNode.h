@@ -9,7 +9,6 @@ public:
     RobotNode();
     ~RobotNode();
     void init();
-    void stopIMUThread();
 
     void writeLog(const std::string &msg, ...);
     bool isRobotEnabled();
@@ -42,7 +41,7 @@ public:
         JOY_R3,
         NUMBER_OF_JOY_BUTTONS,
     } JOY_BUTTONS;
-    bool m_joy_buttons[12];
+    bool m_joy_buttons[NUMBER_OF_JOY_BUTTONS];
 
     MyGpio m_myGpio;
     FaultIndicator m_faultIndicator;
@@ -51,6 +50,7 @@ public:
         X,
         Y,
         Z,
+        W,
         NUMBER_OF_AXES
     } IMU_AXES;
 
@@ -92,9 +92,6 @@ private: // data
 
     rclcpp::TimerBase::SharedPtr m_safetyTimer;
     rclcpp::TimerBase::SharedPtr m_robotTimer;
-
-    std::thread m_imuThread;          // Thread for IMU communication
-    std::atomic<bool> m_runIMUThread; // Flag to control the thread's execution
 };
 
 #endif // ROBOT_NODE_HPP
