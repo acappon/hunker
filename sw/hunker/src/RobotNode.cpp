@@ -10,8 +10,6 @@ RobotNode::RobotNode()
 
 RobotNode::~RobotNode()
 {
-    stopIMUThread();
-
     m_joystick_sub.reset();
     m_feedback_publisher.reset();
     m_imu_sub.reset();
@@ -50,7 +48,7 @@ void RobotNode::init()
         // Create a subscription to the /imu topic
         auto qos_imu = rclcpp::QoS(rclcpp::QoSInitialization::from_rmw(rmw_qos_profile_sensor_data));
         qos_imu.keep_last(10)
-            .reliable()
+            .best_effort()
             .durability_volatile();
         m_imu_sub = this->create_subscription<sensor_msgs::msg::Imu>(
             "/imu", qos_imu,
@@ -60,8 +58,13 @@ void RobotNode::init()
             std::chrono::milliseconds(250),
             std::bind(&RobotNode::safetyFunction, this));
 
+        // 7ms interval corresponds to 143hz.  The IMU sends data at approx 150hz, so this update rate in the robot wiil 
+        // get at least 1 update per cycle of the IMU data, and will be fast enough to provide good control responsiveness.
+        // Note that this design has an outer PID loop at 143hz, and an inner PID loop in the SparkMAX motor controllers a 1Khz.
+        // The outer loop sets velocity for the motors, and the inner loop converges on that velocity.
+        
         m_robotTimer = this->create_wall_timer(
-            std::chrono::milliseconds(20),
+            std::chrono::milliseconds(7),   
             std::bind(&RobotNode::robotFunction, this));
     }
     catch (const std::exception &e)
@@ -69,15 +72,6 @@ void RobotNode::init()
         writeLog("Exception in RobotNode::init()");
         m_faultIndicator.setFault(FaultIndicator::FAULT_TYPE::FAULT_EXCEPTION, true);
         writeLog(e.what());
-    }
-}
-
-void RobotNode::stopIMUThread()
-{
-    m_runIMUThread = false; // Signal the thread to stop
-    if (m_imuThread.joinable())
-    {
-        m_imuThread.join(); // Wait for the thread to finish
     }
 }
 
@@ -365,6 +359,7 @@ void RobotNode::imu_callback(const sensor_msgs::msg::Imu::SharedPtr msg)
 {
     m_last_imu_msg_time = this->now();
 
+    m_imu_orientation[IMU_AXES::W] = msg->orientation.w;
     m_imu_orientation[IMU_AXES::X] = msg->orientation.x;
     m_imu_orientation[IMU_AXES::Y] = msg->orientation.y;
     m_imu_orientation[IMU_AXES::Z] = msg->orientation.z;
