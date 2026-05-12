@@ -71,7 +71,18 @@ bool MyGpio::gpioWrite(MyGpio::GPIO_PIN pin, bool value)
         iRet = lgGpioWrite(m_lgpio_chip, pin, value ? 1 : 0);
         if (iRet != 0)
         {
-            g_myRobotNode->writeLog("Failed to write to GPIO pin %d , iRet = %s", pin, lguErrorText(iRet));
+            std::string msg = "Failed to write to GPIO pin" + std::to_string(pin) + " ";
+            switch(iRet)
+            {
+                case LG_GPIO_BUSY:
+                    msg += "LG_GPIO_BUSY";
+                    break;
+
+                default:
+                    msg += std::to_string(iRet) + "  " + lguErrorText(iRet);
+                    break;
+            }
+            g_myRobotNode->writeLog(msg);
         }
     }
     return (iRet == 0);
