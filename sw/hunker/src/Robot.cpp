@@ -169,13 +169,10 @@ void Robot::balancingPeriodic()
 {
     m_myBalanceDrive.setEnable(true);
 
-    double power_R = 0.0; // Range -1.0 to 1.0
+    double power_R = 0.0; // Range -1.0 to 1.0, joystick contribution only
     double power_L = 0.0;
 
-    // TODO: Compare deck orientation to "up" vector, and adjust motor power to balance
-
-    // On top of balance power, add control input from joystick
-    double joyLeft_FB = g_myRobotNode->m_joy_axes[RobotNode::LJOY_FWD_BACK];
+    double joyLeft_FB  = g_myRobotNode->m_joy_axes[RobotNode::LJOY_FWD_BACK];
     double joyRight_FB = g_myRobotNode->m_joy_axes[RobotNode::RJOY_FWD_BACK];
     double joyRight_LR = g_myRobotNode->m_joy_axes[RobotNode::RJOY_LEFT_RIGHT];
 
@@ -186,20 +183,14 @@ void Robot::balancingPeriodic()
     }
     else if (m_driveType == ARCADE_ROBOT_FRAME)
     {
-        power_R += joyRight_FB;
-        power_L += joyRight_FB;
-
-        power_R += joyRight_LR;
-        power_L -= joyRight_LR;
+        power_R += joyRight_FB + joyRight_LR;
+        power_L += joyRight_FB - joyRight_LR;
     }
     else if (m_driveType == ARCADE_FIELD_FRAME)
     {
-        // TODO:  Take note of IMU heading at power up, which will correspond to direction of pushing right joystick forward
-
-        const double joystickWeight = 0.2; // Never more than 1.0.  Defines effective range of joystick input.
-                                           // For example, 0.2 means range of input is -0.2 to 0.2 instead of -1.0 to 1.0
-        joyRight_FB *joystickWeight;
-        joyRight_LR *joystickWeight;
+        const double joystickWeight = 0.2;
+        power_R += joyRight_FB * joystickWeight + joyRight_LR * joystickWeight;
+        power_L += joyRight_FB * joystickWeight - joyRight_LR * joystickWeight;
 
         g_myRobotNode->writeLog("Field frame driving not yet implemented");
         g_myRobotNode->emergencyStop();
@@ -210,25 +201,16 @@ void Robot::balancingPeriodic()
         g_myRobotNode->emergencyStop();
     }
 
-    power_L *= -1.0;  // Invert left wheel power, because of the way the motors are mounted
+    // NOTE: Left motor inversion is handled inside BalanceDrive::update().
+    // Do NOT invert power_L here — pass raw joystick intent to update().
 
-    if (power_L > 1.0)
-        power_L = 1.0;
-    if (power_L < -1.0)
-        power_L = -1.0;
+    // Clamp joystick contribution before passing to update()
+    if (power_L >  1.0) power_L =  1.0;
+    if (power_L < -1.0) power_L = -1.0;
+    if (power_R >  1.0) power_R =  1.0;
+    if (power_R < -1.0) power_R = -1.0;
 
-    if (power_R > 1.0)
-        power_R = 1.0;
-    if (power_R < -1.0)
-        power_R = -1.0;
-
-    char buffer[128];
-    snprintf(buffer, sizeof(buffer), "Drive power L/R = %f %f", power_L, power_R);
-    std::string msg(buffer);
-    g_myRobotNode->writeLog(msg);
-
-    //m_myMotors.setPower(Motor::MOTOR_TYPE::LWheel, power_L);
-    //m_myMotors.setPower(Motor::MOTOR_TYPE::RWheel, power_R);
+    m_myBalanceDrive.update(power_L, power_R);
 }
 
 void Robot::airbornePeriodic()
