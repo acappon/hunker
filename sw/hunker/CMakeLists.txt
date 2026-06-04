@@ -46,7 +46,9 @@ target_include_directories(RobotNode PRIVATE ${WPILIBC_INCLUDE_DIR})
 target_include_directories(RobotNode BEFORE PRIVATE /usr/local/include/fmtlib/include)
 target_link_libraries(RobotNode ${WPILIBC_LIBRARIES})
 
-set(CMAKE_BUILD_TYPE Debug)
+if(NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE RelWithDebInfo)
+endif()
 
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g")
 
