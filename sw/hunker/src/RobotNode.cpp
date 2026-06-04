@@ -95,10 +95,12 @@ void RobotNode::writeLog(const std::string &msg, ...)
             return;
         }
 
+        char buf[1024];
         va_list vl;
         va_start(vl, msg);
-        RCLCPP_INFO(this->get_logger(), msg.c_str(), vl);
+        vsnprintf(buf, sizeof(buf), msg.c_str(), vl);
         va_end(vl);
+        RCLCPP_INFO(this->get_logger(), "%s", buf);
     }
     catch (const std::exception &e)
     {
@@ -294,20 +296,27 @@ std::string RobotNode::getStackTrace()
 {
     try
     {
+        void *array[10];
+        int size = backtrace(array, 10);
+        char **symbols = backtrace_symbols(array, size);
+        if (!symbols)
         {
-            void *array[100];
-            int size;
-
-            // Get the backtrace
-            size = backtrace(array, 10);
-            return *backtrace_symbols(array, size);
+            return "backtrace_symbols failed";
         }
+        std::string result;
+        for (int i = 0; i < size; ++i)
+        {
+            if (i > 0) result += "\n";
+            result += symbols[i];
+        }
+        free(symbols);
+        return result;
     }
     catch (const std::exception &e)
     {
         // ignore exception
     }
-    return "EXCEPTION in getStatckTrace()";
+    return "EXCEPTION in getStackTrace()";
 }
 
 void RobotNode::joy_callback(const sensor_msgs::msg::Joy::SharedPtr msg)
@@ -329,6 +338,14 @@ void RobotNode::joy_callback(const sensor_msgs::msg::Joy::SharedPtr msg)
     m_last_joy_msg_time = this->now();
 
     // writeLog("controller message received, %s", std::to_string(m_last_joy_msg_time.seconds()).c_str());
+
+    // Validate vector sizes before accessing elements
+    if (msg->axes.size() < 6 || msg->buttons.size() < 13)
+    {
+        writeLog("joy_callback: unexpected axes/buttons count (axes=%zu, buttons=%zu)",
+                 msg->axes.size(), msg->buttons.size());
+        return;
+    }
 
     // Store the joystick data
     m_joy_axes[LJOY_LEFT_RIGHT] = msg->axes[0];
