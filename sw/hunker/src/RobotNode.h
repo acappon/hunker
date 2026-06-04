@@ -13,6 +13,7 @@ public:
     void writeLog(const std::string &msg, ...);
     bool isRobotEnabled();
     void emergencyStop();
+    std::string getStackTrace();
 
     typedef enum
     {
@@ -68,8 +69,6 @@ private: // functions
     void flashEnableLED();
 
     void enableRobot(bool isEnabled);
-
-    std::string getStackTrace();
 
     void joy_callback(const sensor_msgs::msg::Joy::SharedPtr msg);
     void imu_callback(const sensor_msgs::msg::Imu::SharedPtr msg);

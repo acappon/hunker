@@ -33,12 +33,8 @@ void RobotNode::init()
         m_last_joy_msg_time = m_last_imu_msg_time = this->now() - rclcpp::Duration(10, 0);
 
         // Subscribe to joystick messages
-        auto qos_joy = rclcpp::QoS(rclcpp::QoSInitialization::from_rmw(rmw_qos_profile_sensor_data));
-        qos_joy.keep_last(10)
-            .best_effort()
-            .durability_volatile();
         m_joystick_sub = this->create_subscription<sensor_msgs::msg::Joy>(
-            "joy", qos_joy,
+            "joy", createSensorQoS(),
             std::bind(&RobotNode::joy_callback, this, std::placeholders::_1));
 
         // Create a publisher for the feedback topic
@@ -46,12 +42,8 @@ void RobotNode::init()
 
 
         // Create a subscription to the /imu topic
-        auto qos_imu = rclcpp::QoS(rclcpp::QoSInitialization::from_rmw(rmw_qos_profile_sensor_data));
-        qos_imu.keep_last(10)
-            .best_effort()
-            .durability_volatile();
         m_imu_sub = this->create_subscription<sensor_msgs::msg::Imu>(
-            "/imu", qos_imu,
+            "/imu", createSensorQoS(),
             std::bind(&RobotNode::imu_callback, this, std::placeholders::_1));
 
         m_safetyTimer = this->create_wall_timer(
@@ -69,9 +61,7 @@ void RobotNode::init()
     }
     catch (const std::exception &e)
     {
-        writeLog("Exception in RobotNode::init()");
-        m_faultIndicator.setFault(FaultIndicator::FAULT_TYPE::FAULT_EXCEPTION, true);
-        writeLog(e.what());
+        HANDLE_EXCEPTION(this, "Exception in RobotNode::init()", e);
     }
 }
 
@@ -136,11 +126,7 @@ void RobotNode::safetyFunction()
     }
     catch (const std::exception &e)
     {
-        writeLog("Exception in RobotNode::safetyFunction");
-        writeLog(e.what());
-        writeLog("Stack trace: %s", getStackTrace().c_str());
-
-        m_faultIndicator.setFault(FaultIndicator::FAULT_TYPE::FAULT_EXCEPTION, true);
+        HANDLE_EXCEPTION(this, "Exception in RobotNode::safetyFunction", e);
     }
 }
 
@@ -152,11 +138,7 @@ void RobotNode::robotFunction()
     }
     catch (const std::exception &e)
     {
-        writeLog("Exception in Robot::robotFunction");
-        writeLog(e.what());
-        writeLog("Stack trace: %s", getStackTrace().c_str());
-
-        m_faultIndicator.setFault(FaultIndicator::FAULT_TYPE::FAULT_EXCEPTION, true);
+        HANDLE_EXCEPTION(this, "Exception in Robot::robotFunction", e);
     }
 }
 
