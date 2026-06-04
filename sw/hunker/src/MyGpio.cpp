@@ -19,39 +19,32 @@ MyGpio::~MyGpio()
 
 bool MyGpio::initEnableAndFaultLED()
 {
-    int iRet = -999;
-
-    // Open the GPIO chip
     int chipnum = 4; // GPIO chip #4 is the one for Raspberry Pi 5
     m_lgpio_chip = lgGpiochipOpen(chipnum);
     if (m_lgpio_chip < 0)
     {
-        std::string msg =
-            "Failed to open GPIO chip:  " + std::to_string(chipnum) + +"   " + std::to_string(m_lgpio_chip);
-        g_myRobotNode->writeLog(msg);
+        g_myRobotNode->writeLog("Failed to open GPIO chip: %d  error: %d", chipnum, m_lgpio_chip);
         return false;
     }
-    else
-    {
-        std::string msg =
-            "Opened GPIO chip:  " + std::to_string(chipnum) + +"   " + std::to_string(m_lgpio_chip);
-        g_myRobotNode->writeLog(msg);
-        iRet = 0;
-    }
+    g_myRobotNode->writeLog("Opened GPIO chip: %d  handle: %d", chipnum, m_lgpio_chip);
 
-    iRet = lgGpioClaimOutput(m_lgpio_chip, LG_SET_PULL_NONE, GPIO_PIN::GPIO_LED_ENABLE, 0);
+    bool success = true;
+
+    int iRet = lgGpioClaimOutput(m_lgpio_chip, LG_SET_PULL_NONE, GPIO_PIN::GPIO_LED_ENABLE, 0);
     if (iRet < 0)
     {
-        g_myRobotNode->writeLog("Failed to claim GPIO for enable LED line");
+        g_myRobotNode->writeLog("Failed to claim GPIO for enable LED line: %s", lguErrorText(iRet));
+        success = false;
     }
 
     iRet = lgGpioClaimOutput(m_lgpio_chip, LG_SET_PULL_NONE, GPIO_PIN::GPIO_LED_FAULT, 0);
     if (iRet < 0)
     {
-        g_myRobotNode->writeLog("Failed to claim GPIO fault line");
+        g_myRobotNode->writeLog("Failed to claim GPIO for fault LED line: %s", lguErrorText(iRet));
+        success = false;
     }
 
-    return (iRet == 0);
+    return success;
 }
 
 bool MyGpio::isValidPin(MyGpio::GPIO_PIN pin)
@@ -90,12 +83,18 @@ bool MyGpio::gpioWrite(MyGpio::GPIO_PIN pin, bool value)
 
 bool MyGpio::gpioRead(MyGpio::GPIO_PIN pin)
 {
-    int value = 0;
-    if (isValidPin(pin))
+    if (!isValidPin(pin))
     {
-        value = lgGpioRead(m_lgpio_chip, pin);
+        g_myRobotNode->writeLog("gpioRead: invalid pin %d", pin);
+        return false;
     }
-    return value;
+    int value = lgGpioRead(m_lgpio_chip, pin);
+    if (value < 0)
+    {
+        g_myRobotNode->writeLog("gpioRead failed on pin %d: %s", pin, lguErrorText(value));
+        return false;
+    }
+    return (value != 0);
 }
 
 void MyGpio::setEnableLED(bool state)

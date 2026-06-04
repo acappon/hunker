@@ -60,8 +60,15 @@ public:
 
         // Send a software reset packet
         uint8_t softreset_pkt[] = {0x7E, 1, 5, 0, 1, 0, 1, 0x7E};
-        ::write(uart_fd_, softreset_pkt, sizeof(softreset_pkt));
-        usleep(1000);  // Delay to ensure packet is sent
+        ssize_t written = ::write(uart_fd_, softreset_pkt, sizeof(softreset_pkt));
+        if (written != static_cast<ssize_t>(sizeof(softreset_pkt)))
+        {
+            std::cerr << "UART: failed to send soft reset packet" << std::endl;
+            ::close(uart_fd_);
+            uart_fd_ = -1;
+            return -1;
+        }
+        usleep(1000);
 
         return 0;
     }
@@ -74,16 +81,25 @@ public:
         }
     }
 
-    // Read from the UART interface
     int read(uint8_t* pBuffer, unsigned len, uint32_t* t_us) override {
         uint8_t c;
         uint16_t packet_size = 0;
 
-        // Read the start byte (0x7E)
-        while (true) {
-            if (::read(uart_fd_, &c, 1) == 1 && c == 0x7E) {
+        // Read the start byte (0x7E) with a retry limit to avoid infinite loop
+        static constexpr int MAX_SYNC_BYTES = 4096;
+        int sync_attempts = 0;
+        while (sync_attempts++ < MAX_SYNC_BYTES) {
+            ssize_t n = ::read(uart_fd_, &c, 1);
+            if (n == 1 && c == 0x7E) {
                 break;
             }
+            if (n <= 0) {
+                return 0;
+            }
+        }
+        if (sync_attempts >= MAX_SYNC_BYTES) {
+            std::cerr << "UART: start byte not found after " << MAX_SYNC_BYTES << " bytes" << std::endl;
+            return 0;
         }
 
         // Read protocol ID
@@ -93,16 +109,19 @@ public:
 
         // Read the data until the stop byte (0x7E)
         while (packet_size < len) {
-            if (::read(uart_fd_, &c, 1) == 1) {
-                if (c == 0x7E) break;
-
-                if (c == 0x7D) {
-                    // Escape sequence
-                    ::read(uart_fd_, &c, 1);
-                    c ^= 0x20;
-                }
-                pBuffer[packet_size++] = c;
+            ssize_t n = ::read(uart_fd_, &c, 1);
+            if (n != 1) {
+                return 0;
             }
+            if (c == 0x7E) break;
+
+            if (c == 0x7D) {
+                if (::read(uart_fd_, &c, 1) != 1) {
+                    return 0;
+                }
+                c ^= 0x20;
+            }
+            pBuffer[packet_size++] = c;
         }
 
         *t_us = getTimeUs();

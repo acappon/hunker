@@ -193,20 +193,29 @@ void BNO08x_ROS::init_sensor()
         throw std::runtime_error("BNO08x initialization failed");
     }
 
+    bool all_reports_ok = true;
     if (!this->bno08x_->enable_report(SH2_ROTATION_VECTOR,
                                       1000000 / this->imu_rate_))
-    { // Hz to us
+    {
         RCLCPP_ERROR(this->get_logger(), "Failed to enable rotation vector sensor");
+        all_reports_ok = false;
     }
     if (!this->bno08x_->enable_report(SH2_ACCELEROMETER,
                                       1000000 / this->imu_rate_))
-    { // Hz to us
+    {
         RCLCPP_ERROR(this->get_logger(), "Failed to enable accelerometer sensor");
+        all_reports_ok = false;
     }
     if (!this->bno08x_->enable_report(SH2_GYROSCOPE_CALIBRATED,
                                       1000000 / this->imu_rate_))
-    { // Hz to us
+    {
         RCLCPP_ERROR(this->get_logger(), "Failed to enable gyroscope sensor");
+        all_reports_ok = false;
+    }
+
+    if (!all_reports_ok)
+    {
+        throw std::runtime_error("One or more BNO08x sensor reports failed to enable");
     }
 }
 

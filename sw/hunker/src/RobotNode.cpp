@@ -21,58 +21,53 @@ void RobotNode::init()
 {
     std::string sRet;
 
-    try
+    m_isControllerConnected = false;
+    m_isRobotEnabled = false;
+    m_isRobotEmergencyStopped = false;
+
+    if (!m_myGpio.initEnableAndFaultLED())
     {
-        m_isControllerConnected = false;
-        m_isRobotEnabled = false;
-        m_isRobotEmergencyStopped = false;
-
-        m_myGpio.initEnableAndFaultLED();
-        m_robot.init();
-
-        m_last_joy_msg_time = m_last_imu_msg_time = this->now() - rclcpp::Duration(10, 0);
-
-        // Subscribe to joystick messages
-        auto qos_joy = rclcpp::QoS(rclcpp::QoSInitialization::from_rmw(rmw_qos_profile_sensor_data));
-        qos_joy.keep_last(10)
-            .best_effort()
-            .durability_volatile();
-        m_joystick_sub = this->create_subscription<sensor_msgs::msg::Joy>(
-            "joy", qos_joy,
-            std::bind(&RobotNode::joy_callback, this, std::placeholders::_1));
-
-        // Create a publisher for the feedback topic
-        m_feedback_publisher = this->create_publisher<sensor_msgs::msg::JoyFeedback>("joy/set_feedback", 10);
-
-
-        // Create a subscription to the /imu topic
-        auto qos_imu = rclcpp::QoS(rclcpp::QoSInitialization::from_rmw(rmw_qos_profile_sensor_data));
-        qos_imu.keep_last(10)
-            .best_effort()
-            .durability_volatile();
-        m_imu_sub = this->create_subscription<sensor_msgs::msg::Imu>(
-            "/imu", qos_imu,
-            std::bind(&RobotNode::imu_callback, this, std::placeholders::_1));
-
-        m_safetyTimer = this->create_wall_timer(
-            std::chrono::milliseconds(250),
-            std::bind(&RobotNode::safetyFunction, this));
-
-        // 7ms interval corresponds to 143hz.  The IMU sends data at approx 150hz, so this update rate in the robot wiil 
-        // get at least 1 update per cycle of the IMU data, and will be fast enough to provide good control responsiveness.
-        // Note that this design has an outer PID loop at 143hz, and an inner PID loop in the SparkMAX motor controllers a 1Khz.
-        // The outer loop sets velocity for the motors, and the inner loop converges on that velocity.
-        
-        m_robotTimer = this->create_wall_timer(
-            std::chrono::milliseconds(7),   
-            std::bind(&RobotNode::robotFunction, this));
-    }
-    catch (const std::exception &e)
-    {
-        writeLog("Exception in RobotNode::init()");
+        writeLog("WARNING: GPIO LED initialization failed, continuing without LED indicators");
         m_faultIndicator.setFault(FaultIndicator::FAULT_TYPE::FAULT_EXCEPTION, true);
-        writeLog(e.what());
     }
+    m_robot.init();
+
+    m_last_joy_msg_time = m_last_imu_msg_time = this->now() - rclcpp::Duration(10, 0);
+
+    // Subscribe to joystick messages
+    auto qos_joy = rclcpp::QoS(rclcpp::QoSInitialization::from_rmw(rmw_qos_profile_sensor_data));
+    qos_joy.keep_last(10)
+        .best_effort()
+        .durability_volatile();
+    m_joystick_sub = this->create_subscription<sensor_msgs::msg::Joy>(
+        "joy", qos_joy,
+        std::bind(&RobotNode::joy_callback, this, std::placeholders::_1));
+
+    // Create a publisher for the feedback topic
+    m_feedback_publisher = this->create_publisher<sensor_msgs::msg::JoyFeedback>("joy/set_feedback", 10);
+
+
+    // Create a subscription to the /imu topic
+    auto qos_imu = rclcpp::QoS(rclcpp::QoSInitialization::from_rmw(rmw_qos_profile_sensor_data));
+    qos_imu.keep_last(10)
+        .best_effort()
+        .durability_volatile();
+    m_imu_sub = this->create_subscription<sensor_msgs::msg::Imu>(
+        "/imu", qos_imu,
+        std::bind(&RobotNode::imu_callback, this, std::placeholders::_1));
+
+    m_safetyTimer = this->create_wall_timer(
+        std::chrono::milliseconds(250),
+        std::bind(&RobotNode::safetyFunction, this));
+
+    // 7ms interval corresponds to 143hz.  The IMU sends data at approx 150hz, so this update rate in the robot wiil 
+    // get at least 1 update per cycle of the IMU data, and will be fast enough to provide good control responsiveness.
+    // Note that this design has an outer PID loop at 143hz, and an inner PID loop in the SparkMAX motor controllers a 1Khz.
+    // The outer loop sets velocity for the motors, and the inner loop converges on that velocity.
+    
+    m_robotTimer = this->create_wall_timer(
+        std::chrono::milliseconds(7),   
+        std::bind(&RobotNode::robotFunction, this));
 }
 
 void RobotNode::writeLog(const std::string &msg, ...)
@@ -82,12 +77,12 @@ void RobotNode::writeLog(const std::string &msg, ...)
         static std::string prevMsg;
         if (msg == prevMsg)
         {
-            return; // Avoid duplicate messages
+            return;
         }
         prevMsg = msg;
         if (msg.empty())
         {
-            return; // Avoid empty messages
+            return;
         }
         if (msg.length() > 1000)
         {
@@ -95,10 +90,12 @@ void RobotNode::writeLog(const std::string &msg, ...)
             return;
         }
 
+        char buf[1024];
         va_list vl;
         va_start(vl, msg);
-        RCLCPP_INFO(this->get_logger(), msg.c_str(), vl);
+        vsnprintf(buf, sizeof(buf), msg.c_str(), vl);
         va_end(vl);
+        RCLCPP_INFO(this->get_logger(), "%s", buf);
     }
     catch (const std::exception &e)
     {
@@ -294,83 +291,97 @@ std::string RobotNode::getStackTrace()
 {
     try
     {
+        void *array[100];
+        int size = backtrace(array, 100);
+        char **symbols = backtrace_symbols(array, size);
+        if (!symbols)
         {
-            void *array[100];
-            int size;
-
-            // Get the backtrace
-            size = backtrace(array, 10);
-            return *backtrace_symbols(array, size);
+            return "(backtrace_symbols failed)";
         }
+        std::string result;
+        for (int i = 0; i < size; ++i)
+        {
+            result += symbols[i];
+            result += '\n';
+        }
+        free(symbols);
+        return result;
     }
     catch (const std::exception &e)
     {
-        // ignore exception
+        return std::string("Exception in getStackTrace: ") + e.what();
     }
-    return "EXCEPTION in getStatckTrace()";
 }
 
 void RobotNode::joy_callback(const sensor_msgs::msg::Joy::SharedPtr msg)
 {
-    // Listen for Joystick messages
-    /*
-    writeLog("Axes: [%f, %f, %f, %f, %f, %f]",
-             msg->axes[0], msg->axes[1], msg->axes[2], msg->axes[3],
-             msg->axes[4], msg->axes[5]);
-    writeLog("Buttons: [%d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d]",
-             msg->buttons[0], msg->buttons[1], msg->buttons[2],
-             msg->buttons[3], msg->buttons[4], msg->buttons[5],
-             msg->buttons[6], msg->buttons[7], msg->buttons[8],
-             msg->buttons[9], msg->buttons[10], msg->buttons[11]);
-    */
+    try
+    {
+        static constexpr size_t REQUIRED_AXES = 6;
+        static constexpr size_t REQUIRED_BUTTONS = 13;
 
-    m_isControllerConnected = true;
+        if (msg->axes.size() < REQUIRED_AXES || msg->buttons.size() < REQUIRED_BUTTONS)
+        {
+            writeLog("Joy message too short: axes=%zu (need %zu), buttons=%zu (need %zu)",
+                     msg->axes.size(), REQUIRED_AXES,
+                     msg->buttons.size(), REQUIRED_BUTTONS);
+            return;
+        }
 
-    m_last_joy_msg_time = this->now();
+        m_isControllerConnected = true;
+        m_last_joy_msg_time = this->now();
 
-    // writeLog("controller message received, %s", std::to_string(m_last_joy_msg_time.seconds()).c_str());
+        m_joy_axes[LJOY_LEFT_RIGHT] = msg->axes[0];
+        m_joy_axes[LJOY_FWD_BACK] = msg->axes[1];
+        m_joy_axes[RJOY_LEFT_RIGHT] = msg->axes[2];
+        m_joy_axes[RJOY_FWD_BACK] = msg->axes[3];
+        m_joy_axes[RTRIGGER] = msg->axes[4];
+        m_joy_axes[LTRIGGER] = msg->axes[5];
 
-    // Store the joystick data
-    m_joy_axes[LJOY_LEFT_RIGHT] = msg->axes[0];
-    m_joy_axes[LJOY_FWD_BACK] = msg->axes[1];
-    m_joy_axes[RJOY_LEFT_RIGHT] = msg->axes[2];
-    m_joy_axes[RJOY_FWD_BACK] = msg->axes[3];
-    m_joy_axes[RTRIGGER] = msg->axes[4];
-    m_joy_axes[LTRIGGER] = msg->axes[5];
+        m_joy_buttons[JOY_A] = msg->buttons[0];
+        m_joy_buttons[JOY_B] = msg->buttons[1];
+        m_joy_buttons[JOY_X] = msg->buttons[3];
+        m_joy_buttons[JOY_Y] = msg->buttons[4];
+        m_joy_buttons[JOY_LB] = msg->buttons[6];
+        m_joy_buttons[JOY_RB] = msg->buttons[7];
 
-    m_joy_buttons[JOY_A] = msg->buttons[0];
-    m_joy_buttons[JOY_B] = msg->buttons[1];
-    // m_joy_buttons[JOY_UNUSED_1] = msg->buttons[2];
-    m_joy_buttons[JOY_X] = msg->buttons[3];
-    m_joy_buttons[JOY_Y] = msg->buttons[4];
-    // m_joy_buttons[JOY_UNUSED_2] = msg->buttons[5];
-    m_joy_buttons[JOY_LB] = msg->buttons[6];
-    m_joy_buttons[JOY_RB] = msg->buttons[7];
-
-    m_joy_buttons[JOY_BACK] = msg->buttons[8];
-    m_joy_buttons[JOY_START] = msg->buttons[9];
-    m_joy_buttons[JOY_LOGITECH] = msg->buttons[10];
-    m_joy_buttons[JOY_L3] = msg->buttons[11];
-    m_joy_buttons[JOY_R3] = msg->buttons[12];
+        m_joy_buttons[JOY_BACK] = msg->buttons[8];
+        m_joy_buttons[JOY_START] = msg->buttons[9];
+        m_joy_buttons[JOY_LOGITECH] = msg->buttons[10];
+        m_joy_buttons[JOY_L3] = msg->buttons[11];
+        m_joy_buttons[JOY_R3] = msg->buttons[12];
+    }
+    catch (const std::exception &e)
+    {
+        writeLog("Exception in joy_callback: %s", e.what());
+        m_faultIndicator.setFault(FaultIndicator::FAULT_TYPE::FAULT_EXCEPTION, true);
+    }
 }
 
-// Callback function for IMU messages
 void RobotNode::imu_callback(const sensor_msgs::msg::Imu::SharedPtr msg)
 {
-    m_last_imu_msg_time = this->now();
+    try
+    {
+        m_last_imu_msg_time = this->now();
 
-    m_imu_orientation[IMU_AXES::W] = msg->orientation.w;
-    m_imu_orientation[IMU_AXES::X] = msg->orientation.x;
-    m_imu_orientation[IMU_AXES::Y] = msg->orientation.y;
-    m_imu_orientation[IMU_AXES::Z] = msg->orientation.z;
+        m_imu_orientation[IMU_AXES::W] = msg->orientation.w;
+        m_imu_orientation[IMU_AXES::X] = msg->orientation.x;
+        m_imu_orientation[IMU_AXES::Y] = msg->orientation.y;
+        m_imu_orientation[IMU_AXES::Z] = msg->orientation.z;
 
-    m_imu_linear_acceleration[IMU_AXES::X] = msg->linear_acceleration.x;
-    m_imu_linear_acceleration[IMU_AXES::Y] = msg->linear_acceleration.y;
-    m_imu_linear_acceleration[IMU_AXES::Z] = msg->linear_acceleration.z;
+        m_imu_linear_acceleration[IMU_AXES::X] = msg->linear_acceleration.x;
+        m_imu_linear_acceleration[IMU_AXES::Y] = msg->linear_acceleration.y;
+        m_imu_linear_acceleration[IMU_AXES::Z] = msg->linear_acceleration.z;
 
-    m_imu_angular_velocity[IMU_AXES::X] = msg->angular_velocity.x;
-    m_imu_angular_velocity[IMU_AXES::Y] = msg->angular_velocity.y;
-    m_imu_angular_velocity[IMU_AXES::Z] = msg->angular_velocity.z;
+        m_imu_angular_velocity[IMU_AXES::X] = msg->angular_velocity.x;
+        m_imu_angular_velocity[IMU_AXES::Y] = msg->angular_velocity.y;
+        m_imu_angular_velocity[IMU_AXES::Z] = msg->angular_velocity.z;
+    }
+    catch (const std::exception &e)
+    {
+        writeLog("Exception in imu_callback: %s", e.what());
+        m_faultIndicator.setFault(FaultIndicator::FAULT_TYPE::FAULT_EXCEPTION, true);
+    }
 }
 
 void RobotNode::sendXboxRumble()
