@@ -96,10 +96,7 @@ void BalanceDrive::update(double addLeftControl, double addRightControl)
     double balance_output = kP * tilt_error;
 
     // Clamp balance output
-    if (balance_output > kMaxOutput)
-        balance_output = kMaxOutput;
-    if (balance_output < -kMaxOutput)
-        balance_output = -kMaxOutput;
+    balance_output = clampDouble(balance_output, -kMaxOutput, kMaxOutput);
 
     // --- Motor outputs ---
     // Right motor: positive = clockwise from right = forward = corrects positive tilt
@@ -109,14 +106,8 @@ void BalanceDrive::update(double addLeftControl, double addRightControl)
     double power_L = -balance_output + addLeftControl;
 
     // Final clamp to [-1, 1]
-    if (power_R > 1.0)
-        power_R = 1.0;
-    if (power_R < -1.0)
-        power_R = -1.0;
-    if (power_L > 1.0)
-        power_L = 1.0;
-    if (power_L < -1.0)
-        power_L = -1.0;
+    power_R = clampDouble(power_R, -1.0, 1.0);
+    power_L = clampDouble(power_L, -1.0, 1.0);
 
     g_myRobotNode->writeLog("BalanceDrive: tilt_err=%.3f bal=%.3f L=%.3f R=%.3f",
                             tilt_error, balance_output, power_L, power_R);
