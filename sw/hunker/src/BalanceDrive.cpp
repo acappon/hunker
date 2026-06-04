@@ -32,17 +32,34 @@ int BalanceDrive::init()
     rev::spark::SparkMaxConfig config;
     config.SetIdleMode(rev::spark::SparkMaxConfig::IdleMode::kCoast);
 
-    leftMotor.Configure(
+    auto leftErr = leftMotor.Configure(
         config,
         rev::ResetMode::kResetSafeParameters,
         rev::PersistMode::kNoPersistParameters);
 
-    rightMotor.Configure(
+    if (leftErr != rev::REVLibError::kOk)
+    {
+        g_myRobotNode->writeLog("BalanceDrive: left motor Configure failed (error %d)",
+                                static_cast<int>(leftErr));
+    }
+
+    auto rightErr = rightMotor.Configure(
         config,
         rev::ResetMode::kResetSafeParameters,
         rev::PersistMode::kNoPersistParameters);
+
+    if (rightErr != rev::REVLibError::kOk)
+    {
+        g_myRobotNode->writeLog("BalanceDrive: right motor Configure failed (error %d)",
+                                static_cast<int>(rightErr));
+    }
 
     g_myRobotNode->writeLog("BalanceDrive: motors initialized in coast mode");
+
+    if (leftErr != rev::REVLibError::kOk || rightErr != rev::REVLibError::kOk)
+    {
+        return -1;
+    }
     return 0;
 }
 
