@@ -1,7 +1,6 @@
 #include "common.h"
 
-#include <SparkMax.h>
-#include <config/SparkMaxConfig.h>
+#include <SparkMax.hpp>
 
 extern "C"
 {
@@ -13,8 +12,13 @@ extern std::shared_ptr<RobotNode> g_myRobotNode;
 static const int kLeftMotorCanID = 1;
 static const int kRightMotorCanID = 2;
 
-static rev::spark::SparkMax leftMotor{kLeftMotorCanID, rev::spark::SparkMax::MotorType::kBrushless};
-static rev::spark::SparkMax rightMotor{kRightMotorCanID, rev::spark::SparkMax::MotorType::kBrushless};
+static const int kP = 0.00005;
+static const int kI = 0.0;
+static const int kD = 0.0;
+static const int kF = 0.00025;
+
+static SparkMax leftMotor{"can0", kLeftMotorCanID};
+static SparkMax rightMotor{"can0", kRightMotorCanID};
 
 BalanceDrive::BalanceDrive()
 {
@@ -26,21 +30,21 @@ BalanceDrive::~BalanceDrive()
 
 int BalanceDrive::init()
 {
-    // Configure both motors for coast mode so the robot can be pushed to
-    // balance position by hand without fighting the controllers.
-    // Switch to brake mode once balance tuning is complete.
-    rev::spark::SparkMaxConfig config;
-    config.SetIdleMode(rev::spark::SparkMaxConfig::IdleMode::kCoast);
+    leftMotor.SetMotorType(MotorType::kBrushless);
+    leftMotor.SetIdleMode(IdleMode::kCoast);
+    leftMotor.SetP(0, kP);
+    leftMotor.SetI(0, kI);
+    leftMotor.SetD(0, kD);
+    leftMotor.SetF(0, kF);
+    leftMotor.BurnFlash();
 
-    leftMotor.Configure(
-        config,
-        rev::ResetMode::kResetSafeParameters,
-        rev::PersistMode::kNoPersistParameters);
-
-    rightMotor.Configure(
-        config,
-        rev::ResetMode::kResetSafeParameters,
-        rev::PersistMode::kNoPersistParameters);
+    rightMotor.SetMotorType(MotorType::kBrushless);
+    rightMotor.SetIdleMode(IdleMode::kCoast);
+    rightMotor.SetP(0, kP);
+    rightMotor.SetI(0, kI);
+    rightMotor.SetD(0, kD);
+    rightMotor.SetF(0, kF);
+    rightMotor.BurnFlash();
 
     g_myRobotNode->writeLog("BalanceDrive: motors initialized in coast mode");
     return 0;
@@ -64,8 +68,8 @@ void BalanceDrive::setEnable(bool isEnabled)
     {
         // Explicitly command zero when disabling so motors don't coast
         // from the last nonzero command
-        leftMotor.Set(0.0);
-        rightMotor.Set(0.0);
+        leftMotor.SetDutyCycle(0.0);
+        rightMotor.SetDutyCycle(0.0);
         g_myRobotNode->writeLog("BalanceDrive: disabled, motors zeroed");
     }
     else
@@ -74,15 +78,19 @@ void BalanceDrive::setEnable(bool isEnabled)
     }
 }
 
+
 // addLeftControl and addRightControl are joystick offsets in range -1.0 to 1.0
 // They are added on top of the balance output AFTER clamping, so they can
 // temporarily override balance — keep them small during tuning.
 void BalanceDrive::update(double addLeftControl, double addRightControl)
 {
+    leftMotor.Heartbeat();
+    rightMotor.Heartbeat();
+
     if (!m_isEnabled)
     {
-        leftMotor.Set(0.0);
-        rightMotor.Set(0.0);
+        leftMotor.SetDutyCycle(0.0);
+        rightMotor.SetDutyCycle(0.0);
         return;
     }
 
@@ -121,6 +129,6 @@ void BalanceDrive::update(double addLeftControl, double addRightControl)
     g_myRobotNode->writeLog("BalanceDrive: tilt_err=%.3f bal=%.3f L=%.3f R=%.3f",
                             tilt_error, balance_output, power_L, power_R);
 
-    leftMotor.Set(power_L);
-    rightMotor.Set(power_R);
+    leftMotor.SetDutyCycle(power_L);
+    rightMotor.SetDutyCycle(power_R);
 }
