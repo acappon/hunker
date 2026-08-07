@@ -205,10 +205,8 @@ void Robot::balancingPeriodic()
     // Do NOT invert power_L here — pass raw joystick intent to update().
 
     // Clamp joystick contribution before passing to update()
-    if (power_L >  1.0) power_L =  1.0;
-    if (power_L < -1.0) power_L = -1.0;
-    if (power_R >  1.0) power_R =  1.0;
-    if (power_R < -1.0) power_R = -1.0;
+    power_L = clampDouble(power_L, -1.0, 1.0);
+    power_R = clampDouble(power_R, -1.0, 1.0);
 
     m_myBalanceDrive.update(power_L, power_R);
 }
