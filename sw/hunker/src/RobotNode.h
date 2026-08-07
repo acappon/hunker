@@ -24,7 +24,7 @@ public:
         LTRIGGER,
         NUMBER_OF_JOY_AXES,
     } JOY_AXES;
-    double m_joy_axes[NUMBER_OF_JOY_AXES];
+    double m_joy_axes[NUMBER_OF_JOY_AXES] = {};
 
     typedef enum
     {
@@ -41,7 +41,7 @@ public:
         JOY_R3,
         NUMBER_OF_JOY_BUTTONS,
     } JOY_BUTTONS;
-    bool m_joy_buttons[NUMBER_OF_JOY_BUTTONS];
+    bool m_joy_buttons[NUMBER_OF_JOY_BUTTONS] = {};
 
     MyGpio m_myGpio;
     FaultIndicator m_faultIndicator;

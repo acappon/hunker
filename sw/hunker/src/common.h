@@ -1,4 +1,6 @@
 #include <chrono>
+#include <cstdio>
+#include <cstdlib>
 #include <dirent.h>
 #include <fstream>
 #include <execinfo.h>

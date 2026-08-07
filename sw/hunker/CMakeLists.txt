@@ -33,7 +33,9 @@ target_link_libraries(RobotNode ${LGPIO_LIBRARIES})
 target_include_directories(RobotNode PRIVATE /usr/local/include)
 target_link_libraries(RobotNode sparkcan)
 
-set(CMAKE_BUILD_TYPE Debug)
+if(NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE RelWithDebInfo)
+endif()
 
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g")
 

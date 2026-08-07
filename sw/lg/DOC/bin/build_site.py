@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import os
+import subprocess
 import sqlite3
 
 db=sqlite3.connect("dbase/lg.sqlite")
@@ -12,8 +12,10 @@ c.execute("select file_name from lg")
 names = c.fetchall()
 
 for n in names:
-   os.system("bin/html.py {0} >HTML/{0}.html".format(n[0]))
-   print(n[0])
+   name = n[0]
+   with open("HTML/{0}.html".format(name), "w") as outfile:
+      subprocess.run(["bin/html.py", name], stdout=outfile, check=True)
+   print(name)
 
 c.close()
 
