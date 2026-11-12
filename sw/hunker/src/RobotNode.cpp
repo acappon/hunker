@@ -71,40 +71,46 @@ void RobotNode::init()
     {
         writeLog("Exception in RobotNode::init()");
         m_faultIndicator.setFault(FaultIndicator::FAULT_TYPE::FAULT_EXCEPTION, true);
-        writeLog(e.what());
+        writeLog("%s", e.what());
     }
 }
 
-void RobotNode::writeLog(const std::string &msg, ...)
+void RobotNode::writeLog(const char *fmt, ...)
 {
     try
     {
-        static std::string prevMsg;
-        if (msg == prevMsg)
+        char buf[1001];
+        va_list vl;
+        va_start(vl, fmt);
+        int len = std::vsnprintf(buf, sizeof buf, fmt, vl);
+        va_end(vl);
+        if (len <= 0)
         {
-            return; // Avoid duplicate messages
+            return; // Empty message or formatting error
         }
-        prevMsg = msg;
-        if (msg.empty())
+
+        if (m_lastLogMsg == buf)
         {
-            return; // Avoid empty messages
-        }
-        if (msg.length() > 1000)
-        {
-            writeLog("Message too long, truncating to 1000 characters");
+            ++m_logRepeatCount; // Exact repeat: count it instead of printing it
             return;
         }
 
-        va_list vl;
-        va_start(vl, msg);
-        RCLCPP_INFO(this->get_logger(), msg.c_str(), vl);
-        va_end(vl);
+        // First column: how many repeats of the previous message were suppressed
+        RCLCPP_INFO(this->get_logger(), "%5u | %s%s", m_logRepeatCount, buf,
+                    (len >= static_cast<int>(sizeof buf)) ? " [truncated]" : "");
+        m_lastLogMsg = buf;
+        m_logRepeatCount = 0;
     }
     catch (const std::exception &e)
     {
         RCLCPP_ERROR(this->get_logger(), "Exception in RobotNode::writeLog: %s", e.what());
         m_faultIndicator.setFault(FaultIndicator::FAULT_TYPE::FAULT_EXCEPTION, true);
     }
+}
+
+bool RobotNode::isImuFresh(double maxAgeSec)
+{
+    return (this->now() - m_last_imu_msg_time).seconds() <= maxAgeSec;
 }
 
 bool RobotNode::isRobotEnabled()
@@ -137,7 +143,7 @@ void RobotNode::safetyFunction()
     catch (const std::exception &e)
     {
         writeLog("Exception in RobotNode::safetyFunction");
-        writeLog(e.what());
+        writeLog("%s", e.what());
         writeLog("Stack trace: %s", getStackTrace().c_str());
 
         m_faultIndicator.setFault(FaultIndicator::FAULT_TYPE::FAULT_EXCEPTION, true);
@@ -153,7 +159,7 @@ void RobotNode::robotFunction()
     catch (const std::exception &e)
     {
         writeLog("Exception in Robot::robotFunction");
-        writeLog(e.what());
+        writeLog("%s", e.what());
         writeLog("Stack trace: %s", getStackTrace().c_str());
 
         m_faultIndicator.setFault(FaultIndicator::FAULT_TYPE::FAULT_EXCEPTION, true);
@@ -184,7 +190,7 @@ void RobotNode::checkControllerConnection()
     bool prev = m_isControllerConnected;
     if (abs((now - m_last_joy_msg_time).seconds()) > 2.0)
     {
-        writeLog("Controller is disconnected, now = %d, last = %d",
+        writeLog("Controller is disconnected, now = %ld, last = %ld",
                  now.nanoseconds(),
                  m_last_joy_msg_time.nanoseconds());
         m_isControllerConnected = false;

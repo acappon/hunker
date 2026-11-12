@@ -1,0 +1,25 @@
+# Starts the robot software at power-up.
+# Install (needs sudo):
+#   sudo cp /home/viking/hunker/hunker.service /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable hunker.service     # start at every boot
+# Control: sta.sh / stop.sh / live_log.sh in /home/viking/hunker
+#
+# The motors stay disabled after start-up until the robot is enabled from the controller (B).
+
+[Unit]
+Description=Hunker robot (joy + BNO085 IMU + RobotNode)
+Wants=network-online.target systemd-networkd.service
+After=network-online.target systemd-networkd.service
+
+[Service]
+Type=simple
+User=viking
+ExecStart=/home/viking/hunker/run_hunker.sh
+KillSignal=SIGINT
+TimeoutStopSec=10
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

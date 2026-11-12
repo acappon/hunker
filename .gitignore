@@ -1,0 +1,11 @@
+# colcon / ROS 2 build output
+build/
+install/
+log/
+
+# Python bytecode
+__pycache__/
+*.pyc
+
+# Editor temp files
+*.tmp.*

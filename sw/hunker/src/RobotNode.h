@@ -10,8 +10,12 @@ public:
     ~RobotNode();
     void init();
 
-    void writeLog(const std::string &msg, ...);
+    // printf-style log. An exact repeat of the previous message is not printed, only counted.
+    // Each printed line starts with how many repeats of the message before it were suppressed.
+    void writeLog(const char *fmt, ...) __attribute__((format(printf, 2, 3)));
+    void writeLog(const std::string &msg) { writeLog("%s", msg.c_str()); }
     bool isRobotEnabled();
+    bool isImuFresh(double maxAgeSec = 0.1);   // an /imu message arrived within maxAgeSec
     void emergencyStop();
 
     typedef enum
@@ -92,6 +96,9 @@ private: // data
 
     rclcpp::TimerBase::SharedPtr m_safetyTimer;
     rclcpp::TimerBase::SharedPtr m_robotTimer;
+
+    std::string m_lastLogMsg;          // last message actually printed
+    unsigned m_logRepeatCount = 0;     // exact repeats of it suppressed since
 };
 
 #endif // ROBOT_NODE_HPP

@@ -65,6 +65,9 @@ void Robot::robotFunction()
         break;
     }
 
+    // Send heartbeat + wheel duty cycles every cycle, whatever the state
+    m_myBalanceDrive.periodic();
+
     isRunning = false;
 }
 
