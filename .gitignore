@@ -9,3 +9,4 @@ __pycache__/
 
 # Editor temp files
 *.tmp.*
+sw/hunker/tools/led_test

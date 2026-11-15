@@ -174,7 +174,17 @@ To check it: `ip -details link show can0 | grep -E "state|bitrate"`. You should 
       - kP = 0.07/rad (equivalent to the old 0.01 per m/s²); kD = 0.
       - At rest the IMU's x axis points straight up, and fused tilt agrees with accel tilt (89.5° vs 90°).
       - **The hand-tilt test hasn't been done yet.** It's needed to confirm the sign of tilt and tilt rate and to set the balance angle.
-  - `MyGpio` opens gpiochip 4 with Raspberry Pi 5 pin numbers. It only drives the enable and fault LEDs; `enableWheelMotors()` is empty.
+  - **Status lights (2026-11-14):** `MyGpio` now opens **gpiochip1**.
+    - Enable lamp: **header pin 16** = GPIO1_D3 = line 27. It drives a transistor base, and the lamp itself runs from 12 V. A 10 kΩ base-to-emitter pull-down is recommended so it stays off at power-up.
+    - Fault LED: **pin 18** = GPIO1_D2 = line 26. It's an assembly with a built-in resistor.
+    - GND: pin 14.
+    - Test the wiring with `sw/hunker/tools/led_test` (`gcc … -lgpiod`). It blinks each light 3 times.
+    - **The board would not boot with the lights connected, on pins 11/13 and again on 16/18:** red LED only, no green heartbeat, no journal.
+      - **Probable cause: the enable circuit's input wire sits at 5 V** when disconnected (user measured it). The fault wire reads millivolts, which is fine.
+      - 5 V on a 3.3 V GPIO back-feeds the RK3588 I/O supply through the pin's protection diode and upsets power-up sequencing. The Raspberry Pi 5 isn't 5 V tolerant either; it probably tolerated it out of spec.
+      - **Don't connect the enable wire until it reads about 0 V open-circuit.** Remove the pull-up / 5 V source and use a plain NPN with a 10 kΩ base-emitter pull-down, or a logic-level MOSFET.
+      - An earlier guess (11/13 double as DDR PHY debug pins `ddrphych0/1/2`) is probably wrong. Still, prefer 16/18; pin 22 is shared with eMMC.
+    - `enableWheelMotors()` is still empty.
   - No game controller was connected: no `/dev/input/js*`, and Bluetooth was inactive.
 - Safety guard: if no `/imu` message has arrived within 100 ms, `BalanceDrive` forces the balance term to 0, so only the joystick drives the wheels. Without this guard, a missing IMU gives tilt = 0 and therefore a constant −0.069 duty as soon as the robot is enabled.
 

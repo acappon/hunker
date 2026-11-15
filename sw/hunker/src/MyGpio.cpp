@@ -22,7 +22,7 @@ bool MyGpio::initEnableAndFaultLED()
     int iRet = -999;
 
     // Open the GPIO chip
-    int chipnum = 4; // GPIO chip #4 is the one for Raspberry Pi 5
+    int chipnum = 1; // Orange Pi 5: gpiochip1 = GPIO bank 1 (header pins 16/18), see MyGpio.h
     m_lgpio_chip = lgGpiochipOpen(chipnum);
     if (m_lgpio_chip < 0)
     {
