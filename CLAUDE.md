@@ -183,7 +183,9 @@ To check it: `ip -details link show can0 | grep -E "state|bitrate"`. You should 
       - **Probable cause: the enable circuit's input wire sits at about 4.5 V** when disconnected (user measured it). The fault wire reads millivolts, which is fine.
         - The reading is the same with the 12 V battery on or off, so the source isn't 12 V.
         - 4.5 V ≈ 5 V minus one junction drop, which suggests a transistor emitter or diode on a live 5 V supply, probably the Pi's 5 V pin (2/4) or USB 5 V.
-        - Next: find the circuit's wires, check whether the reading drops to 0 with the Pi off, and check resistance to 5 V. The circuit is inside shrink tubing (built about 2025).
+        - The circuit, per the user: an NPN with its **emitter on battery ground**, collector → enable lamp → +12 V, and the base (through a resistor, presumably) on the enable GPIO. The fault LED runs from the fault GPIO to **battery ground**. Both are fine for 3.3 V logic.
+        - **Likely real cause: battery ground isn't tied to Pi ground** (that wire was "being added"). Then battery ground floats several volts away from the Pi, and the GPIO sees that offset. Next: measure battery negative to a Pi GND pin. If it isn't ~0 V, add the battery-negative ↔ Pi-GND wire; CAN needs it too.
+        - Open question: which reference the 4.5 V was measured against.
       - 5 V on a 3.3 V GPIO back-feeds the RK3588 I/O supply through the pin's protection diode and upsets power-up sequencing. The Raspberry Pi 5 isn't 5 V tolerant either; it probably tolerated it out of spec.
       - **Don't connect the enable wire until it reads about 0 V open-circuit.** Remove the pull-up / 5 V source and use a plain NPN with a 10 kΩ base-emitter pull-down, or a logic-level MOSFET.
       - An earlier guess (11/13 double as DDR PHY debug pins `ddrphych0/1/2`) is probably wrong. Still, prefer 16/18; pin 22 is shared with eMMC.
