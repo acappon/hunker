@@ -184,12 +184,15 @@ To check it: `ip -details link show can0 | grep -E "state|bitrate"`. You should 
         - The reading is the same with the 12 V battery on or off, so the source isn't 12 V.
         - 4.5 V ≈ 5 V minus one junction drop, which suggests a transistor emitter or diode on a live 5 V supply, probably the Pi's 5 V pin (2/4) or USB 5 V.
         - The circuit, per the user: an NPN with its **emitter on battery ground**, collector → enable lamp → +12 V, and the base (through a resistor, presumably) on the enable GPIO. The fault LED runs from the fault GPIO to **battery ground**. Both are fine for 3.3 V logic.
-        - **Likely real cause: battery ground isn't tied to Pi ground** (that wire was "being added"). Then battery ground floats several volts away from the Pi, and the GPIO sees that offset. Next: measure battery negative to a Pi GND pin. If it isn't ~0 V, add the battery-negative ↔ Pi-GND wire; CAN needs it too.
+        - **Grounds are common:** the CAN bus GND (CANable GND = Pi GND via USB) is wired to battery ground (user, 2026-11-14). So the floating-ground theory is ruled out.
         - **The 4.5 V was measured against battery negative**, which is the transistor's own emitter. An undriven base should read about 0 V there, so something external drives it. Possibly the Pi side (CANable USB ground → CAN → SPARK MAX → battery ground), or wiring inside the shrink tubing that isn't what we think.
-        - Next measurements:
-          1. Pi GND → battery negative, with the Pi on.
-          2. Base wire → battery negative, with the Pi off or the CANable unplugged.
-          3. Base wire → Pi GND, with the Pi on.
+        - With grounds common, something must be *driving* the base wire. The circuit inside the shrink tubing probably differs from what's remembered.
+        - Next, with everything off, use diode/resistance mode from the base wire to:
+          1. battery negative, both directions
+          2. the +12 V lamp wire
+          3. any 5 V wire (Pi pin 2/4, USB 5 V, a regulator)
+        - Then power only the Pi and see whether the 4.5 V returns.
+        - Alternative: rebuild the stage with a logic-level MOSFET (AO3400 or IRLZ44N): 100 Ω from GPIO to gate, 10 kΩ gate to GND, source to GND, drain to the lamp's negative side.
         - Keep both light wires off the header until this is resolved.
       - 5 V on a 3.3 V GPIO back-feeds the RK3588 I/O supply through the pin's protection diode and upsets power-up sequencing. The Raspberry Pi 5 isn't 5 V tolerant either; it probably tolerated it out of spec.
       - **Don't connect the enable wire until it reads about 0 V open-circuit.** Remove the pull-up / 5 V source and use a plain NPN with a 10 kΩ base-emitter pull-down, or a logic-level MOSFET.
