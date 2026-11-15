@@ -180,7 +180,10 @@ To check it: `ip -details link show can0 | grep -E "state|bitrate"`. You should 
     - GND: pin 14.
     - Test the wiring with `sw/hunker/tools/led_test` (`gcc … -lgpiod`). It blinks each light 3 times.
     - **The board would not boot with the lights connected, on pins 11/13 and again on 16/18:** red LED only, no green heartbeat, no journal.
-      - **Probable cause: the enable circuit's input wire sits at 5 V** when disconnected (user measured it). The fault wire reads millivolts, which is fine.
+      - **Probable cause: the enable circuit's input wire sits at about 4.5 V** when disconnected (user measured it). The fault wire reads millivolts, which is fine.
+        - The reading is the same with the 12 V battery on or off, so the source isn't 12 V.
+        - 4.5 V ≈ 5 V minus one junction drop, which suggests a transistor emitter or diode on a live 5 V supply, probably the Pi's 5 V pin (2/4) or USB 5 V.
+        - Next: find the circuit's wires, check whether the reading drops to 0 with the Pi off, and check resistance to 5 V. The circuit is inside shrink tubing (built about 2025).
       - 5 V on a 3.3 V GPIO back-feeds the RK3588 I/O supply through the pin's protection diode and upsets power-up sequencing. The Raspberry Pi 5 isn't 5 V tolerant either; it probably tolerated it out of spec.
       - **Don't connect the enable wire until it reads about 0 V open-circuit.** Remove the pull-up / 5 V source and use a plain NPN with a 10 kΩ base-emitter pull-down, or a logic-level MOSFET.
       - An earlier guess (11/13 double as DDR PHY debug pins `ddrphych0/1/2`) is probably wrong. Still, prefer 16/18; pin 22 is shared with eMMC.
