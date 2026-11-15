@@ -178,25 +178,13 @@ To check it: `ip -details link show can0 | grep -E "state|bitrate"`. You should 
     - Enable lamp: **header pin 16** = GPIO1_D3 = line 27. It drives a transistor base, and the lamp itself runs from 12 V. A 10 kΩ base-to-emitter pull-down is recommended so it stays off at power-up.
     - Fault LED: **pin 18** = GPIO1_D2 = line 26. It's an assembly with a built-in resistor.
     - GND: pin 14.
-    - Test the wiring with `sw/hunker/tools/led_test` (`gcc … -lgpiod`). It blinks each light 3 times.
-    - **The board would not boot with the lights connected, on pins 11/13 and again on 16/18:** red LED only, no green heartbeat, no journal.
-      - **Probable cause: the enable circuit's input wire sits at about 4.5 V** when disconnected (user measured it). The fault wire reads millivolts, which is fine.
-        - The reading is the same with the 12 V battery on or off, so the source isn't 12 V.
-        - 4.5 V ≈ 5 V minus one junction drop, which suggests a transistor emitter or diode on a live 5 V supply, probably the Pi's 5 V pin (2/4) or USB 5 V.
-        - The circuit, per the user: an NPN with its **emitter on battery ground**, collector → enable lamp → +12 V, and the base (through a resistor, presumably) on the enable GPIO. The fault LED runs from the fault GPIO to **battery ground**. Both are fine for 3.3 V logic.
-        - **Grounds are common:** the CAN bus GND (CANable GND = Pi GND via USB) is wired to battery ground (user, 2026-11-14). So the floating-ground theory is ruled out.
-        - **The 4.5 V was measured against battery negative**, which is the transistor's own emitter. An undriven base should read about 0 V there, so something external drives it. Possibly the Pi side (CANable USB ground → CAN → SPARK MAX → battery ground), or wiring inside the shrink tubing that isn't what we think.
-        - With grounds common, something must be *driving* the base wire. The circuit inside the shrink tubing probably differs from what's remembered.
-        - Next, with everything off, use diode/resistance mode from the base wire to:
-          1. battery negative, both directions
-          2. the +12 V lamp wire
-          3. any 5 V wire (Pi pin 2/4, USB 5 V, a regulator)
-        - Then power only the Pi and see whether the 4.5 V returns.
-        - Alternative: rebuild the stage with a logic-level MOSFET (AO3400 or IRLZ44N): 100 Ω from GPIO to gate, 10 kΩ gate to GND, source to GND, drain to the lamp's negative side.
-        - Keep both light wires off the header until this is resolved.
-      - 5 V on a 3.3 V GPIO back-feeds the RK3588 I/O supply through the pin's protection diode and upsets power-up sequencing. The Raspberry Pi 5 isn't 5 V tolerant either; it probably tolerated it out of spec.
-      - **Don't connect the enable wire until it reads about 0 V open-circuit.** Remove the pull-up / 5 V source and use a plain NPN with a 10 kΩ base-emitter pull-down, or a logic-level MOSFET.
-      - An earlier guess (11/13 double as DDR PHY debug pins `ddrphych0/1/2`) is probably wrong. Still, prefer 16/18; pin 22 is shared with eMMC.
+    - **Wiring confirmed 2026-11-15** with `sw/hunker/tools/led_test` (`gcc … -lgpiod`): the enable lamp blinked 3×, then the fault LED 3×. The board **boots fine with both connected**.
+    - Circuits, per the user:
+      - Enable: an NPN with its emitter on battery ground, collector → lamp → +12 V, and the base (through a resistor) on the GPIO.
+      - Fault: an LED assembly from the GPIO to battery ground.
+      - Battery ground is tied to Pi ground through the CAN ground wire.
+    - **Before the robot code runs, both lights are ON.** At power-up the pins sit in their default state, likely a weak pull-up, which is enough to light the LED and turn on the transistor. `MyGpio` drives them to 0 once `RobotNode` starts. **To do: add 10 kΩ base→emitter on the enable transistor**, so the lamp stays dark during boot.
+    - The open-wire voltages measured earlier (4.5 V, then 2.5 V) were floating high-impedance readings, not a real source. Why two earlier boots hung with the lights connected (once on 11/13, once on 16/18) is **unexplained**; it didn't recur. Prefer 16/18 anyway, and avoid pin 22 (eMMC).
     - `enableWheelMotors()` is still empty.
   - No game controller was connected: no `/dev/input/js*`, and Bluetooth was inactive.
 - Safety guard: if no `/imu` message has arrived within 100 ms, `BalanceDrive` forces the balance term to 0, so only the joystick drives the wheels. Without this guard, a missing IMU gives tilt = 0 and therefore a constant −0.069 duty as soon as the robot is enabled.
