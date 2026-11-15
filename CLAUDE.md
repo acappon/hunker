@@ -48,6 +48,14 @@
     - Cause 2: a test copy of `btusb` with `0bda:b85b` → `3625:010b` (a temporary insmod, nothing installed) got further: "RTL: lmp_subver=8851, loading rtl_bt/rtl8851bu_fw.bin". Then it failed with **"bad EPATCH signature"**. `rtl8851bu_fw.bin` is in Realtek's **v2 format (`RTBTCore`)**, and this kernel's `btrtl` only parses v1 (`Realtech`).
     - The fix would mean backporting a newer btrtl and btusb as DKMS, or a newer kernel.
     - **Plan: a separate Bluetooth dongle.** The TP-Link UB500 (RTL8761BU, USB `2357:0604`) is fully supported here: the ID is in btusb, btrtl knows rtl8761bu, and its firmware is v1. Then ignore or disable the AX900's `hci`.
+  - **Warm reboots hang with the AX900 plugged in (2026-11-15).** The power LED stays solid red, the green heartbeat is off, and nothing is logged for the next boot. **Cold boots (power off, power on) always work.**
+    - User's experiment, all with the SD-first U-Boot in SPI: warm reboot with UB500 only ✓; UB500 + CANable ✓; UB500 + CANable + **AX900 ✗**.
+    - On shutdown, the vendor driver `8851bu` times out stopping AP mode. You get `WARNING … rtw_warn_on … rtw_ap_stop_wait` in `netdev_close`, and NetworkManager and wpa_supplicant have to be SIGKILLed. On a warm reboot the dongle isn't power-cycled.
+    - The gpio-leds driver turns the green LED off during kernel shutdown, so "red only" may mean the *old* system got stuck shutting down rather than the new one failing to boot. Not proven.
+    - **Earlier explanations were wrong:** the "DDR PHY pins" idea for the lights, and the "SD card left in 1.8 V UHS mode" idea for the warm-reboot hangs. The lights and the UB500 were bystanders: each hang followed a warm reboot with the AX900 in.
+    - **Workaround: `sudo poweroff`, then cycle the power. Don't `sudo reboot` while the AX900 is plugged in.**
+    - Options: a systemd unit that takes the Hotspot down and runs `modprobe -r 8851bu` before shutdown; or a WiFi-only dongle with an in-kernel driver (MT7612U / mt76x2u). Bluetooth now comes from the UB500, so the dongle doesn't need it.
+    - **SPI now holds the stock loader with the SD-first U-Boot** (`boot/install-spi-sdfirst.sh`, 2026-11-15). It's fine with warm reboots when the AX900 is out, so keep it.
   - Harmless log noise: missing `/lib/firmware/TXPWR_*.txt`, `[BTC]` coexistence errors (Bluetooth is on a separate interface, handled by `btusb`), and `6ghz domain fail`. Do **not** blacklist `btusb`, even though that driver's README says to; a Bluetooth gamepad may need it.
 
 ## Control design
