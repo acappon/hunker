@@ -186,7 +186,12 @@ To check it: `ip -details link show can0 | grep -E "state|bitrate"`. You should 
     - **Before the robot code runs, both lights are ON.** At power-up the pins sit in their default state, likely a weak pull-up, which is enough to light the LED and turn on the transistor. `MyGpio` drives them to 0 once `RobotNode` starts. **To do: add 10 kΩ base→emitter on the enable transistor**, so the lamp stays dark during boot.
     - The open-wire voltages measured earlier (4.5 V, then 2.5 V) were floating high-impedance readings, not a real source. Why two earlier boots hung with the lights connected (once on 11/13, once on 16/18) is **unexplained**; it didn't recur. Prefer 16/18 anyway, and avoid pin 22 (eMMC).
     - `enableWheelMotors()` is still empty.
-  - No game controller was connected: no `/dev/input/js*`, and Bluetooth was inactive.
+  - **Xbox controller over Bluetooth (2026-11-15):**
+    - The UB500 (`2357:0604`) works: firmware `rtl8761bu_fw.bin` loaded (fw 0xdfc6d922), adapter `58:D8:12:0C:6B:65`.
+    - The AX900's dead Bluetooth half is switched off by `/etc/udev/rules.d/61-hunker-ax900-no-bt.rules` (copy in `sysconfig/`). It de-authorizes the class-e0 interfaces of `3625:010b` and leaves the WiFi alone. Now there's a single adapter, `hci0`.
+    - Controller: "Xbox Wireless Controller" `28:EA:0B:F4:B1:50`, Xbox Series (`045e:0b13`), BLE HID. Paired, bonded and **trusted**, so it should reconnect on power-up. It appears as `/dev/input/js0` and an `eventN` node.
+    - **`/dev/input/event*` is root:input 660**, with an ACL only for gdm (the seat owner). `viking` must be in group `input` for joy_node (`usermod -aG input viking`, then re-login or reboot).
+    - To check: auto-reconnect after a reboot.
   - **Safety/indicator test, 2026-11-15 (robot program run without a controller):** the fault LED counts 1 (`FAULT_CONTROLLER_DISCONNECTED`) and the enable lamp is off. The user confirmed both are correct.
     - The controller tests are waiting for the UB500 Bluetooth dongle (or a USB cable to the Xbox controller; `xpad` is in the kernel).
     - **Open: button mapping.** The user described A = enable and Y = disable. The code has **B = enable** (only if all sticks are in the deadzone, otherwise it rumbles), **X = disable**, and **LB/RB = emergency stop**. In `Robot.cpp`, Y/A switch the balancing states. Ask which the user wants before changing anything.

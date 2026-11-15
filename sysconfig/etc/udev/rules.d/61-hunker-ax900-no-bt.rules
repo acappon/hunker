@@ -1,0 +1,5 @@
+# Hunker: switch off the Bluetooth half of the TP-Link AX900 WiFi dongle (3625:010b, RTL8851BU).
+# On kernel 6.1 it can't load its firmware (btusb lacks the ID; v2 firmware format), so it would
+# show up as a dead second adapter next to the UB500 (2357:0604), which is the one we use.
+# De-authorizing only the Bluetooth interfaces (class e0) detaches btusb; WiFi (class ff) is untouched.
+ACTION=="add", SUBSYSTEM=="usb", ENV{DEVTYPE}=="usb_interface", ATTRS{idVendor}=="3625", ATTRS{idProduct}=="010b", ATTR{bInterfaceClass}=="e0", ATTR{authorized}="0"
