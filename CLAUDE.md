@@ -28,15 +28,20 @@
   - The user's home WiFi profile `SpectrumSetup-5CA1` is set to `autoconnect no` **on purpose. The user wants the Pi to come up only as a hotspot.** Don't re-enable it.
   - Changing an NM connection over SSH needs `sudo nmcli …`; without it you get "Insufficient privileges".
   - The driver logs at debug level 4 by default, about 4,700 kernel log lines a minute while scanning (quiet in AP mode). `/etc/modprobe.d/8851bu.conf` sets `rtw_drv_log_level=0 rtw_phl_log_level=0`, which takes effect from the next module load.
-  - **Boot hang with the dongle plugged in (2026-11-14, open):**
-    - Seen twice with the dongle plugged in at power-up. The hang is before the journal starts, so it leaves no log. Hot-plugging after boot works fine.
-    - At power-up the dongle shows up as a fake USB CD-ROM (`0bda:1a2b`, Realtek ZeroCD). Once Linux is running, `usb_modeswitch` switches it to `3625:010b` in about 1 s.
-    - The bootloader is U-Boot 2017.09 (Rockchip vendor, package `u-boot-orangepi-5` from the jjriek PPA, on the SD card). Its built-in `boot_targets=usb0 mmc1 …` tries **USB first** (`usb start` plus a storage scan), and probably stalls on the fake CD-ROM.
-    - The boot order is compiled in (the FIT image is sha256-hashed, and there's no `/etc/fw_env.config`). Ubuntu's `u-boot-rockchip` 2025.10 has no RK3588 boards.
-    - One earlier boot with the dongle in port 3-1 plus a USB hub did succeed (14th, 17:12).
-    - **It's slow, not hung:** with the dongle in port 3-1 and the CANable in the blue USB 3.0 port (bus 6), the Pi came up after about 5 minutes and the Hotspot worked. Swapping the two ports didn't help: it still hung, though possibly the user didn't wait 5 minutes that time.
-    - The SPI-flash images (`rkspi_loader*.img`) have the same USB-first `boot_targets`, so flashing them won't help.
-    - The real fix is a dongle without ZeroCD mode, or a custom U-Boot that boots from SD first. This kernel has in-kernel drivers for mt76x2u (MT7612U), mt7921u, mt76x0u, rtw88_8822bu and rtw88_8821cu.
+  - **Slow boot with the dongle plugged in: FIXED 2026-11-14.** It now boots in normal time with the dongle and the CANable plugged in, and the root filesystem mounts at 18 s.
+    - **Cause:** at power-up the dongle shows up as a fake USB CD-ROM (`0bda:1a2b`, "RTK Driver Storage", Realtek ZeroCD). The kernel's built-in `usb-storage` and `sr` drivers attached it as `sr0` and kept resetting it every 30 s, 13 times. The root filesystem only mounted at 382 s.
+      - Without a console this looked like a hang. Power-cycling before 6 minutes meant no journal was ever written.
+      - **Lesson: check the kernel timestamps (`journalctl -b <id> -k -o short-monotonic`) of a slow boot before blaming the bootloader.**
+    - **Fix:** `usb-storage.quirks=0bda:1a2b:i` (ignore the device) in `/etc/kernel/cmdline`, applied by `boot/install-boot-config.sh` and `u-boot-update`. The log now shows "usb-storage 3-1:1.0: device ignored". `usb_modeswitch` still switches the dongle to `3625:010b`, because it uses libusb and doesn't need usb-storage.
+    - **Also changed, though it turned out not to be the cause: the bootloader now boots from the SD card first.**
+      - Stock U-Boot 2017.09 (`u-boot-orangepi-5`, jjriek PPA) has `boot_targets=usb0 mmc1 …` compiled in. It was in SPI flash, which the boot ROM tries before the SD card.
+      - `boot/patch-uboot-bootorder.py` swaps the order to `mmc1 usb0` and fixes the FIT sha256; the FIT is unsigned.
+      - `boot/install-sdfirst-uboot.sh` wrote the patched image to SD sector 16384 and **erased the SPI flash**, so the board now boots U-Boot from the SD card. That saves about 7 s per boot (Linux starts at 13.8 s instead of about 21 s).
+      - Backups on the Pi:
+        - `~/spi-backup-20261114.img`, identical to `/usr/lib/u-boot/rkspi_loader.img`
+        - `~/sd-bootarea-backup-20261114-204020.img`
+      - Undo commands are in the script's header.
+      - **If a `u-boot-orangepi-5` package update rewrites the SD bootloader, re-run the patcher and the install script.**
   - Harmless log noise: missing `/lib/firmware/TXPWR_*.txt`, `[BTC]` coexistence errors (Bluetooth is on a separate interface, handled by `btusb`), and `6ghz domain fail`. Do **not** blacklist `btusb`, even though that driver's README says to; a Bluetooth gamepad may need it.
 
 ## Control design
@@ -166,6 +171,13 @@ To check it: `ip -details link show can0 | grep -E "state|bitrate"`. You should 
   - `MyGpio` opens gpiochip 4 with Raspberry Pi 5 pin numbers. It only drives the enable and fault LEDs; `enableWheelMotors()` is empty.
   - No game controller was connected: no `/dev/input/js*`, and Bluetooth was inactive.
 - Safety guard: if no `/imu` message has arrived within 100 ms, `BalanceDrive` forces the balance term to 0, so only the joystick drives the wheels. Without this guard, a missing IMU gives tilt = 0 and therefore a constant −0.069 duty as soon as the robot is enabled.
+
+## Backups
+- **SD card image, 2026-11-14** (CAN + IMU working, before the WiFi/BT boot-order work), on the user's laptop:
+  `/mnt/EAGLEHEAD/acappon/Docs/Hunker_images/OrangePi5/20261114_CAN_IMU_working_before_DebugWifi_andBT.img.gz`
+  - Made with `sudo dd if=/dev/sdX bs=4M status=progress | gzip -1 > <file>`, with the card in the laptop (it was `/dev/sde` that time).
+  - Restore: `gunzip -c <file> | sudo dd of=/dev/sdX bs=4M status=progress conv=fsync`. **Check `/dev/sdX` with `lsblk` first**, because the name can change between plug-ins.
+- Code and config: GitHub `acappon/hunker`. System files placed by hand are copied in `sysconfig/`.
 
 ## Rules for Claude
 - Ask before using `sudo`.

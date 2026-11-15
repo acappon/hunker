@@ -5,6 +5,7 @@ Files placed on the Orange Pi 5 by hand during bring-up. Paths mirror the real o
 
 | File | Purpose |
 |---|---|
+| `etc/kernel/cmdline` | Kernel command line, incl. `usb-storage.quirks=0bda:1a2b:i` (WiFi dongle fake CD-ROM). Run `sudo u-boot-update` after editing. |
 | `etc/default/u-boot` | Device-tree overlays: I2C5-M3 + `hunker-i2c5-400k` (see `boot/`). Run `sudo u-boot-update` after editing. |
 | `etc/systemd/network/80-can0.network` | `can0` at 1 Mbit/s at boot |
 | `etc/modprobe.d/8851bu.conf` | Quiet the RTL8851BU WiFi driver's logging |
