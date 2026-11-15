@@ -187,6 +187,11 @@ To check it: `ip -details link show can0 | grep -E "state|bitrate"`. You should 
     - The open-wire voltages measured earlier (4.5 V, then 2.5 V) were floating high-impedance readings, not a real source. Why two earlier boots hung with the lights connected (once on 11/13, once on 16/18) is **unexplained**; it didn't recur. Prefer 16/18 anyway, and avoid pin 22 (eMMC).
     - `enableWheelMotors()` is still empty.
   - No game controller was connected: no `/dev/input/js*`, and Bluetooth was inactive.
+  - **Safety/indicator test, 2026-11-15 (robot program run without a controller):** the fault LED counts 1 (`FAULT_CONTROLLER_DISCONNECTED`) and the enable lamp is off. The user confirmed both are correct.
+    - The controller tests are waiting for the UB500 Bluetooth dongle (or a USB cable to the Xbox controller; `xpad` is in the kernel).
+    - **Open: button mapping.** The user described A = enable and Y = disable. The code has **B = enable** (only if all sticks are in the deadzone, otherwise it rumbles), **X = disable**, and **LB/RB = emergency stop**. In `Robot.cpp`, Y/A switch the balancing states. Ask which the user wants before changing anything.
+    - **Bug: `RobotNode` segfaults on shutdown** (exit −11) right after "Signal 2 received, shutting down...". The IMU driver and joy_node exit cleanly. The motors are safe (heartbeat 0, and the SPARK MAX times out at 100 ms), but this needs fixing.
+    - The log is noisy: "Controller is disconnected" and "updateLEDs" are logged every 250 ms.
 - Safety guard: if no `/imu` message has arrived within 100 ms, `BalanceDrive` forces the balance term to 0, so only the joystick drives the wheels. Without this guard, a missing IMU gives tilt = 0 and therefore a constant −0.069 duty as soon as the robot is enabled.
 
 ## Backups
