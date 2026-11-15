@@ -10,7 +10,7 @@ bno08x_driver:
     # (see documentation for more information)
     i2c:
       enabled: true
-      bus: "/dev/i2c-1"
+      bus: "/dev/i2c-5"
       address: "0x4A"
 
     uart:
@@ -18,8 +18,8 @@ bno08x_driver:
       device: "/dev/ttyACM0"  
 
     interrupt:
-      gpio_chip: "gpiochip4"
-      gpio_line: 27 
+      gpio_chip: "gpiochip1"
+      gpio_line: 22 
       
     publish:
       imu:

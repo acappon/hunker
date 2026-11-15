@@ -15,6 +15,7 @@ After=network-online.target systemd-networkd.service
 [Service]
 Type=simple
 User=viking
+LimitRTPRIO=90
 ExecStart=/home/viking/hunker/run_hunker.sh
 KillSignal=SIGINT
 TimeoutStopSec=10

@@ -1,0 +1,15 @@
+// Hunker: run I2C5 (BNO085 IMU, header pins 3/5) at 400 kHz instead of the 100 kHz default.
+// Load AFTER the stock rk3588-i2c5-m3.dtbo, which enables the bus and sets its pinmux.
+// Build:   dtc -@ -I dts -O dtb -o hunker-i2c5-400k.dtbo hunker-i2c5-400k.dts
+// Install: see install-boot-config.sh in this directory.
+/dts-v1/;
+/plugin/;
+
+/ {
+	fragment@0 {
+		target = <&i2c5>;
+		__overlay__ {
+			clock-frequency = <400000>;
+		};
+	};
+};

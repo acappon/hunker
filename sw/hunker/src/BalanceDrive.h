@@ -40,13 +40,21 @@ private:
     static constexpr int kLeftMotorCanID = 1;
     static constexpr int kRightMotorCanID = 2;
 
-    // Tilt signal at balance point, from linear_acceleration.x
-    // Measured empirically: accel.x ≈ 6.89 when deck is at ~45° balance angle
-    static constexpr double kBalancePoint = 6.89;
+    // Tilt, from the BNO085's fused orientation (see imuTilt() in BalanceDrive.cpp).
+    // tilt = asin(u.x), where u is world "up" expressed in the IMU frame. This is the same
+    // axis and sign as the old raw signal (accel.x ≈ 9.81·u.x at rest) but without the
+    // error from the robot's own acceleration.
+    // Balance point: old empirical accel.x ≈ 6.89 at the ~45° deck angle → asin(6.89/9.81).
+    static constexpr double kBalanceAngle = 0.779;   // rad (44.6°)
 
-    // Proportional gain — start VERY small.  A value of 0.01 means a 1 m/s²
-    // tilt error produces 1% motor power.  Tune upward carefully.
-    static constexpr double kP = 0.01;
+    // Proportional gain, duty per radian of tilt error. 0.07 matches the old
+    // 0.01 per m/s² near the balance point (1 rad ≈ 7 m/s² of accel.x there).
+    // ≈ 0.0012 duty per degree. Tune upward carefully.
+    static constexpr double kP = 0.07;
+
+    // Derivative gain, duty per rad/s of tilt rate (from the gyro, not differenced).
+    // Starts at 0: P-only, as before. Add after the tilt-rate sign is checked by hand.
+    static constexpr double kD = 0.0;
 
     // Maximum motor output magnitude during balance (0.0 to 1.0)
     // Keep small until PD tuning is complete

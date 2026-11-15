@@ -28,6 +28,15 @@
   - The user's home WiFi profile `SpectrumSetup-5CA1` is set to `autoconnect no` **on purpose. The user wants the Pi to come up only as a hotspot.** Don't re-enable it.
   - Changing an NM connection over SSH needs `sudo nmcli …`; without it you get "Insufficient privileges".
   - The driver logs at debug level 4 by default, about 4,700 kernel log lines a minute while scanning (quiet in AP mode). `/etc/modprobe.d/8851bu.conf` sets `rtw_drv_log_level=0 rtw_phl_log_level=0`, which takes effect from the next module load.
+  - **Boot hang with the dongle plugged in (2026-11-14, open):**
+    - Seen twice with the dongle plugged in at power-up. The hang is before the journal starts, so it leaves no log. Hot-plugging after boot works fine.
+    - At power-up the dongle shows up as a fake USB CD-ROM (`0bda:1a2b`, Realtek ZeroCD). Once Linux is running, `usb_modeswitch` switches it to `3625:010b` in about 1 s.
+    - The bootloader is U-Boot 2017.09 (Rockchip vendor, package `u-boot-orangepi-5` from the jjriek PPA, on the SD card). Its built-in `boot_targets=usb0 mmc1 …` tries **USB first** (`usb start` plus a storage scan), and probably stalls on the fake CD-ROM.
+    - The boot order is compiled in (the FIT image is sha256-hashed, and there's no `/etc/fw_env.config`). Ubuntu's `u-boot-rockchip` 2025.10 has no RK3588 boards.
+    - One earlier boot with the dongle in port 3-1 plus a USB hub did succeed (14th, 17:12).
+    - **It's slow, not hung:** with the dongle in port 3-1 and the CANable in the blue USB 3.0 port (bus 6), the Pi came up after about 5 minutes and the Hotspot worked. Swapping the two ports didn't help: it still hung, though possibly the user didn't wait 5 minutes that time.
+    - The SPI-flash images (`rkspi_loader*.img`) have the same USB-first `boot_targets`, so flashing them won't help.
+    - The real fix is a dongle without ZeroCD mode, or a custom U-Boot that boots from SD first. This kernel has in-kernel drivers for mt76x2u (MT7612U), mt7921u, mt76x0u, rtw88_8822bu and rtw88_8821cu.
   - Harmless log noise: missing `/lib/firmware/TXPWR_*.txt`, `[BTC]` coexistence errors (Bluetooth is on a separate interface, handled by `btusb`), and `6ghz domain fail`. Do **not** blacklist `btusb`, even though that driver's README says to; a Bluetooth gamepad may need it.
 
 ## Control design
@@ -133,9 +142,27 @@ To check it: `ip -details link show can0 | grep -E "state|bitrate"`. You should 
   - It is written but **not installed**. Install commands are in the file's header.
   - `sta.sh`, `stop.sh` and `live_log.sh` already expect the name `hunker.service`.
 - Blockers found 2026-11-11, still unresolved:
-  - `/dev/gpiochip*` and `/dev/i2c-*` are root-only (`crw------- root`), and `viking` is not in any gpio/i2c group. Fix with udev rules plus groups, or run as root.
-  - The IMU config `sw/ros_ws/src/bno08x_ros2_driver/config/bno085_i2c.yaml` uses `/dev/i2c-1`, which **does not exist** on this Orange Pi. The buses present are 0, 2, 6, 7, 9 and 10. It is left over from the Raspberry Pi 5.
-  - **I2C plan (2026-11-11, not done yet):** none of the existing buses reaches the 26-pin header. Use I2C5-M3: SDA = GPIO1_B7, SCL = GPIO1_B6 (from this Pi's device tree). These should be header pins 3 and 5 (from memory of the OPi5 pinout; verify against the silkscreen). Power from pin 1 (3.3 V), GND from pin 6. Enable it with `U_BOOT_FDT_OVERLAYS="device-tree/rockchip/overlay/rk3588-i2c5-m3.dtbo"` in `/etc/default/u-boot`, then `sudo u-boot-update` and reboot. It should then appear as `/dev/i2c-5` (alias i2c5 → fead0000). After that, set `/dev/i2c-5` in the yaml. The IMU wires aren't connected yet; the user will trace them in the IMU case first.
+  - **IMU working, 2026-11-14:**
+    - The BNO085 is at 0x4A on `/dev/i2c-5` (I2C5-M3).
+    - Wiring on the OPi5 header: pin 1 = 3.3 V, pin 3 = SDA (GPIO1_B7), pin 5 = SCL (GPIO1_B6), pin 9 = GND, **pin 7 = INT** (GPIO1_C6 = `gpiochip1` line 22). INT on pin 7 is confirmed: interrupts arrive.
+    - `/etc/default/u-boot` has `U_BOOT_FDT_OVERLAYS="device-tree/rockchip/overlay/rk3588-i2c5-m3.dtbo device-tree/rockchip/overlay/hunker-i2c5-400k.dtbo"`. The second overlay is ours: it runs I2C5 at 400 kHz. Source is in `boot/`, installed by `sudo boot/install-boot-config.sh`; **re-run that script after a kernel upgrade**.
+      - The path must be **relative to `/lib/firmware/<kernel>/`**. `u-boot-update` silently skips absolute paths and files it can't find.
+      - Check with `grep fdtoverlays /boot/extlinux/extlinux.conf`.
+    - Permissions: `/dev/i2c-*` belongs to group `i2c` (rule from the i2c-tools package). `/dev/gpiochip*` belongs to group `gpio` through `/etc/udev/rules.d/60-gpio.rules`. `viking` is in both groups.
+    - The yaml now has `bus: /dev/i2c-5`, `gpio_chip: gpiochip1`, `gpio_line: 22`. The driver needs INT: it only reads after an INT falling edge.
+    - **`/imu` runs at 300 Hz** (jitter about 1 ms, worst gap 8 ms). Fixed 2026-11-14:
+      - The driver never called `gpiod_line_event_read()`, so it busy-polled I2C. It now consumes the event and re-polls while INT stays low.
+      - It now publishes on every rotation-vector report, instead of waiting for one of each report. The accelerometer only manages about 70 Hz and had capped the rate.
+      - It now fills `header.stamp` correctly.
+      - The 400 kHz bus and the rtprio limit (`sysconfig/`) are in place. There were zero I2C read errors.
+    - **The accelerometer reads 13.3 m/s² at rest (about 1.36× too high, direction correct).** Probably a bad BNO085 accel calibration. The fused orientation isn't affected.
+    - **`BalanceDrive` now uses the fused orientation, not `accel.x`:**
+      - tilt = asin(u.x), where u = world "up" in the IMU frame. That's the same axis and sign as the old accel.x signal.
+      - Tilt rate is computed exactly from the gyro.
+      - `kBalanceAngle` = 0.779 rad comes from the old accel.x = 6.89. Given the accel scale error, it may really be about 31°. **Re-measure it with a hand-tilt test.**
+      - kP = 0.07/rad (equivalent to the old 0.01 per m/s²); kD = 0.
+      - At rest the IMU's x axis points straight up, and fused tilt agrees with accel tilt (89.5° vs 90°).
+      - **The hand-tilt test hasn't been done yet.** It's needed to confirm the sign of tilt and tilt rate and to set the balance angle.
   - `MyGpio` opens gpiochip 4 with Raspberry Pi 5 pin numbers. It only drives the enable and fault LEDs; `enableWheelMotors()` is empty.
   - No game controller was connected: no `/dev/input/js*`, and Bluetooth was inactive.
 - Safety guard: if no `/imu` message has arrived within 100 ms, `BalanceDrive` forces the balance term to 0, so only the joystick drives the wheels. Without this guard, a missing IMU gives tilt = 0 and therefore a constant −0.069 duty as soon as the robot is enabled.

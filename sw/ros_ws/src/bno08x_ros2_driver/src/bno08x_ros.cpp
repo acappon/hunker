@@ -245,13 +245,16 @@ void BNO08x_ROS::sensor_callback(void *cookie, sh2_SensorValue_t *sensor_value)
         break;
     }
 
-    if (imu_received_flag_ == (ROTATION_VECTOR_RECEIVED | ACCELEROMETER_RECEIVED | GYROSCOPE_RECEIVED))
+    // Publish on every rotation-vector report (the fastest, ~300 Hz), carrying the latest
+    // gyro and accel values. Waiting for one of each report capped /imu at the accelerometer's
+    // rate (~70 Hz). Flags are never cleared: they only gate the first publish until every
+    // field has real data.
+    if (sensor_value->sensorId == SH2_ROTATION_VECTOR &&
+        imu_received_flag_ == (ROTATION_VECTOR_RECEIVED | ACCELEROMETER_RECEIVED | GYROSCOPE_RECEIVED))
     {
         this->imu_msg_.header.frame_id = this->frame_id_;
-        this->imu_msg_.header.stamp.sec = this->get_clock()->now().seconds();
-        this->imu_msg_.header.stamp.nanosec = this->get_clock()->now().nanoseconds();
+        this->imu_msg_.header.stamp = this->get_clock()->now();
         this->imu_publisher_->publish(this->imu_msg_);
-        imu_received_flag_ = 0;
     }
 }
 
@@ -286,7 +289,24 @@ void BNO08x_ROS::interrupt_thread_func()
 
         // Service the sensor — this calls sensor_callback() synchronously
         // We're in a regular thread so ROS2 publisher calls are safe
-        this->bno08x_->poll();
+        // Consume the edge event. libgpiod v1 keeps an unread event queued, so without
+        // this read every later event_wait() returns immediately and the loop
+        // busy-polls the sensor over I2C (seen 2026-11-14: ~1650 empty reads/s).
+        struct gpiod_line_event event;
+        if (gpiod_line_event_read(int_line_, &event) < 0)
+        {
+            RCLCPP_ERROR(this->get_logger(), "GPIO event read error");
+            break;
+        }
+
+        // Service the sensor. INT is level-active-low: if it is still low after a
+        // read, another packet is already waiting, so service again (bounded).
+        for (int i = 0; i < 4; ++i)
+        {
+            this->bno08x_->poll();
+            if (gpiod_line_get_value(int_line_) != 0)
+                break;
+        }
     }
 
     RCLCPP_INFO(this->get_logger(), "Interrupt thread exiting");
