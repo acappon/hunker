@@ -8,13 +8,22 @@ extern "C"
 
 extern std::shared_ptr<RobotNode> g_myRobotNode;
 
-MyGpio::MyGpio()
+MyGpio::MyGpio() : m_lgpio_chip(-1)
 {
 }
 
 MyGpio::~MyGpio()
 {
-    m_lgpio_chip = lgGpiochipClose(m_lgpio_chip);
+    if (m_lgpio_chip < 0)
+    {
+        return;   // chip was never opened
+    }
+    // Enable lamp off before releasing the line, so a lamp caught mid-flash doesn't stay
+    // lit with no program running. Written directly, without gpioWrite()/writeLog():
+    // this runs while g_myRobotNode is being destroyed and is already null.
+    lgGpioWrite(m_lgpio_chip, GPIO_PIN::GPIO_LED_ENABLE, 0);
+    lgGpiochipClose(m_lgpio_chip);
+    m_lgpio_chip = -1;
 }
 
 bool MyGpio::initEnableAndFaultLED()

@@ -190,7 +190,11 @@ To check it: `ip -details link show can0 | grep -E "state|bitrate"`. You should 
   - **Safety/indicator test, 2026-11-15 (robot program run without a controller):** the fault LED counts 1 (`FAULT_CONTROLLER_DISCONNECTED`) and the enable lamp is off. The user confirmed both are correct.
     - The controller tests are waiting for the UB500 Bluetooth dongle (or a USB cable to the Xbox controller; `xpad` is in the kernel).
     - **Open: button mapping.** The user described A = enable and Y = disable. The code has **B = enable** (only if all sticks are in the deadzone, otherwise it rumbles), **X = disable**, and **LB/RB = emergency stop**. In `Robot.cpp`, Y/A switch the balancing states. Ask which the user wants before changing anything.
-    - **Bug: `RobotNode` segfaults on shutdown** (exit −11) right after "Signal 2 received, shutting down...". The IMU driver and joy_node exit cleanly. The motors are safe (heartbeat 0, and the SPARK MAX times out at 100 ms), but this needs fixing.
+    - **Fixed 2026-11-15: `RobotNode` segfaulted on shutdown** (exit −11).
+      - Cause: the custom signal handler in `main.cpp` destroyed the node while `spin()` could still be using it, then `main()` called `emergencyStop()` through the now-null `g_myRobotNode`.
+      - Fix: there's no custom handler any more. rclcpp's handler makes `spin()` return, and `main()` then does `emergencyStop()`, destroys the node (BalanceDrive sends the disable heartbeat), and calls `rclcpp::shutdown()`.
+      - `MyGpio`'s destructor turns the enable lamp off before releasing the lines, without logging, because `g_myRobotNode` is already null then.
+      - Verified: "process has finished cleanly".
     - The log is noisy: "Controller is disconnected" and "updateLEDs" are logged every 250 ms.
 - Safety guard: if no `/imu` message has arrived within 100 ms, `BalanceDrive` forces the balance term to 0, so only the joystick drives the wheels. Without this guard, a missing IMU gives tilt = 0 and therefore a constant −0.069 duty as soon as the robot is enabled.
 
