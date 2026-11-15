@@ -42,6 +42,12 @@
         - `~/sd-bootarea-backup-20261114-204020.img`
       - Undo commands are in the script's header.
       - **If a `u-boot-orangepi-5` package update rewrites the SD bootloader, re-run the patcher and the install script.**
+  - **Bluetooth in the AX900 does NOT work on this 6.1 kernel (2026-11-14):**
+    - The adapter `hci0` shows up (Realtek, BT 5.3, "Powered: yes"), but a scan finds nothing at all.
+    - Cause 1: `btusb`'s Realtek table has no entry for TP-Link's ID `3625:010b`, so it binds as a generic device, with no Realtek setup and no firmware.
+    - Cause 2: a test copy of `btusb` with `0bda:b85b` → `3625:010b` (a temporary insmod, nothing installed) got further: "RTL: lmp_subver=8851, loading rtl_bt/rtl8851bu_fw.bin". Then it failed with **"bad EPATCH signature"**. `rtl8851bu_fw.bin` is in Realtek's **v2 format (`RTBTCore`)**, and this kernel's `btrtl` only parses v1 (`Realtech`).
+    - The fix would mean backporting a newer btrtl and btusb as DKMS, or a newer kernel.
+    - **Plan: a separate Bluetooth dongle.** The TP-Link UB500 (RTL8761BU, USB `2357:0604`) is fully supported here: the ID is in btusb, btrtl knows rtl8761bu, and its firmware is v1. Then ignore or disable the AX900's `hci`.
   - Harmless log noise: missing `/lib/firmware/TXPWR_*.txt`, `[BTC]` coexistence errors (Bluetooth is on a separate interface, handled by `btusb`), and `6ghz domain fail`. Do **not** blacklist `btusb`, even though that driver's README says to; a Bluetooth gamepad may need it.
 
 ## Control design
