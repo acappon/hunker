@@ -185,7 +185,12 @@ To check it: `ip -details link show can0 | grep -E "state|bitrate"`. You should 
         - 4.5 V ≈ 5 V minus one junction drop, which suggests a transistor emitter or diode on a live 5 V supply, probably the Pi's 5 V pin (2/4) or USB 5 V.
         - The circuit, per the user: an NPN with its **emitter on battery ground**, collector → enable lamp → +12 V, and the base (through a resistor, presumably) on the enable GPIO. The fault LED runs from the fault GPIO to **battery ground**. Both are fine for 3.3 V logic.
         - **Likely real cause: battery ground isn't tied to Pi ground** (that wire was "being added"). Then battery ground floats several volts away from the Pi, and the GPIO sees that offset. Next: measure battery negative to a Pi GND pin. If it isn't ~0 V, add the battery-negative ↔ Pi-GND wire; CAN needs it too.
-        - Open question: which reference the 4.5 V was measured against.
+        - **The 4.5 V was measured against battery negative**, which is the transistor's own emitter. An undriven base should read about 0 V there, so something external drives it. Possibly the Pi side (CANable USB ground → CAN → SPARK MAX → battery ground), or wiring inside the shrink tubing that isn't what we think.
+        - Next measurements:
+          1. Pi GND → battery negative, with the Pi on.
+          2. Base wire → battery negative, with the Pi off or the CANable unplugged.
+          3. Base wire → Pi GND, with the Pi on.
+        - Keep both light wires off the header until this is resolved.
       - 5 V on a 3.3 V GPIO back-feeds the RK3588 I/O supply through the pin's protection diode and upsets power-up sequencing. The Raspberry Pi 5 isn't 5 V tolerant either; it probably tolerated it out of spec.
       - **Don't connect the enable wire until it reads about 0 V open-circuit.** Remove the pull-up / 5 V source and use a plain NPN with a 10 kΩ base-emitter pull-down, or a logic-level MOSFET.
       - An earlier guess (11/13 double as DDR PHY debug pins `ddrphych0/1/2`) is probably wrong. Still, prefer 16/18; pin 22 is shared with eMMC.
