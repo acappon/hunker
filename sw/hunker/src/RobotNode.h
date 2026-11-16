@@ -28,7 +28,7 @@ public:
         LTRIGGER,
         NUMBER_OF_JOY_AXES,
     } JOY_AXES;
-    double m_joy_axes[NUMBER_OF_JOY_AXES];
+    double m_joy_axes[NUMBER_OF_JOY_AXES] = {};        // zero (centred) until the first /joy message
 
     typedef enum
     {
@@ -45,7 +45,15 @@ public:
         JOY_R3,
         NUMBER_OF_JOY_BUTTONS,
     } JOY_BUTTONS;
-    bool m_joy_buttons[NUMBER_OF_JOY_BUTTONS];
+    bool m_joy_buttons[NUMBER_OF_JOY_BUTTONS] = {};     // current state, from the last /joy message
+    bool m_joy_pressed[NUMBER_OF_JOY_BUTTONS] = {};     // latched presses, see takeButtonPress()
+
+    // True if the button was pressed since the last call (then clears it). The 250 ms safety
+    // timer uses this so a quick click between two checks isn't lost.
+    bool takeButtonPress(JOY_BUTTONS button);
+
+    // No /joy message for this long = controller lost (joy_node autorepeats at 20 Hz).
+    static constexpr double kControllerTimeoutSec = 0.5;
 
     MyGpio m_myGpio;
     FaultIndicator m_faultIndicator;

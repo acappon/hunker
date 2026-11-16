@@ -188,12 +188,16 @@ void RobotNode::checkControllerConnection()
 {
     rclcpp::Time now = this->now();
     bool prev = m_isControllerConnected;
-    if (std::fabs((now - m_last_joy_msg_time).seconds()) > 2.0)
+    // joy_node publishes at least 20 Hz (autorepeat_rate), so 0.5 s of silence = 10 missed
+    // messages in a row. (Was 2 s; a moving robot shouldn't run uncontrolled that long.)
+    if (std::fabs((now - m_last_joy_msg_time).seconds()) > kControllerTimeoutSec)
     {
         writeLog("Controller is disconnected, now = %ld, last = %ld",
                  now.nanoseconds(),
                  m_last_joy_msg_time.nanoseconds());
         m_isControllerConnected = false;
+        // Drop any press latched before the loss.
+        std::fill(std::begin(m_joy_pressed), std::end(m_joy_pressed), false);
     }
     else
     {
@@ -217,27 +221,33 @@ void RobotNode::checkControllerConnection()
 
 void RobotNode::checkRobotEnableDisable()
 {
-    if (m_joy_buttons[JOY_B] == 1)
+    // Take all latched presses each cycle, so an old press can't act later.
+    const bool pressedB = takeButtonPress(JOY_B);
+    const bool pressedX = takeButtonPress(JOY_X);
+    const bool pressedLB = takeButtonPress(JOY_LB);
+    const bool pressedRB = takeButtonPress(JOY_RB);
+
+    if (pressedB)
     {
         if (!isRobotEnabled())
         {
-            // It's not generally safe to enable while the joysticks are active, but this also covers
-            // the situation where the controller is turned on after the robot,
-            // (Default value for joystick axes is 1.0 until the sticks are moved)
-            if (areAllJoysticksInDeadzone())
+            // Sticks must be centred, so nothing moves the moment the robot enables.
+            // (The sticks read 0 from the first /joy message with this joy_node + xpadneo, and
+            // the arrays start at 0, so no "move the sticks first" step is needed.)
+            if (!areAllJoysticksInDeadzone())
+            {
+                writeLog("Not enabling: sticks not centred");
+                sendXboxRumble();
+            }
+            else
             {
                 writeLog("Robot ENABLED");
                 enableRobot(true);
             }
-            else
-            {
-                writeLog("Joystick not in deadzone, not enabling robot");
-                sendXboxRumble();
-            }
         }
     }
 
-    if (m_joy_buttons[JOY_X] == 1)
+    if (pressedX)
     {
         if (isRobotEnabled())
         {
@@ -246,8 +256,13 @@ void RobotNode::checkRobotEnableDisable()
         }
     }
 
-    if ((m_joy_buttons[JOY_LB] == 1) || (m_joy_buttons[JOY_RB] == 1))
+    // Emergency stop on a press, or while LB/RB is held.
+    if (pressedLB || pressedRB || m_joy_buttons[JOY_LB] || m_joy_buttons[JOY_RB])
     {
+        if (!m_isRobotEmergencyStopped)
+        {
+            writeLog("EMERGENCY STOP (LB/RB)");
+        }
         emergencyStop();
     }
 }
@@ -351,6 +366,9 @@ void RobotNode::joy_callback(const sensor_msgs::msg::Joy::SharedPtr msg)
         return;
     }
 
+    bool previous[NUMBER_OF_JOY_BUTTONS];
+    std::copy(std::begin(m_joy_buttons), std::end(m_joy_buttons), std::begin(previous));
+
     m_joy_axes[LJOY_LEFT_RIGHT] = msg->axes[0];
     m_joy_axes[LJOY_FWD_BACK] = msg->axes[1];
     m_joy_axes[LTRIGGER] = msg->axes[2];
@@ -369,6 +387,30 @@ void RobotNode::joy_callback(const sensor_msgs::msg::Joy::SharedPtr msg)
     m_joy_buttons[JOY_LOGITECH] = msg->buttons[8];   // the Xbox button
     m_joy_buttons[JOY_L3] = msg->buttons[9];
     m_joy_buttons[JOY_R3] = msg->buttons[10];
+
+    // Latch presses (button went down) for the slower safety timer.
+    for (int i = 0; i < NUMBER_OF_JOY_BUTTONS; ++i)
+    {
+        if (m_joy_buttons[i] && !previous[i])
+        {
+            m_joy_pressed[i] = true;
+        }
+    }
+
+    // Emergency stop acts immediately, not on the next 250 ms safety tick.
+    // (checkRobotEnableDisable() also checks LB/RB, as a backup.)
+    if ((m_joy_buttons[JOY_LB] || m_joy_buttons[JOY_RB]) && !m_isRobotEmergencyStopped)
+    {
+        writeLog("EMERGENCY STOP (LB/RB)");
+        emergencyStop();
+    }
+}
+
+bool RobotNode::takeButtonPress(JOY_BUTTONS button)
+{
+    const bool pressed = m_joy_pressed[button];
+    m_joy_pressed[button] = false;
+    return pressed && m_isControllerConnected;   // never act on a press from a lost controller
 }
 
 // Callback function for IMU messages

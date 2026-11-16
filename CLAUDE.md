@@ -207,7 +207,7 @@ To check it: `ip -details link show can0 | grep -E "state|bitrate"`. You should 
     - To check: auto-reconnect after a reboot.
   - **Safety/indicator test, 2026-11-15 (robot program run without a controller):** the fault LED counts 1 (`FAULT_CONTROLLER_DISCONNECTED`) and the enable lamp is off. The user confirmed both are correct.
     - **Buttons (user's choice, kept as coded):**
-      - **B = enable.** It only works once the sticks have been moved and are back in the deadzone; otherwise the controller rumbles.
+      - **B = enable.** It only works if the sticks are centred (in the deadzone); otherwise the controller rumbles. The old "move the sticks first" step existed only because the old joy driver started at non-zero values. The sticks now read 0 from the first message, so it's not needed (user, 2026-11-15).
       - **X = disable.**
       - **LB/RB = emergency stop.**
       - **Y = start balancing, A = stop balancing.**
@@ -215,6 +215,12 @@ To check it: `ip -details link show can0 | grep -E "state|bitrate"`. You should 
     - **Rumble:** with `hid-generic` there was no force feedback. Now `xpadneo` **v0.10** is installed via DKMS (source `~/src/xpadneo`, git tag v0.10).
       - v0.10.x (≥ v0.10.1) uses `scoped_guard`, which needs kernel ≥ 6.5, so it **doesn't build on 6.1**. Stay on v0.10 unless the kernel changes.
       - joy_node then reports an "Xbox 360 Controller" with haptic support.
+    - **Safety hardening 2026-11-15** (the safety path must be robust):
+      - B, X, LB and RB presses are **latched** in the `/joy` callback and consumed by the 250 ms safety timer. Before, it sampled the live state every 250 ms and missed quick clicks.
+      - The **e-stop also fires immediately** in the `/joy` callback.
+      - The **controller-lost timeout went from 2 s to 0.5 s** (joy autorepeat is 20 Hz). Losing the controller while enabled → latched e-stop, which needs a program restart. Seen working when the BLE link dropped (19:48:24).
+      - Latched presses are dropped on disconnect, and the joystick arrays are zero-initialized.
+    - **Open: the controller's BLE link dropped once for about 3 s** during testing, with no reason logged. Watch for it; the UB500 sits next to the USB 3 port, which can interfere with 2.4 GHz.
     - **Fixed 2026-11-15, `/joy` layout (measured):**
       - axes: 0 LX, 1 LY, 2 LT, 3 RX, 4 RY, 5 RT, 6 unused (rests at 1.0), 7/8 D-pad. The triggers rest at +1.
       - buttons: A0 B1 X2 Y3 LB4 RB5 View6 Menu7 Xbox8 L3 9 R3 10.

@@ -15,7 +15,7 @@ def generate_launch_description():
 
     return LaunchDescription([
         # Publishes /joy. RobotNode treats the controller as disconnected (and e-stops if
-        # enabled) when no /joy message arrives for 2 s; autorepeat keeps messages flowing
+        # enabled) when no /joy message arrives for 0.5 s; autorepeat keeps messages flowing
         # while the sticks are still.
         Node(
             package='joy',
