@@ -188,7 +188,7 @@ void RobotNode::checkControllerConnection()
 {
     rclcpp::Time now = this->now();
     bool prev = m_isControllerConnected;
-    if (abs((now - m_last_joy_msg_time).seconds()) > 2.0)
+    if (std::fabs((now - m_last_joy_msg_time).seconds()) > 2.0)
     {
         writeLog("Controller is disconnected, now = %ld, last = %ld",
                  now.nanoseconds(),
@@ -336,28 +336,39 @@ void RobotNode::joy_callback(const sensor_msgs::msg::Joy::SharedPtr msg)
 
     // writeLog("controller message received, %s", std::to_string(m_last_joy_msg_time.seconds()).c_str());
 
-    // Store the joystick data
+    // Store the joystick data.
+    // Layout measured 2026-11-15: Xbox Series controller over Bluetooth, xpadneo v0.10 driver,
+    // ROS 2 Jazzy joy_node (reports it as "Xbox 360 Controller", 9 axes, 11 buttons).
+    //   axes:    0 LX, 1 LY, 2 LT, 3 RX, 4 RY, 5 RT, 6 (unused, rests at 1.0), 7/8 D-pad
+    //            triggers rest at +1.0 and go to -1.0 when fully pressed
+    //   buttons: 0 A, 1 B, 2 X, 3 Y, 4 LB, 5 RB, 6 View/Back, 7 Menu/Start, 8 Xbox, 9 L3, 10 R3
+    // (The old layout, from the Raspberry Pi setup, had X=3, Y=4, LB=6, RB=7 and the right
+    // stick on axes 2/3, so X, LB/RB and the deadzone check didn't work with this controller.)
+    if (msg->axes.size() < 6 || msg->buttons.size() < 11)
+    {
+        writeLog("Unexpected /joy layout: %zu axes, %zu buttons; ignoring message",
+                 msg->axes.size(), msg->buttons.size());
+        return;
+    }
+
     m_joy_axes[LJOY_LEFT_RIGHT] = msg->axes[0];
     m_joy_axes[LJOY_FWD_BACK] = msg->axes[1];
-    m_joy_axes[RJOY_LEFT_RIGHT] = msg->axes[2];
-    m_joy_axes[RJOY_FWD_BACK] = msg->axes[3];
-    m_joy_axes[RTRIGGER] = msg->axes[4];
-    m_joy_axes[LTRIGGER] = msg->axes[5];
+    m_joy_axes[LTRIGGER] = msg->axes[2];
+    m_joy_axes[RJOY_LEFT_RIGHT] = msg->axes[3];
+    m_joy_axes[RJOY_FWD_BACK] = msg->axes[4];
+    m_joy_axes[RTRIGGER] = msg->axes[5];
 
     m_joy_buttons[JOY_A] = msg->buttons[0];
     m_joy_buttons[JOY_B] = msg->buttons[1];
-    // m_joy_buttons[JOY_UNUSED_1] = msg->buttons[2];
-    m_joy_buttons[JOY_X] = msg->buttons[3];
-    m_joy_buttons[JOY_Y] = msg->buttons[4];
-    // m_joy_buttons[JOY_UNUSED_2] = msg->buttons[5];
-    m_joy_buttons[JOY_LB] = msg->buttons[6];
-    m_joy_buttons[JOY_RB] = msg->buttons[7];
-
-    m_joy_buttons[JOY_BACK] = msg->buttons[8];
-    m_joy_buttons[JOY_START] = msg->buttons[9];
-    m_joy_buttons[JOY_LOGITECH] = msg->buttons[10];
-    m_joy_buttons[JOY_L3] = msg->buttons[11];
-    m_joy_buttons[JOY_R3] = msg->buttons[12];
+    m_joy_buttons[JOY_X] = msg->buttons[2];
+    m_joy_buttons[JOY_Y] = msg->buttons[3];
+    m_joy_buttons[JOY_LB] = msg->buttons[4];
+    m_joy_buttons[JOY_RB] = msg->buttons[5];
+    m_joy_buttons[JOY_BACK] = msg->buttons[6];
+    m_joy_buttons[JOY_START] = msg->buttons[7];
+    m_joy_buttons[JOY_LOGITECH] = msg->buttons[8];   // the Xbox button
+    m_joy_buttons[JOY_L3] = msg->buttons[9];
+    m_joy_buttons[JOY_R3] = msg->buttons[10];
 }
 
 // Callback function for IMU messages
@@ -403,7 +414,7 @@ bool RobotNode::areAllJoysticksInDeadzone()
     // Check if all joystick axes,(but not the trigger axes), are within the deadzone
     for (int i = 0; i < 4; ++i)
     {
-        if (abs(g_myRobotNode->m_joy_axes[i]) > JOYSTICK_DEADZONE)
+        if (std::fabs(g_myRobotNode->m_joy_axes[i]) > JOYSTICK_DEADZONE)
         {
             return false;
         }

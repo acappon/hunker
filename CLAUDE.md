@@ -206,8 +206,19 @@ To check it: `ip -details link show can0 | grep -E "state|bitrate"`. You should 
     - **`/dev/input/event*` is root:input 660**, with an ACL only for gdm (the seat owner). `viking` must be in group `input` for joy_node (`usermod -aG input viking`, then re-login or reboot).
     - To check: auto-reconnect after a reboot.
   - **Safety/indicator test, 2026-11-15 (robot program run without a controller):** the fault LED counts 1 (`FAULT_CONTROLLER_DISCONNECTED`) and the enable lamp is off. The user confirmed both are correct.
-    - The controller tests are waiting for the UB500 Bluetooth dongle (or a USB cable to the Xbox controller; `xpad` is in the kernel).
-    - **Open: button mapping.** The user described A = enable and Y = disable. The code has **B = enable** (only if all sticks are in the deadzone, otherwise it rumbles), **X = disable**, and **LB/RB = emergency stop**. In `Robot.cpp`, Y/A switch the balancing states. Ask which the user wants before changing anything.
+    - **Buttons (user's choice, kept as coded):**
+      - **B = enable.** It only works once the sticks have been moved and are back in the deadzone; otherwise the controller rumbles.
+      - **X = disable.**
+      - **LB/RB = emergency stop.**
+      - **Y = start balancing, A = stop balancing.**
+    - **Fixed 2026-11-15:** enabling went straight into BALANCING because `Robot::periodic()` didn't handle DISABLED. Now enable → LANDING/HUNKERED, which means armed with duty 0.
+    - **Rumble:** with `hid-generic` there was no force feedback. Now `xpadneo` **v0.10** is installed via DKMS (source `~/src/xpadneo`, git tag v0.10).
+      - v0.10.x (≥ v0.10.1) uses `scoped_guard`, which needs kernel ≥ 6.5, so it **doesn't build on 6.1**. Stay on v0.10 unless the kernel changes.
+      - joy_node then reports an "Xbox 360 Controller" with haptic support.
+    - **Fixed 2026-11-15, `/joy` layout (measured):**
+      - axes: 0 LX, 1 LY, 2 LT, 3 RX, 4 RY, 5 RT, 6 unused (rests at 1.0), 7/8 D-pad. The triggers rest at +1.
+      - buttons: A0 B1 X2 Y3 LB4 RB5 View6 Menu7 Xbox8 L3 9 R3 10.
+      - The old mapping had X/LB/RB and the right stick wrong. The deadzone check also looked at a trigger, so B could never enable.
     - **Fixed 2026-11-15: `RobotNode` segfaulted on shutdown** (exit −11).
       - Cause: the custom signal handler in `main.cpp` destroyed the node while `spin()` could still be using it, then `main()` called `emergencyStop()` through the now-null `g_myRobotNode`.
       - Fix: there's no custom handler any more. rclcpp's handler makes `spin()` return, and `main()` then does `emergencyStop()`, destroys the node (BalanceDrive sends the disable heartbeat), and calls `rclcpp::shutdown()`.
