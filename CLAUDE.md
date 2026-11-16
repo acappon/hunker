@@ -21,7 +21,11 @@
 - **Bus:** needs 120 Ω termination at both ends. The SPARK MAX has no built-in termination.
 - **Power/ground:** motors run from a 12V battery that is only on during motor tests. A ground wire from the CAN adapter GND to the battery negative is being added.
 - **IMU:** BNO085, read on the Pi.
-- **WiFi (field link), 2026-11-11:** TP-Link AX900 (Archer TX10UB Nano), USB `3625:010b`, RTL8851BU.
+- **Field link: Ethernet tether, no WiFi (user's decision, 2026-11-15).**
+  - The Pi's Ethernet `end1` (NM profile "Wired connection 1") has `ipv4.method auto`, so DHCP still works at home (192.168.1.62). It also has the **fixed address `10.42.76.111/24`**, added with `nmcli con mod "Wired connection 1" ipv4.method auto +ipv4.addresses 10.42.76.111/24`.
+  - **In the field:** give the laptop's Ethernet port a fixed address, e.g. 10.42.76.1/24 (no gateway), then `ssh viking@10.42.76.111`.
+  - The AX900 is to be unplugged, because of the warm-reboot hang (see below). Its software is left installed and is harmless without the dongle: the DKMS driver, the Hotspot profile, the usb-storage quirk, and the udev rule disabling its Bluetooth.
+- **WiFi (no longer used), 2026-11-11:** TP-Link AX900 (Archer TX10UB Nano), USB `3625:010b`, RTL8851BU.
   - Driver: Realtek vendor driver from https://github.com/miftahfaridhh/rtl8851bu (commit `de6d926`; its README lists `3625:010b`). Installed with DKMS as `rtl8851bu/1.0` from `/usr/src/rtl8851bu-1.0`, using our own `dkms.conf` (`AUTOINSTALL=yes`). Module `8851bu`, which autoloads by USB alias.
   - The kernel creates `wlan0`, which udev renames to **`wlx20e15d9e979c`** (MAC-based). The NM profile is bound to that name, so don't rename it without updating the profile.
   - NetworkManager profile **`Hotspot`**: AP mode, WPA-PSK, `ipv4.method shared`. The Pi is **10.42.0.1**, and the laptop gets 10.42.0.x by DHCP. It was created in the desktop GUI and verified with a laptop. It has `autoconnect yes` and priority 10, so it **comes up at boot** with no GUI needed.
