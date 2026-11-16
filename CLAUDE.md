@@ -204,7 +204,7 @@ To check it: `ip -details link show can0 | grep -E "state|bitrate"`. You should 
     - The AX900's dead Bluetooth half is switched off by `/etc/udev/rules.d/61-hunker-ax900-no-bt.rules` (copy in `sysconfig/`). It de-authorizes the class-e0 interfaces of `3625:010b` and leaves the WiFi alone. Now there's a single adapter, `hci0`.
     - Controller: "Xbox Wireless Controller" `28:EA:0B:F4:B1:50`, Xbox Series (`045e:0b13`), BLE HID. Paired, bonded and **trusted**, so it should reconnect on power-up. It appears as `/dev/input/js0` and an `eventN` node.
     - **`/dev/input/event*` is root:input 660**, with an ACL only for gdm (the seat owner). `viking` must be in group `input` for joy_node (`usermod -aG input viking`, then re-login or reboot).
-    - To check: auto-reconnect after a reboot.
+    - Auto-reconnect after a reboot or power cycle: verified 2026-11-15.
   - **Safety/indicator test, 2026-11-15 (robot program run without a controller):** the fault LED counts 1 (`FAULT_CONTROLLER_DISCONNECTED`) and the enable lamp is off. The user confirmed both are correct.
     - **Buttons (user's choice, kept as coded):**
       - **B = enable.** It only works if the sticks are centred (in the deadzone); otherwise the controller rumbles. The old "move the sticks first" step existed only because the old joy driver started at non-zero values. The sticks now read 0 from the first message, so it's not needed (user, 2026-11-15).
@@ -220,6 +220,10 @@ To check it: `ip -details link show can0 | grep -E "state|bitrate"`. You should 
       - The **e-stop also fires immediately** in the `/joy` callback.
       - The **controller-lost timeout went from 2 s to 0.5 s** (joy autorepeat is 20 Hz). Losing the controller while enabled → latched e-stop, which needs a program restart. Seen working when the BLE link dropped (19:48:24).
       - Latched presses are dropped on disconnect, and the joystick arrays are zero-initialized.
+    - **VERIFIED by the user, 2026-11-15** (belts off, battery on), with build `6374201`:
+      - B enables: lamp flashing, state Landing, wheels still. X disables. LB and RB each e-stop (lamp off, fault solid).
+      - B with either stick off-centre → rumble, no enable.
+      - A single click now works every time. Controller auto-reconnects after a power cycle (Xbox button only).
     - **Open: the controller's BLE link dropped once for about 3 s** during testing, with no reason logged. Watch for it; the UB500 sits next to the USB 3 port, which can interfere with 2.4 GHz.
     - **Fixed 2026-11-15, `/joy` layout (measured):**
       - axes: 0 LX, 1 LY, 2 LT, 3 RX, 4 RY, 5 RT, 6 unused (rests at 1.0), 7/8 D-pad. The triggers rest at +1.
