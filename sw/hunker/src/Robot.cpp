@@ -124,6 +124,13 @@ void Robot::periodic()
         {
             m_robotState = ROBOT_STATE_AIRBORNE;
         }
+        else if (m_robotState == ROBOT_STATE_DISABLED)
+        {
+            // Just enabled (B button): arm the motors but don't move. Balancing only starts
+            // when Y is pressed. (Before 2026-11-16, DISABLED fell through to the BALANCING
+            // branch below, so enabling started the balance controller at once.)
+            m_robotState = isFullyFolded() ? ROBOT_STATE_HUNKERED : ROBOT_STATE_LANDING;
+        }
         else if ((m_robotState == ROBOT_STATE_LANDING) || (m_robotState == ROBOT_STATE_HUNKERED))
         {
             if ((g_myRobotNode->m_joy_buttons[RobotNode::JOY_Y] == 1) && (isBalancingPossible()))
