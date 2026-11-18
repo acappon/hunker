@@ -1,6 +1,7 @@
 #ifndef BALANCEDRIVE_H
 #define BALANCEDRIVE_H
 
+#include <cmath>
 #include <memory>
 
 #include "SparkMaxCan.h"
@@ -26,9 +27,21 @@ public:
     // True when both SPARK MAX controllers have reported status within the last 100 ms.
     bool motorsAlive() const;
 
+    // Tilt error from the balance point (rad, + = tipped forward) and its rate (rad/s, same sign).
+    // Returns false if the IMU data is invalid or older than 100 ms.
+    bool getTiltError(double& error, double& rate) const;
+
+    // Balancing may only START within this much of the balance point (Y press).
+    static constexpr double kStartWindow = 5.0 * M_PI / 180.0;    // rad
+    // While balancing, a larger error than this stops balancing (duty 0, back to LANDING).
+    static constexpr double kTiltCutoff = 20.0 * M_PI / 180.0;    // rad
+
 private:
     bool m_isEnabled = false;
     bool m_updatedThisCycle = false;
+    double m_balanceOutput = 0.0;   // last balance term, for the log
+
+    void logTilt();   // 10 lines/s, in every state
     double m_dutyL = 0.0;
     double m_dutyR = 0.0;
 
@@ -41,19 +54,21 @@ private:
     static constexpr int kRightMotorCanID = 2;
 
     // Tilt, from the BNO085's fused orientation (see imuTilt() in BalanceDrive.cpp).
-    // tilt = asin(u.x), where u is world "up" expressed in the IMU frame. This is the same
-    // axis and sign as the old raw signal (accel.x ≈ 9.81·u.x at rest) but without the
-    // error from the robot's own acceleration.
-    // Balance point: old empirical accel.x ≈ 6.89 at the ~45° deck angle → asin(6.89/9.81).
-    static constexpr double kBalanceAngle = 0.779;   // rad (44.6°)
+    // tilt = asin(u.x), where u is world "up" expressed in the IMU frame.
+    // Hand-tilt test, 2026-11-18 (battery off): resting on the kickstand tilt = 89.4°;
+    // held at the balance point tilt = 36.6° (two holds, 35.6–37.3°); tipping FORWARD makes
+    // tilt DECREASE, and the gyro tilt rate has the same sign as d(tilt)/dt.
+    // (The old 0.779 rad = 44.6° came from accel.x, which reads 1.36× too high.)
+    static constexpr double kBalanceAngle = 0.639;   // rad (36.6°)
 
-    // Proportional gain, duty per radian of tilt error. 0.07 matches the old
-    // 0.01 per m/s² near the balance point (1 rad ≈ 7 m/s² of accel.x there).
-    // ≈ 0.0012 duty per degree. Tune upward carefully.
-    static constexpr double kP = 0.07;
+    // Proportional gain, duty per radian of tilt error (error + = tipped forward).
+    // Holding a tilt against gravity needs ≈ 0.37 duty/rad (9.6 kg, 5:1, 8" wheel,
+    // NEO-class stall torque); 0.8 ≈ 2× that. 5° error → 0.07 duty.
+    static constexpr double kP = 0.8;
 
     // Derivative gain, duty per rad/s of tilt rate (from the gyro, not differenced).
-    // Starts at 0: P-only, as before. Add after the tilt-rate sign is checked by hand.
+    // Same sign as kP (rate sign verified by the hand-tilt test). 0 until the wheel
+    // direction is checked; then about 0.05.
     static constexpr double kD = 0.0;
 
     // Maximum motor output magnitude during balance (0.0 to 1.0)

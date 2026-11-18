@@ -63,6 +63,19 @@
     - **SPI now holds the stock loader with the SD-first U-Boot** (`boot/install-spi-sdfirst.sh`, 2026-11-15). It's fine with warm reboots when the AX900 is out, so keep it.
   - Harmless log noise: missing `/lib/firmware/TXPWR_*.txt`, `[BTC]` coexistence errors (Bluetooth is on a separate interface, handled by `btusb`), and `6ghz domain fail`. Do **not** blacklist `btusb`, even though that driver's README says to; a Bluetooth gamepad may need it.
 
+## Mechanical (from the user, 2026-11-18)
+- Deck: 3/8" polycarbonate, 11" H × 15" W. Carries the battery, 60 A breaker, fused power distribution, voltage display, Orange Pi 5, CANable, IMU, 12→5 V converter and two LEDs.
+- The 11" side edges bolt to 1.5×1" aluminium tubes that run 4" to a ¼" bearing on each side.
+- Legs: 2×1" aluminium channel on those bearings, extending 50 mm to the rear and 12" down to the foot.
+- Axle: 6" long, ½", U-bolted to the bottom of each leg 12" below the bearing. It carries an 80T HTD 5M pulley, an 8" pneumatic wheel and a shaft collar.
+- Drive: a REV NEO 2.0 sits on each leg, 4.5" centre-to-centre from the axle, with a 16T pulley. **That's 5:1 reduction to an 8" (0.203 m) wheel.** Each SPARK MAX sits in the channel under its motor.
+- Mass: 21.2 lb (9.6 kg) total. The user estimates each leg + motor + wheel at about 5 lb.
+- **No knee motors yet.** A strut (where the gas shock will go) locks the legs at a little under 90° to the deck, so the robot is one rigid body on the wheels. At rest the rear end of the legs is on the ground (a kickstand) and the deck is vertical.
+- Wheels: knobby pneumatic, for dirt or hard sand. A theoretical top speed of about 10 m/s at full duty is fine ("sporty"); the balancer will never actually reach it.
+- **Intended behaviour (user, 2026-11-18):**
+  - **With knee motors, eventually:** the rest pose is folded on the ground. Enable → spring upward and balance. Disable → stop safely, hunker down to the rest pose, *then* disable the motors.
+  - **Fixed-leg testing, now:** the user holds the robot nearly upright before enabling. Disable simply cuts the motors (the user catches it).
+
 ## Control design
 - A 200 Hz real-time thread does the following:
   - reads the IMU
@@ -80,9 +93,14 @@
       - The motors are enabled only when the robot is enabled **and** both SPARKs have reported Status 0 within 100 ms.
       - States that don't call `update()` get duty 0.
     - The duty sent is hard-limited to `kDutyLimit` = 0.10 (balance + joystick combined) until the motor type and encoder are confirmed.
+    - **Balance start and cutoff (2026-11-18, built, NOT yet tested with motors):**
+      - **Y** starts balancing only from LANDING/HUNKERED, with fresh IMU data and the tilt error within **±5°** (`kStartWindow`). Otherwise it's ignored and the reason logged.
+      - While BALANCING, any of these goes back to LANDING (armed, duty 0), with the reason logged: **A**; IMU invalid or more than 100 ms old; error beyond **±20°** (`kTiltCutoff`). `update()` also zeroes the balance term in those cases.
+      - Y and A are latched presses (`takeButtonPress`), consumed every cycle in every state, so a stale press can't act later and holding Y doesn't auto-restart after a cutoff.
+      - Y is the start button only for fixed-leg testing; the user wants it back later.
+      - The joystick is **off while balancing** (`kJoystickScale = 0.0` in `Robot::balancingPeriodic()`). The left motor's inversion now applies to the joystick term as well as the balance term. Before raising the scale, check the stick sign, and consider steering by shifting the balance angle (lean) instead of adding raw duty.
+      - The tilt log line (10 Hz) prints in every state, including disabled.
     - Not built yet:
-      - the tilt cutoff
-      - a check that IMU data is fresh
       - the 200 Hz dedicated thread from the control design (the loop still runs from the ROS timer)
   - For one-off bench tests, use `cansend` and `candump`.
 
@@ -183,10 +201,13 @@ To check it: `ip -details link show can0 | grep -E "state|bitrate"`. You should 
     - **`BalanceDrive` now uses the fused orientation, not `accel.x`:**
       - tilt = asin(u.x), where u = world "up" in the IMU frame. That's the same axis and sign as the old accel.x signal.
       - Tilt rate is computed exactly from the gyro.
-      - `kBalanceAngle` = 0.779 rad comes from the old accel.x = 6.89. Given the accel scale error, it may really be about 31°. **Re-measure it with a hand-tilt test.**
-      - kP = 0.07/rad (equivalent to the old 0.01 per m/s²); kD = 0.
       - At rest the IMU's x axis points straight up, and fused tilt agrees with accel tilt (89.5° vs 90°).
-      - **The hand-tilt test hasn't been done yet.** It's needed to confirm the sign of tilt and tilt rate and to set the balance angle.
+      - **Hand-tilt test done 2026-11-18 (battery off):**
+        - On the kickstand: tilt = 89.4°. Held at the balance point: **tilt = 36.6°** (two holds, 35.6–37.3°). accelTilt read about 44° there, because of the accel scale error; that's where the old 0.779 rad (44.6°) came from.
+        - **Tipping FORWARD makes tilt DECREASE.** The gyro tilt rate has the same sign as d(tilt)/dt.
+        - So `getTiltError()` now returns error = `kBalanceAngle − tilt` and rate = −rate (**+ = tipped forward**, needs the wheels to drive forward). `kBalanceAngle` = **0.639 rad**.
+      - **Gains now kP = 0.8 duty/rad, kD = 0.** Holding a tilt against gravity needs about 0.37 duty/rad (9.6 kg, 5:1 belt, 8" wheel, NEO-class stall torque), so 0.8 ≈ 2×. Plan kD ≈ 0.05 once the wheel direction is confirmed.
+      - **Next test: wheel direction, robot hung from a gantry with the wheels clear, battery on.** B, hold near 36.6°, Y; tip forward → both wheels should drive forward, tip back → both reverse. The "right positive duty = forward" claim in `update()` has never been checked.
   - **Status lights (2026-11-14):** `MyGpio` now opens **gpiochip1**.
     - Enable lamp: **header pin 16** = GPIO1_D3 = line 27. It drives a transistor base, and the lamp itself runs from 12 V. A 10 kΩ base-to-emitter pull-down is recommended so it stays off at power-up.
     - Fault LED: **pin 18** = GPIO1_D2 = line 26. It's an assembly with a built-in resistor.

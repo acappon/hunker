@@ -98,9 +98,23 @@ static bool imuTilt(double& tilt, double& tiltRate)
     return true;
 }
 
-// addLeftControl and addRightControl are joystick offsets in range -1.0 to 1.0
-// They are added on top of the balance output AFTER clamping, so they can
-// temporarily override balance — keep them small during tuning.
+bool BalanceDrive::getTiltError(double& error, double& rate) const
+{
+    double tilt = 0.0;
+    if (!imuTilt(tilt, rate) || !g_myRobotNode->isImuFresh(0.1))
+    {
+        error = rate = 0.0;
+        return false;
+    }
+    // tilt DECREASES when the robot tips forward (hand-tilt test, 2026-11-18), so the
+    // error and rate are negated: + = tipped forward = need to drive forward to catch up.
+    error = kBalanceAngle - tilt;
+    rate = -rate;
+    return true;
+}
+
+// addLeftControl and addRightControl are joystick offsets in range -1.0 to 1.0, as raw
+// driver intent (+ = that side forward). The left motor's inversion is applied here.
 void BalanceDrive::update(double addLeftControl, double addRightControl)
 {
     m_updatedThisCycle = true;
@@ -108,48 +122,60 @@ void BalanceDrive::update(double addLeftControl, double addRightControl)
     if (!m_isEnabled)
     {
         m_dutyL = m_dutyR = 0.0;
+        m_balanceOutput = 0.0;
         return;
     }
 
-    // --- Tilt error ---
-    // tilt increases when the deck tilts forward (toward horizontal), as accel.x did.
-    // tilt ≈ kBalanceAngle at the ~45° balance angle.
-    // Positive error = tilted forward = need to drive forward to catch up
-    double tilt = 0.0, tilt_rate = 0.0;
-    const bool tiltOk = imuTilt(tilt, tilt_rate);
-    const double tilt_error = tilt - kBalanceAngle;
+    double tilt_error = 0.0, tilt_rate = 0.0;
+    const bool tiltOk = getTiltError(tilt_error, tilt_rate);
 
     // --- PD correction, clamped ---
     double balance_output = std::clamp(kP * tilt_error + kD * tilt_rate, -kMaxOutput, kMaxOutput);
 
-    // No fresh, valid IMU data: never balance on a stale or default (zero) reading.
-    // Joystick offsets still apply, so the wheels can be driven by hand.
-    if (!tiltOk || !g_myRobotNode->isImuFresh(0.1))
+    // No fresh, valid IMU data, or tilted past the cutoff: never balance on it.
+    // Robot::periodic() leaves BALANCING in both cases; this is a second line of defence.
+    if (!tiltOk)
     {
         balance_output = 0.0;
         g_myRobotNode->writeLog("BalanceDrive: no fresh IMU data, balance term held at 0");
     }
+    else if (std::fabs(tilt_error) > kTiltCutoff)
+    {
+        balance_output = 0.0;
+    }
+    m_balanceOutput = balance_output;
 
     // --- Motor outputs ---
     // Right motor: positive = clockwise from right = forward = corrects positive tilt
-    // Left motor:  inverted because motors face opposite directions
-    // Joystick offsets are already sign-corrected in Robot::balancingPeriodic()
+    // Left motor:  inverted because motors face opposite directions (balance AND joystick)
     m_dutyR = std::clamp(balance_output + addRightControl, -kDutyLimit, kDutyLimit);
-    m_dutyL = std::clamp(-balance_output + addLeftControl, -kDutyLimit, kDutyLimit);
+    m_dutyL = std::clamp(-(balance_output + addLeftControl), -kDutyLimit, kDutyLimit);
+}
 
+void BalanceDrive::logTilt()
+{
     // Values change every cycle, so repeat-suppression can't help: limit to 10 lines/s.
     static auto nextLog = std::chrono::steady_clock::now();
-    if (std::chrono::steady_clock::now() >= nextLog)
+    const auto now = std::chrono::steady_clock::now();
+    if (now < nextLog)
     {
-        nextLog = std::chrono::steady_clock::now() + std::chrono::milliseconds(100);
-        // tilt and accel-tilt should agree when the robot is still; a sign or axis mismatch
-        // shows up here first.
-        const double accelTilt = std::asin(std::clamp(
-            g_myRobotNode->m_imu_linear_acceleration[RobotNode::IMU_AXES::X] / 9.80665, -1.0, 1.0));
-        g_myRobotNode->writeLog("BalanceDrive: tilt=%.1f° rate=%.1f°/s accelTilt=%.1f° err=%.1f° bal=%.3f L=%.3f R=%.3f",
-                                tilt * kRadToDeg, tilt_rate * kRadToDeg, accelTilt * kRadToDeg,
-                                tilt_error * kRadToDeg, balance_output, m_dutyL, m_dutyR);
+        return;
     }
+    nextLog = now + std::chrono::milliseconds(100);
+
+    double tilt = 0.0, tilt_rate = 0.0;
+    if (!imuTilt(tilt, tilt_rate) || !g_myRobotNode->isImuFresh(0.1))
+    {
+        g_myRobotNode->writeLog("BalanceDrive: tilt unknown (no fresh IMU data)");
+        return;
+    }
+    // tilt and accel-tilt should agree when the robot is still; a sign or axis mismatch
+    // shows up here first.
+    const double accelTilt = std::asin(std::clamp(
+        g_myRobotNode->m_imu_linear_acceleration[RobotNode::IMU_AXES::X] / 9.80665, -1.0, 1.0));
+    g_myRobotNode->writeLog("BalanceDrive: tilt=%.1f° rate=%.1f°/s accelTilt=%.1f° err=%.1f° bal=%.3f L=%.3f R=%.3f",
+                            tilt * kRadToDeg, tilt_rate * kRadToDeg, accelTilt * kRadToDeg,
+                            (kBalanceAngle - tilt) * kRadToDeg, m_balanceOutput, m_dutyL, m_dutyR);
 }
 
 void BalanceDrive::periodic()
@@ -166,8 +192,11 @@ void BalanceDrive::periodic()
     if (!m_updatedThisCycle)
     {
         m_dutyL = m_dutyR = 0.0;
+        m_balanceOutput = 0.0;
     }
     m_updatedThisCycle = false;
+
+    logTilt();
 
     const bool alive = motorsAlive();
     const bool drive = m_isEnabled && alive;

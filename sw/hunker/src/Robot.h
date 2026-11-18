@@ -54,7 +54,8 @@ private:
     void estimateDeckOrientation();
 
     bool isBalancingPossible(); // true if the robot is not airborne, and the deck vertical is not too far from "up"
-    bool isFullyFolded();       // true if the robot is in a compact, folded state, (lower limit switch is active)
+    bool isFullyFolded();
+    void stopBalancing();       // BALANCING → LANDING or HUNKERED       // true if the robot is in a compact, folded state, (lower limit switch is active)
 };
 
 #endif // ROBOT_H

@@ -111,8 +111,23 @@ bool Robot::isFullyFolded()
     return false;
 }
 
+// Leaves BALANCING for LANDING or HUNKERED (whichever matches the legs).
+void Robot::stopBalancing()
+{
+    m_robotState = isFullyFolded() ? ROBOT_STATE_HUNKERED : ROBOT_STATE_LANDING;
+}
+
 void Robot::periodic()
 {
+    // Take the latched Y/A presses every cycle, in every state, so a press made while
+    // disabled (or outside the start window) can't act later.
+    const bool pressedY = g_myRobotNode->takeButtonPress(RobotNode::JOY_Y);
+    const bool pressedA = g_myRobotNode->takeButtonPress(RobotNode::JOY_A);
+
+    double tiltError = 0.0, tiltRate = 0.0;
+    const bool tiltOk = m_myBalanceDrive.getTiltError(tiltError, tiltRate);
+    constexpr double kRadToDeg = 180.0 / M_PI;
+
     if (!g_myRobotNode->isRobotEnabled())
     {
         m_robotState = ROBOT_STATE_DISABLED;
@@ -129,42 +144,56 @@ void Robot::periodic()
             // Just enabled (B button): arm the motors but don't move. Balancing only starts
             // when Y is pressed. (Before 2026-11-16, DISABLED fell through to the BALANCING
             // branch below, so enabling started the balance controller at once.)
-            m_robotState = isFullyFolded() ? ROBOT_STATE_HUNKERED : ROBOT_STATE_LANDING;
+            stopBalancing();
         }
         else if ((m_robotState == ROBOT_STATE_LANDING) || (m_robotState == ROBOT_STATE_HUNKERED))
         {
-            if ((g_myRobotNode->m_joy_buttons[RobotNode::JOY_Y] == 1) && (isBalancingPossible()))
+            // Y starts balancing, but only near the balance point, with fresh IMU data.
+            // (Fixed-leg testing: the user holds the robot near upright, then presses Y.)
+            if (pressedY)
             {
-                m_robotState = ROBOT_STATE_BALANCING;
+                if (!tiltOk)
+                {
+                    g_myRobotNode->writeLog("Y ignored: no fresh IMU data");
+                }
+                else if (std::fabs(tiltError) > BalanceDrive::kStartWindow)
+                {
+                    g_myRobotNode->writeLog("Y ignored: tilt error %.1f° is outside ±%.0f°",
+                                            tiltError * kRadToDeg, BalanceDrive::kStartWindow * kRadToDeg);
+                }
+                else if (isBalancingPossible())
+                {
+                    g_myRobotNode->writeLog("BALANCING started, tilt error %.1f°", tiltError * kRadToDeg);
+                    m_robotState = ROBOT_STATE_BALANCING;
+                }
             }
-            else
+            if (m_robotState != ROBOT_STATE_BALANCING)
             {
-                if (!isFullyFolded())
-                {
-                    m_robotState = ROBOT_STATE_LANDING;
-                }
-                else
-                {
-                    m_robotState = ROBOT_STATE_HUNKERED;
-                }
+                stopBalancing();
             }
         }
         else // BALANCING
         {
-            if ((g_myRobotNode->m_joy_buttons[RobotNode::JOY_A] == 1) || (!isBalancingPossible()))
+            if (pressedA)
             {
-                if (!isFullyFolded())
-                {
-                    m_robotState = ROBOT_STATE_LANDING;
-                }
-                else
-                {
-                    m_robotState = ROBOT_STATE_HUNKERED;
-                }
+                g_myRobotNode->writeLog("BALANCING stopped (A)");
+                stopBalancing();
             }
-            else
+            else if (!tiltOk)
             {
-                m_robotState = ROBOT_STATE_BALANCING;
+                g_myRobotNode->writeLog("BALANCING stopped: no fresh IMU data");
+                stopBalancing();
+            }
+            else if (std::fabs(tiltError) > BalanceDrive::kTiltCutoff)
+            {
+                g_myRobotNode->writeLog("BALANCING stopped: TILT CUTOFF, error %.1f° beyond ±%.0f°",
+                                        tiltError * kRadToDeg, BalanceDrive::kTiltCutoff * kRadToDeg);
+                stopBalancing();
+            }
+            else if (!isBalancingPossible())
+            {
+                g_myRobotNode->writeLog("BALANCING stopped: balancing not possible");
+                stopBalancing();
             }
         }
     }
@@ -219,6 +248,13 @@ void Robot::balancingPeriodic()
     if (power_L < -1.0) power_L = -1.0;
     if (power_R >  1.0) power_R =  1.0;
     if (power_R < -1.0) power_R = -1.0;
+
+    // Joystick weight. 0 for the first balance tests: the balance term drives the wheels alone.
+    // Before raising it: check the stick sign (does LY/RY read + when pushed forward?) and
+    // consider steering by shifting the balance angle (lean) instead of adding raw duty.
+    constexpr double kJoystickScale = 0.0;
+    power_L *= kJoystickScale;
+    power_R *= kJoystickScale;
 
     m_myBalanceDrive.update(power_L, power_R);
 }
