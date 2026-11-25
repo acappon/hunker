@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstdio>
 
 static constexpr double kRadToDeg = 180.0 / M_PI;
 
@@ -23,7 +24,8 @@ BalanceDrive::~BalanceDrive()
 int BalanceDrive::init()
 {
     // Controller configuration (motor type, idle mode, CAN ID) is done once in
-    // REV Hardware Client 2. Nothing is written to the SPARKs here, and flash is never burned.
+    // REV Hardware Client 2. No parameters are written here, and flash is never burned.
+    // (Status 2 is switched on in periodic(): that is a telemetry request, not a parameter.)
     try
     {
         m_bus = std::make_unique<spark::CanBus>("can0");
@@ -114,7 +116,7 @@ bool BalanceDrive::getTiltError(double& error, double& rate) const
 }
 
 // addLeftControl and addRightControl are joystick offsets in range -1.0 to 1.0, as raw
-// driver intent (+ = that side forward). The left motor's inversion is applied here.
+// driver intent (+ = that side forward). Motor inversion (right motor) is applied here.
 void BalanceDrive::update(double addLeftControl, double addRightControl)
 {
     m_updatedThisCycle = true;
@@ -146,10 +148,32 @@ void BalanceDrive::update(double addLeftControl, double addRightControl)
     m_balanceOutput = balance_output;
 
     // --- Motor outputs ---
-    // Right motor: positive = clockwise from right = forward = corrects positive tilt
-    // Left motor:  inverted because motors face opposite directions (balance AND joystick)
-    m_dutyR = std::clamp(balance_output + addRightControl, -kDutyLimit, kDutyLimit);
-    m_dutyL = std::clamp(-(balance_output + addLeftControl), -kDutyLimit, kDutyLimit);
+    // Right motor: NEGATIVE duty = wheel forward (gantry test 2026-11-25: R=-0.043 drove
+    //              the right wheel forward). So right is inverted.
+    // Left motor:  mirrored on the other leg, so positive = forward (confirmed in the
+    //              repeat test once the left belt was loosened).
+    m_dutyR = std::clamp(-(balance_output + addRightControl), -kDutyLimit, kDutyLimit);
+    m_dutyL = std::clamp(balance_output + addLeftControl, -kDutyLimit, kDutyLimit);
+}
+
+// Wheel ground speed from the NEO hall encoders (Status 2), m/s, + = that wheel forward.
+// Encoder signs (hand-turn test 2026-11-25): wheel forward = left +, right −, the same as duty.
+bool BalanceDrive::getWheelSpeeds(double& left, double& right) const
+{
+    left = right = 0.0;
+    if (!m_left || !m_right)
+    {
+        return false;
+    }
+    const long ageL = m_left->status2AgeMs(), ageR = m_right->status2AgeMs();
+    const float rpmL = m_left->status2().velocityRpm, rpmR = m_right->status2().velocityRpm;
+    if (ageL < 0 || ageL > 100 || ageR < 0 || ageR > 100 || !std::isfinite(rpmL) || !std::isfinite(rpmR))
+    {
+        return false;
+    }
+    left = rpmL * kMotorRpmToWheelMps;
+    right = -rpmR * kMotorRpmToWheelMps;
+    return true;
 }
 
 void BalanceDrive::logTilt()
@@ -173,9 +197,16 @@ void BalanceDrive::logTilt()
     // shows up here first.
     const double accelTilt = std::asin(std::clamp(
         g_myRobotNode->m_imu_linear_acceleration[RobotNode::IMU_AXES::X] / 9.80665, -1.0, 1.0));
-    g_myRobotNode->writeLog("BalanceDrive: tilt=%.1f° rate=%.1f°/s accelTilt=%.1f° err=%.1f° bal=%.3f L=%.3f R=%.3f",
+    double vL = 0.0, vR = 0.0;
+    const bool speedOk = getWheelSpeeds(vL, vR);
+    char speeds[64];
+    if (speedOk)
+        std::snprintf(speeds, sizeof speeds, "vL=%+.2f vR=%+.2f m/s", vL, vR);
+    else
+        std::snprintf(speeds, sizeof speeds, "wheel speed unknown");
+    g_myRobotNode->writeLog("BalanceDrive: tilt=%.1f° rate=%.1f°/s accelTilt=%.1f° err=%.1f° bal=%.3f L=%.3f R=%.3f %s",
                             tilt * kRadToDeg, tilt_rate * kRadToDeg, accelTilt * kRadToDeg,
-                            (kBalanceAngle - tilt) * kRadToDeg, m_balanceOutput, m_dutyL, m_dutyR);
+                            (kBalanceAngle - tilt) * kRadToDeg, m_balanceOutput, m_dutyL, m_dutyR, speeds);
 }
 
 void BalanceDrive::periodic()
@@ -186,6 +217,22 @@ void BalanceDrive::periodic()
     }
 
     m_bus->poll();
+
+    // Status 2 (encoder velocity/position) is off after every SPARK power-up. Ask for it
+    // whenever it is missing, at most once a second (also covers a SPARK brownout/reboot).
+    const auto now = std::chrono::steady_clock::now();
+    if (now >= m_nextStatus2Request)
+    {
+        m_nextStatus2Request = now + std::chrono::seconds(1);
+        for (auto* m : {m_left.get(), m_right.get()})
+        {
+            const long age = m->status2AgeMs();
+            if (age < 0 || age > 200)
+            {
+                m->enableEncoderStatus();
+            }
+        }
+    }
 
     // States that are enabled but don't drive the wheels yet (airborne, landing, hunkered)
     // never call update(); they get duty 0.

@@ -92,7 +92,7 @@
       - It polls CAN, then sends the heartbeat and the L/R duty cycles.
       - The motors are enabled only when the robot is enabled **and** both SPARKs have reported Status 0 within 100 ms.
       - States that don't call `update()` get duty 0.
-    - The duty sent is hard-limited to `kDutyLimit` = 0.10 (balance + joystick combined) until the motor type and encoder are confirmed.
+    - The duty sent is hard-limited to `kDutyLimit` = 0.10 (balance + joystick combined). Motor type (brushless) and encoders were confirmed 2026-11-25, so this can be raised once balancing works.
     - **Balance start and cutoff (2026-11-18, built, NOT yet tested with motors):**
       - **Y** starts balancing only from LANDING/HUNKERED, with fresh IMU data and the tilt error within **±5°** (`kStartWindow`). Otherwise it's ignored and the reason logged.
       - While BALANCING, any of these goes back to LANDING (armed, duty 0), with the reason logged: **A**; IMU invalid or more than 100 ms old; error beyond **±20°** (`kTiltCutoff`). `update()` also zeroes the balance term in those cases.
@@ -127,7 +127,7 @@
   - **Duty Cycle Setpoint:** class 0 index 2, 8 bytes, float LE.
   - **Set Statuses Enabled:** class 1 index 0, 4 bytes.
   - Decoding of Status 0, 1, 2 and the Unique ID Broadcast.
-- The driver does **not** write parameters or burn flash. Configure the controllers with REV Hardware Client 2 instead.
+- The driver does **not** write parameters or burn flash. Configure the controllers with REV Hardware Client 2 instead. (`BalanceDrive` does send Set Statuses Enabled for Status 2, which is telemetry, not a parameter. Status 2 is off after every SPARK power-up, so it re-requests it whenever it's missing, at most once a second.)
 - **2026-11-11: first motor control on this robot worked.** Command: `spark_bench spin 2 0.05 3 --wheel-clear`, with the belt off and no load.
   - The right motor turned.
   - Applied output followed the command, ending at about 0.041, and returned to 0 on stop.
@@ -138,11 +138,21 @@
   - Applied output was about ±0.041, current 0.0–0.2 A, with no faults, and it returned to 0 on stop.
   - Its unique ID is `0x66A26D4F`.
   - The user saw the left motor spin both directions too.
-- **Open issue, on BOTH controllers: Status 2 is all `FF` bytes, so velocity and position read NaN.** The controller is reporting no primary-encoder data. Possible causes:
-  - the motor type is set to brushed
-  - the encoder cable is disconnected
-  - the motor is not a NEO
-  - Check in REV Hardware Client 2 before raising duty. A NEO running in brushed mode can draw very high current: the IGVC project saw about 30 A at 8 % duty.
+- **FIXED 2026-11-25: Status 2 was all `FF` (NaN) on both controllers.** The encoder and cable were fine (the motors commutate smoothly). The cause was **corrupted parameters**: every float parameter whose default is non-zero read NaN on both SPARKs, probably left over from the 27.0.0 alpha round-trip.
+  - NaN on both: 112/113 Position/Velocity Conversion Factor (→ position NaN) and **136 UVW Sensor Sample Rate** (→ velocity stuck at 0 once 112/113 were fixed), plus 119/120, 132/133 and 139/140 (sensors we don't use).
+  - Fixed over CAN with `cansend` (user approved): wrote REV's defaults (1.0; 136 = 0.03125), then Persist Parameters. Verified after a real power cycle that both SPARKs restarted, no float parameter is NaN, and velocity matches the rate computed from position.
+  - REV Hardware Client 2 doesn't show these factors and has no obvious "restore defaults", so CAN was the only route. **Keep the USB cable out when power-cycling**: USB keeps the SPARK's logic alive through a battery cycle.
+  - Both are set to **brushless** (user checked in REV Hardware Client 2).
+  - Smart current limits, probably set by the user early on for safety: stall 30 A on both (REV default 80); free 20 A left, 30 A right (default 20). They cap balancing torque, and the left/right mismatch should be evened out.
+- **Encoder (Status 2), verified 2026-11-25 by hand-turning:**
+  - Motor rotations and RPM (conversion factors 1.0). One wheel turn = 5 motor rotations (80T:16T).
+  - **Wheel forward = left +, right −**, the same signs as duty.
+  - The reported velocity agrees with the rate computed from position, with about 0.1 s of averaging lag.
+- **Reading parameters over CAN (read-only):**
+  - Dual-read RTR, DLC 8, at arbId `0x02053C00 + 64·k + id` returns parameters 2k and 2k+1 (32 bits each, little-endian). Example: `cansend can0 02054A01#R8` reads 112/113 from ID 1.
+  - Types: RTR at `0x02053400 + 64·t + id`, 4 bits per parameter for parameters 16t…16t+15 (1 int, 2 uint, 3 float, 4 bool).
+  - Write (only with the user's OK): `0x02053800 + id`, 5 bytes = parameter ID, then the 32-bit value. Persist: `0x0205FFC0 + id`, data `A3 3A`; the reply on `0x02050500 + id` is 0 on success.
+  - Parameter names and defaults: REV-Specs `parameters/SparkParameters-v0.1.2.md`.
 - Status 0 arrives every 20 ms on our units, while the spec's default is 10 ms.
 - Community reference for 26.1.5 without a roboRIO: https://github.com/Paarseus/IGVC_ROS2/pull/24 (Teensy firmware).
 
@@ -206,8 +216,14 @@ To check it: `ip -details link show can0 | grep -E "state|bitrate"`. You should 
         - On the kickstand: tilt = 89.4°. Held at the balance point: **tilt = 36.6°** (two holds, 35.6–37.3°). accelTilt read about 44° there, because of the accel scale error; that's where the old 0.779 rad (44.6°) came from.
         - **Tipping FORWARD makes tilt DECREASE.** The gyro tilt rate has the same sign as d(tilt)/dt.
         - So `getTiltError()` now returns error = `kBalanceAngle − tilt` and rate = −rate (**+ = tipped forward**, needs the wheels to drive forward). `kBalanceAngle` = **0.639 rad**.
-      - **Gains now kP = 0.8 duty/rad, kD = 0.** Holding a tilt against gravity needs about 0.37 duty/rad (9.6 kg, 5:1 belt, 8" wheel, NEO-class stall torque), so 0.8 ≈ 2×. Plan kD ≈ 0.05 once the wheel direction is confirmed.
-      - **Next test: wheel direction, robot hung from a gantry with the wheels clear, battery on.** B, hold near 36.6°, Y; tip forward → both wheels should drive forward, tip back → both reverse. The "right positive duty = forward" claim in `update()` has never been checked.
+      - **Gains now kP = 0.8 duty/rad, kD = 0.** Holding a tilt against gravity needs about 0.37 duty/rad (9.6 kg, 5:1 belt, 8" wheel, NEO-class stall torque), so 0.8 ≈ 2×. Plan kD ≈ 0.05 next. With kP = 0.8 the duty reaches the 0.10 cap at about 7° of error.
+      - **Wheel-direction test PASSED 2026-11-25** (robot hung from a gantry by a handle at the deck's front edge, with a second rope to set the pitch; wheels clear):
+        - The old code had the **right wheel backwards**: R = −0.043 drove it forward. The right motor is now inverted in `update()` and the left is not.
+        - Repeat test: about 2° forward → both wheels forward. Lowered past the balance point, they stopped, then both turned backward.
+        - **The left belt was too tight**: at the same duty the left drew about 3× the right's current and stalled at about 3.6 %. Loosened; the currents are now equal (0.28 / 0.31 A).
+        - Hanging freely, the robot sits at about 71° (back), because the handle is forward of the CG.
+      - The 10 Hz tilt log line now ends with `vL=… vR=… m/s`, the wheel ground speed from the encoders (+ = forward on both sides, via `BalanceDrive::getWheelSpeeds()`). This is the basis for a later wheel-speed term to stop drift.
+      - **Controller BLE dropouts:** twice in about 10 minutes on 2026-11-25 (each about 3 s). Each one latched an e-stop while enabled, which needs a program restart.
   - **Status lights (2026-11-14):** `MyGpio` now opens **gpiochip1**.
     - Enable lamp: **header pin 16** = GPIO1_D3 = line 27. It drives a transistor base, and the lamp itself runs from 12 V. A 10 kΩ base-to-emitter pull-down is recommended so it stays off at power-up.
     - Fault LED: **pin 18** = GPIO1_D2 = line 26. It's an assembly with a built-in resistor.

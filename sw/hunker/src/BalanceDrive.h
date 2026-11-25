@@ -1,6 +1,7 @@
 #ifndef BALANCEDRIVE_H
 #define BALANCEDRIVE_H
 
+#include <chrono>
 #include <cmath>
 #include <memory>
 
@@ -31,6 +32,10 @@ public:
     // Returns false if the IMU data is invalid or older than 100 ms.
     bool getTiltError(double& error, double& rate) const;
 
+    // Wheel ground speeds (m/s, + = forward) from the motor encoders. False if Status 2 is
+    // missing, older than 100 ms, or not a number.
+    bool getWheelSpeeds(double& left, double& right) const;
+
     // Balancing may only START within this much of the balance point (Y press).
     static constexpr double kStartWindow = 5.0 * M_PI / 180.0;    // rad
     // While balancing, a larger error than this stops balancing (duty 0, back to LANDING).
@@ -49,6 +54,8 @@ private:
     std::unique_ptr<spark::CanBus> m_bus;
     std::unique_ptr<spark::SparkMax> m_left;
     std::unique_ptr<spark::SparkMax> m_right;
+
+    std::chrono::steady_clock::time_point m_nextStatus2Request{};
 
     static constexpr int kLeftMotorCanID = 1;
     static constexpr int kRightMotorCanID = 2;
@@ -71,12 +78,19 @@ private:
     // direction is checked; then about 0.05.
     static constexpr double kD = 0.0;
 
+    // Motor RPM → wheel m/s: 16T:80T belt (5:1), 8" (0.203 m) wheel.
+    // Needs Position/Velocity Conversion Factor = 1.0 on both SPARKs (they were NaN until
+    // 2026-11-25, which made Status 2 all 0xFF; fixed over CAN and persisted).
+    static constexpr double kGearRatio = 5.0;
+    static constexpr double kWheelDiameterM = 0.203;
+    static constexpr double kMotorRpmToWheelMps = M_PI * kWheelDiameterM / (60.0 * kGearRatio);
+
     // Maximum motor output magnitude during balance (0.0 to 1.0)
     // Keep small until PD tuning is complete
     static constexpr double kMaxOutput = 0.15;
 
     // Hard limit on what is actually sent to each SPARK, balance + joystick combined.
-    // Bench-test value: raise only after motor type and encoder are confirmed in REV Hardware Client 2.
+    // Bench-test value. Motor type (brushless) and encoder are now confirmed (2026-11-25).
     static constexpr double kDutyLimit = 0.10;
 };
 

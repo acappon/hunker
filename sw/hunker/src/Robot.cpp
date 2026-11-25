@@ -240,7 +240,7 @@ void Robot::balancingPeriodic()
         g_myRobotNode->emergencyStop();
     }
 
-    // NOTE: Left motor inversion is handled inside BalanceDrive::update().
+    // NOTE: Motor inversion is handled inside BalanceDrive::update().
     // Do NOT invert power_L here — pass raw joystick intent to update().
 
     // Clamp joystick contribution before passing to update()
