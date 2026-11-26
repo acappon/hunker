@@ -295,6 +295,10 @@ To check it: `ip -details link show can0 | grep -E "state|bitrate"`. You should 
 - Safety guard: if no `/imu` message has arrived within 100 ms, `BalanceDrive` forces the balance term to 0, so only the joystick drives the wheels. Without this guard, a missing IMU gives tilt = 0 and therefore a constant −0.069 duty as soon as the robot is enabled.
 
 ## Backups
+- **SD card image, 2026-11-26 (latest).** This is the state with networkd tether, IMU auto-recovery, wheel direction fixed and SPARK params fixed, ready for the first ground balance. 5.7 GB, on the user's Ubuntu desktop:
+  `/mnt/EAGLEHEAD/acappon/Docs/Hunker_images/OrangePi5/20261126_networkd_tether_balance_ready.img.gz`
+  - Before imaging: `apt clean`, `journalctl --vacuum-size=100M`, and a zero-fill of free space **run on the Pi** (`dd if=/dev/zero of=~/zero.fill bs=4M; sync; rm ~/zero.fill`).
+  - Two earlier attempts both came out at 25 GB, *exactly* the same size even though the card had changed in between. That means they weren't images of this card; most likely the wrong `/dev/sdX`. Check: a real image decompresses to exactly 31914983424 bytes (`zcat <file> | wc -c`).
 - **SD card image, 2026-11-14** (CAN + IMU working, before the WiFi/BT boot-order work), on the user's laptop:
   `/mnt/EAGLEHEAD/acappon/Docs/Hunker_images/OrangePi5/20261114_CAN_IMU_working_before_DebugWifi_andBT.img.gz`
   - Made with `sudo dd if=/dev/sdX bs=4M status=progress | gzip -1 > <file>`, with the card in the laptop (it was `/dev/sde` that time).
