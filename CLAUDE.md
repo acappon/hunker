@@ -20,6 +20,10 @@
   - Waveshare SN65HVD230 board on the GPIO header. This is only a transceiver, with no CAN controller of its own. It needs an RK3588 CAN device-tree overlay before it appears as an interface. **As of 2026-11-11 it does not appear as any interface.** `can0` is the USB adapter.
 - **Bus:** needs 120 Ω termination at both ends. The SPARK MAX has no built-in termination.
 - **Power/ground:** motors run from a 12V battery that is only on during motor tests. A ground wire from the CAN adapter GND to the battery negative is being added.
+  - **The Pi currently runs off a tether** (wall-wart power plus Ethernet), because the onboard 12→5 V converter is damaged.
+    - History (before Claude): a voltage transient damaged that converter and put about 37 V on the Orange Pi's predecessor, destroying it.
+    - **Planned (user, 2026-11-25, a day or two):** replace the converter and add a **TVS diode at its input**. Then the robot can run without the power tether, leaving only Ethernet.
+    - With two tethers plus the robot plus the controller, ground testing needs two people or onboard power.
 - **IMU:** BNO085, read on the Pi.
 - **Field link: Ethernet tether, no WiFi (user's decision, 2026-11-15).**
   - The Pi's Ethernet `end1` (NM profile "Wired connection 1") has `ipv4.method auto`, so DHCP still works at home (192.168.1.62). It also has the **fixed address `10.42.76.111/24`**, added with `nmcli con mod "Wired connection 1" ipv4.method auto +ipv4.addresses 10.42.76.111/24`.
@@ -213,6 +217,7 @@ To check it: `ip -details link show can0 | grep -E "state|bitrate"`. You should 
         - If no rotation-vector report arrives for 200 ms, it logs, then repeats the startup sequence: `sh2_close`, `begin()` (I2C soft reset, 300 ms settle, SH2 open), and re-enables the reports. This is retried once a second until the sensor answers.
         - A sensor-reported reset (`SH2_RESET`) also re-enables the reports.
       - Tested by soft-resetting the sensor from outside the driver (`i2ctransfer -y 5 w5@0x4a 5 0 1 0 1`): "no data for 218 ms" → recovery #1 → data flowing again, back at 300 Hz in under a second.
+      - **Live recovery, 19:22:55:** the IMU stalled at the same moment the controller reconnected over Bluetooth; the controller dropped again 4 s later. The watchdog reset the sensor and data was back within 0.8 s, with no restart needed. The coincidence suggests a shared cause (handling or the tether, a USB/Bluetooth event, or a power dip on the Pi), not only IMU wiring. Watch for it again.
       - **To do:** secure the IMU wiring (latching connector or glue).
     - **The accelerometer reads 13.3 m/s² at rest (about 1.36× too high, direction correct).** Probably a bad BNO085 accel calibration. The fused orientation isn't affected.
     - **`BalanceDrive` now uses the fused orientation, not `accel.x`:**
@@ -292,4 +297,5 @@ To check it: `ip -details link show can0 | grep -E "state|bitrate"`. You should 
 
 ## Rules for Claude
 - Ask before using `sudo`.
+- **Next session:** first ground balancing attempt (kP 0.8, kD 0.05, duty cap 0.10). Do it once onboard Pi power is fixed or a helper is available. Then add a wheel-speed term to stop drift.
 - **Never send motor commands** (duty cycle, heartbeat/enable, or anything else that could spin a wheel) unless the user has confirmed that the wheel is clear and the battery is on. Listening with `candump` is fine.
