@@ -28,6 +28,7 @@
 - **Field link: Ethernet tether, no WiFi (user's decision, 2026-11-15).**
   - The Pi's Ethernet `end1` (NM profile "Wired connection 1") has `ipv4.method auto`, so DHCP still works at home (192.168.1.62). It also has the **fixed address `10.42.76.111/24`**, added with `nmcli con mod "Wired connection 1" ipv4.method auto +ipv4.addresses 10.42.76.111/24`.
   - **In the field:** give the laptop's Ethernet port a fixed address, e.g. 10.42.76.1/24 (no gateway), then `ssh viking@10.42.76.111`.
+  - **`ipv4.dhcp-timeout infinity` (set 2026-11-24).** Without it, with no DHCP server on a bare tether, NM gave up after 45 s (IPv6 fails too, since nothing sends router advertisements). It then tore down the whole connection, *including the static address*. Now the static address stays up and DHCP keeps retrying in the background. The static address is usable as soon as the link comes up. The user reports the field tether working since.
   - **Verified 2026-11-15:** the laptop pings 10.42.76.111 over a direct tether, and 192.168.1.62 still works at home. Note that `ifconfig` only shows the first IPv4 address (10.42.76.111); use `ip -4 addr` to see both.
   - **The AX900 is unplugged (2026-11-15)**, because of the warm-reboot hang (see below), so `sudo reboot` is OK again. Its software is left installed and is harmless without the dongle: the DKMS driver, the Hotspot profile, the usb-storage quirk, and the udev rule disabling its Bluetooth.
 - **WiFi (no longer used), 2026-11-11:** TP-Link AX900 (Archer TX10UB Nano), USB `3625:010b`, RTL8851BU.
@@ -298,4 +299,14 @@ To check it: `ip -details link show can0 | grep -E "state|bitrate"`. You should 
 ## Rules for Claude
 - Ask before using `sudo`.
 - **Next session:** first ground balancing attempt (kP 0.8, kD 0.05, duty cap 0.10). Do it once onboard Pi power is fixed or a helper is available. Then add a wheel-speed term to stop drift.
+- **To do (user, 2026-11-25): on-robot test runs and data logging, started from the controller, with no tether.**
+  - The Ethernet tether is fine for software work in the field, but not while the robot is moving, and WiFi was dropped.
+  - The robot must run tests and record data **on command from the Xbox controller**, save it **locally on the Pi**, and let it be pulled off later over the tether (e.g. `scp`).
+  - Ideas to settle with the user:
+    - which button starts and stops a run, possibly with test selection; mind the existing B/X/Y/A/LB/RB mapping
+    - what to record at the 7 ms loop rate: time, state, tilt, tilt rate, error, P/D terms, duty L/R, wheel speeds, motor currents, bus voltage, faults, IMU age
+    - a CSV per run in a timestamped file, under e.g. `~/hunker_logs/`
+    - buffer in memory and write from a non-real-time thread, so SD writes don't stall the control loop
+    - feedback through rumble or the lamp when a run starts and stops
+    - a disk-space guard
 - **Never send motor commands** (duty cycle, heartbeat/enable, or anything else that could spin a wheel) unless the user has confirmed that the wheel is clear and the battery is on. Listening with `candump` is fine.
