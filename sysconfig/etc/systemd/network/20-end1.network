@@ -1,0 +1,20 @@
+# /etc/systemd/network/20-end1.network
+# Pi Ethernet. Replaces NetworkManager's "Wired connection 1" (2026-11-25).
+#   - DHCP at home (router gives 192.168.1.62)
+#   - Fixed 10.42.76.111/24 for the field tether, independent of DHCP
+# Add more fixed addresses with extra Address= lines (like the old eth0:1).
+# After editing: sudo networkctl reload
+[Match]
+Name=end1
+
+[Network]
+DHCP=ipv4
+Address=10.42.76.111/24
+
+[DHCPv4]
+# Identify by MAC, like NetworkManager did, so the router keeps the same lease.
+ClientIdentifier=mac
+
+[Link]
+# Don't hold up boot waiting for a network when no cable is plugged in.
+RequiredForOnline=no

@@ -26,7 +26,12 @@
     - With two tethers plus the robot plus the controller, ground testing needs two people or onboard power.
 - **IMU:** BNO085, read on the Pi.
 - **Field link: Ethernet tether, no WiFi (user's decision, 2026-11-15).**
-  - The Pi's Ethernet `end1` (NM profile "Wired connection 1") has `ipv4.method auto`, so DHCP still works at home (192.168.1.62). It also has the **fixed address `10.42.76.111/24`**, added with `nmcli con mod "Wired connection 1" ipv4.method auto +ipv4.addresses 10.42.76.111/24`.
+  - **Since 2026-11-25, `end1` is configured by systemd-networkd, not NetworkManager (user's choice: all networking changes go in `/etc/systemd/network/` files from now on, never `nmcli`).**
+    - `/etc/systemd/network/20-end1.network` (copy in `sysconfig/`): `DHCP=ipv4` for home (192.168.1.62) plus `Address=10.42.76.111/24` for the field. The fixed address doesn't depend on DHCP. Add more fixed addresses with extra `Address=` lines; apply with `sudo networkctl reload`.
+    - `/etc/NetworkManager/conf.d/90-hunker-unmanaged.conf` makes NM leave `end1` alone. NM still runs, holding the unused Hotspot profile.
+    - Installed by `sysconfig/install-networkd-end1.sh`, which has the undo commands. Verified: same DHCP lease, default route via 192.168.1.1, internet OK, `networkctl list` shows end1 "configured".
+    - The NM-era notes below (the `nmcli` gateway and dhcp-timeout settings) are history only. The "Wired connection 1" profile still exists but is ignored.
+  - Before that, the NM profile "Wired connection 1" had `ipv4.method auto` plus `+ipv4.addresses 10.42.76.111/24`. A stray `ipv4.gateway 10.42.76.222`, set while troubleshooting in the field, cut the Pi off from the internet at home until it was cleared on 2026-11-25.
   - **In the field:** give the laptop's Ethernet port a fixed address, e.g. 10.42.76.1/24 (no gateway), then `ssh viking@10.42.76.111`.
   - **`ipv4.dhcp-timeout infinity` (set 2026-11-24).** Without it, with no DHCP server on a bare tether, NM gave up after 45 s (IPv6 fails too, since nothing sends router advertisements). It then tore down the whole connection, *including the static address*. Now the static address stays up and DHCP keeps retrying in the background. The static address is usable as soon as the link comes up. The user reports the field tether working since.
   - **Verified 2026-11-15:** the laptop pings 10.42.76.111 over a direct tether, and 192.168.1.62 still works at home. Note that `ifconfig` only shows the first IPv4 address (10.42.76.111); use `ip -4 addr` to see both.
