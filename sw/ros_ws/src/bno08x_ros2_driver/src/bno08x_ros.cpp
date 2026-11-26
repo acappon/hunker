@@ -193,21 +193,41 @@ void BNO08x_ROS::init_sensor()
         throw std::runtime_error("BNO08x initialization failed");
     }
 
-    if (!this->bno08x_->enable_report(SH2_ROTATION_VECTOR,
-                                      1000000 / this->imu_rate_))
-    { // Hz to us
+    enable_reports();
+}
+
+bool BNO08x_ROS::enable_reports()
+{
+    const uint32_t interval_us = 1000000 / this->imu_rate_;   // Hz to us
+    bool ok = true;
+    if (!this->bno08x_->enable_report(SH2_ROTATION_VECTOR, interval_us))
+    {
         RCLCPP_ERROR(this->get_logger(), "Failed to enable rotation vector sensor");
+        ok = false;
     }
-    if (!this->bno08x_->enable_report(SH2_ACCELEROMETER,
-                                      1000000 / this->imu_rate_))
-    { // Hz to us
+    if (!this->bno08x_->enable_report(SH2_ACCELEROMETER, interval_us))
+    {
         RCLCPP_ERROR(this->get_logger(), "Failed to enable accelerometer sensor");
+        ok = false;
     }
-    if (!this->bno08x_->enable_report(SH2_GYROSCOPE_CALIBRATED,
-                                      1000000 / this->imu_rate_))
-    { // Hz to us
+    if (!this->bno08x_->enable_report(SH2_GYROSCOPE_CALIBRATED, interval_us))
+    {
         RCLCPP_ERROR(this->get_logger(), "Failed to enable gyroscope sensor");
+        ok = false;
     }
+    return ok;
+}
+
+// Same sequence as startup: close, then begin() re-opens the I2C device, sends a soft
+// reset (300 ms settle) and re-opens SH2; then enable the reports again.
+bool BNO08x_ROS::recover_sensor()
+{
+    sh2_close();
+    if (!this->bno08x_->begin())
+    {
+        return false;
+    }
+    return enable_reports();
 }
 
 /**
@@ -249,6 +269,10 @@ void BNO08x_ROS::sensor_callback(void *cookie, sh2_SensorValue_t *sensor_value)
     // gyro and accel values. Waiting for one of each report capped /imu at the accelerometer's
     // rate (~70 Hz). Flags are never cleared: they only gate the first publish until every
     // field has real data.
+    if (sensor_value->sensorId == SH2_ROTATION_VECTOR)
+    {
+        last_data_time_ = std::chrono::steady_clock::now();   // watchdog: sensor is alive
+    }
     if (sensor_value->sensorId == SH2_ROTATION_VECTOR &&
         imu_received_flag_ == (ROTATION_VECTOR_RECEIVED | ACCELEROMETER_RECEIVED | GYROSCOPE_RECEIVED))
     {
@@ -265,8 +289,48 @@ void BNO08x_ROS::interrupt_thread_func()
     // Timeout so we can check running_ flag and exit cleanly on shutdown
     constexpr timespec timeout = {0, 50'000'000}; // 50ms watchdog
 
+    // No rotation-vector report for this long (normally every ~3 ms) = stalled: reset the
+    // sensor and set it up again. Retried at most once a second until it answers.
+    constexpr auto kStallTimeout = std::chrono::milliseconds(200);
+    constexpr auto kRetryInterval = std::chrono::seconds(1);
+    last_data_time_ = std::chrono::steady_clock::now();
+    auto next_recovery = last_data_time_;
+    bool stalled = false;
+
     while (running_.load())
     {
+        const auto now = std::chrono::steady_clock::now();
+        if (now - last_data_time_ > kStallTimeout && now >= next_recovery)
+        {
+            if (!stalled)
+            {
+                RCLCPP_ERROR(this->get_logger(),
+                             "BNO085: no data for %lld ms, resetting the sensor",
+                             static_cast<long long>(std::chrono::duration_cast<std::chrono::milliseconds>(
+                                 now - last_data_time_).count()));
+                stalled = true;
+            }
+            next_recovery = now + kRetryInterval;
+            if (recover_sensor())
+            {
+                ++recovery_count_;
+                RCLCPP_WARN(this->get_logger(),
+                            "BNO085: sensor re-initialised (recovery #%d), waiting for data",
+                            recovery_count_);
+            }
+            else
+            {
+                RCLCPP_ERROR_THROTTLE(this->get_logger(), *this->get_clock(), 5000,
+                                      "BNO085: re-initialisation failed, retrying every second");
+            }
+            continue;
+        }
+        if (stalled && now - last_data_time_ <= kStallTimeout)
+        {
+            RCLCPP_WARN(this->get_logger(), "BNO085: data flowing again");
+            stalled = false;
+        }
+
         // Block here until falling edge or timeout
         int ret = gpiod_line_event_wait(int_line_, &timeout);
 
@@ -278,12 +342,8 @@ void BNO08x_ROS::interrupt_thread_func()
 
         if (ret == 0)
         {
-            // Timeout — no interrupt in 50ms.
-            // At 400Hz we expect one every 2.5ms, so 50ms means sensor stalled.
-            // Log a warning but keep running; sensor may recover.
-            RCLCPP_WARN_THROTTLE(this->get_logger(), *this->get_clock(),
-                                 1000, // throttle to once/sec
-                                 "BNO085: no interrupt in 50ms — sensor stalled?");
+            // Timeout: no interrupt in 50 ms. The stall watchdog at the top of the loop
+            // logs and recovers if this goes on (> 200 ms without data).
             continue;
         }
 
@@ -306,6 +366,15 @@ void BNO08x_ROS::interrupt_thread_func()
             this->bno08x_->poll();
             if (gpiod_line_get_value(int_line_) != 0)
                 break;
+        }
+
+        // The sensor reset itself (brown-out, glitch, watchdog): its report configuration
+        // is gone, so re-enable the reports. (The reset at startup also lands here once;
+        // re-enabling then is harmless.)
+        if (this->bno08x_->was_reset())
+        {
+            RCLCPP_WARN(this->get_logger(), "BNO085: sensor reported a reset, re-enabling reports");
+            enable_reports();
         }
     }
 

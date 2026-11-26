@@ -207,6 +207,13 @@ To check it: `ip -details link show can0 | grep -E "state|bitrate"`. You should 
       - It now publishes on every rotation-vector report, instead of waiting for one of each report. The accelerometer only manages about 70 Hz and had capped the rate.
       - It now fills `header.stamp` correctly.
       - The 400 kHz bus and the rtprio limit (`sysconfig/`) are in place. There were zero I2C read errors.
+    - **IMU stall, 2026-11-25, and auto-recovery added:**
+      - While the robot was being taken off the gantry (robot disabled), the BNO085 stopped completely: no INT, and it didn't even ACK on I2C. There were no kernel errors. A program restart fixed it. Probable cause: the exposed wiring got jostled, the sensor reset or locked up, and after a reset it forgets its report configuration. Also seen: one brief stall at battery switch-on.
+      - **The driver now recovers by itself** (`bno08x_ros.cpp`):
+        - If no rotation-vector report arrives for 200 ms, it logs, then repeats the startup sequence: `sh2_close`, `begin()` (I2C soft reset, 300 ms settle, SH2 open), and re-enables the reports. This is retried once a second until the sensor answers.
+        - A sensor-reported reset (`SH2_RESET`) also re-enables the reports.
+      - Tested by soft-resetting the sensor from outside the driver (`i2ctransfer -y 5 w5@0x4a 5 0 1 0 1`): "no data for 218 ms" → recovery #1 → data flowing again, back at 300 Hz in under a second.
+      - **To do:** secure the IMU wiring (latching connector or glue).
     - **The accelerometer reads 13.3 m/s² at rest (about 1.36× too high, direction correct).** Probably a bad BNO085 accel calibration. The fused orientation isn't affected.
     - **`BalanceDrive` now uses the fused orientation, not `accel.x`:**
       - tilt = asin(u.x), where u = world "up" in the IMU frame. That's the same axis and sign as the old accel.x signal.
@@ -216,7 +223,8 @@ To check it: `ip -details link show can0 | grep -E "state|bitrate"`. You should 
         - On the kickstand: tilt = 89.4°. Held at the balance point: **tilt = 36.6°** (two holds, 35.6–37.3°). accelTilt read about 44° there, because of the accel scale error; that's where the old 0.779 rad (44.6°) came from.
         - **Tipping FORWARD makes tilt DECREASE.** The gyro tilt rate has the same sign as d(tilt)/dt.
         - So `getTiltError()` now returns error = `kBalanceAngle − tilt` and rate = −rate (**+ = tipped forward**, needs the wheels to drive forward). `kBalanceAngle` = **0.639 rad**.
-      - **Gains now kP = 0.8 duty/rad, kD = 0.** Holding a tilt against gravity needs about 0.37 duty/rad (9.6 kg, 5:1 belt, 8" wheel, NEO-class stall torque), so 0.8 ≈ 2×. Plan kD ≈ 0.05 next. With kP = 0.8 the duty reaches the 0.10 cap at about 7° of error.
+      - **Gains now kP = 0.8 duty/rad, kD = 0.05 duty per rad/s.** Holding a tilt against gravity needs about 0.37 duty/rad (9.6 kg, 5:1 belt, 8" wheel, NEO-class stall torque), so 0.8 ≈ 2×. With kP = 0.8 the duty reaches the 0.10 cap at about 7° of error.
+        - **kD checked on the gantry, 2026-11-25:** a quick swing back (+52°/s) flipped the output from +0.03 to −0.06 before the angle had changed much, and at +92°/s it hit the cap. That's the right sign and a prompt response. The swing then passed 20° and the cutoff stopped it, as designed.
       - **Wheel-direction test PASSED 2026-11-25** (robot hung from a gantry by a handle at the deck's front edge, with a second rope to set the pitch; wheels clear):
         - The old code had the **right wheel backwards**: R = −0.043 drove it forward. The right motor is now inverted in `update()` and the left is not.
         - Repeat test: about 2° forward → both wheels forward. Lowered past the balance point, they stopped, then both turned backward.
@@ -272,6 +280,7 @@ To check it: `ip -details link show can0 | grep -E "state|bitrate"`. You should 
       - `MyGpio`'s destructor turns the enable lamp off before releasing the lines, without logging, because `g_myRobotNode` is already null then.
       - Verified: "process has finished cleanly".
     - The log is noisy: "Controller is disconnected" and "updateLEDs" are logged every 250 ms.
+    - Minor: after an e-stop, pressing B logs "Robot ENABLED" even though `enableRobot()` refuses and the robot stays e-stopped. Only the message is wrong.
 - Safety guard: if no `/imu` message has arrived within 100 ms, `BalanceDrive` forces the balance term to 0, so only the joystick drives the wheels. Without this guard, a missing IMU gives tilt = 0 and therefore a constant −0.069 duty as soon as the robot is enabled.
 
 ## Backups

@@ -7,6 +7,7 @@
 
 #include "bno08x_ros2_driver/bno08x.hpp"
 
+#include <chrono>
 #include <thread>
 #include <atomic>
 #include <gpiod.h>
@@ -22,6 +23,8 @@ private:
     void init_parameters();                      
     void init_comms();
     void init_sensor();
+    bool enable_reports();      // rotation vector, accelerometer, calibrated gyro
+    bool recover_sensor();      // soft reset + re-open + re-enable reports; interrupt thread only
     void init_gpio();
     void cleanup_gpio();
 
@@ -41,6 +44,11 @@ private:
     int         imu_rate_{100};
     int         magnetic_field_rate_{100};
     uint8_t     imu_received_flag_{0};
+
+    // Stall watchdog (interrupt thread only). A sensor that resets or locks up (e.g. a
+    // jostled wire) forgets its report configuration and goes silent; recover it.
+    std::chrono::steady_clock::time_point last_data_time_{};
+    int recovery_count_{0};
 
     // Hardware driver
     BNO08x          *bno08x_{nullptr};

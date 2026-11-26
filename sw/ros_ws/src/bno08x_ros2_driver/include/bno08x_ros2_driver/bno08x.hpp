@@ -50,7 +50,7 @@ private:
   CommInterface* comm_;
   void* cookie_;
   std::function<void(void*, sh2_SensorValue_t*)> host_callback_;
-  bool reset_occurred_;
+  bool reset_occurred_{false};
 };
 
 #endif // BNO08X_HPP

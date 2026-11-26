@@ -74,9 +74,9 @@ private:
     static constexpr double kP = 0.8;
 
     // Derivative gain, duty per rad/s of tilt rate (from the gyro, not differenced).
-    // Same sign as kP (rate sign verified by the hand-tilt test). 0 until the wheel
-    // direction is checked; then about 0.05.
-    static constexpr double kD = 0.0;
+    // Same sign as kP (rate sign verified by the hand-tilt test). Wheel direction confirmed
+    // 2026-11-25. 0.05: a 1 rad/s (57°/s) tip adds 0.05 duty.
+    static constexpr double kD = 0.05;
 
     // Motor RPM → wheel m/s: 16T:80T belt (5:1), 8" (0.203 m) wheel.
     // Needs Position/Velocity Conversion Factor = 1.0 on both SPARKs (they were NaN until
