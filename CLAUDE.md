@@ -300,6 +300,10 @@ To check it: `ip -details link show can0 | grep -E "state|bitrate"`. You should 
       - About one every 5–8 minutes: 19:50, 19:51, 20:02, 20:16, 20:20. Each is a sudden disconnect with a reconnect in 3–4 s; the kernel removes the device before the probe notices. No USB or HCI errors. Controller BLE firmware 5.22.
       - Moving the CANable to the other port didn't help; it was moved back.
       - **After the controller was switched off and on with its button at 20:21 (not a battery reseat), there were no drops for 24+ min.** Theories: something in the controller that a power cycle clears, or loose battery contacts making the controller reboot. **The tap test (20:48, firm taps, squeezing, twisting) caused no drop**, so the battery theory is mostly out. If drops return, capture the btmon reason code first, then try power-cycling the controller as a fix.
+      - CANable moved back to its old port at 20:51. Only one drop in the next 16 min, at 21:07:52, and that was **the controller's own idle auto power-off**: 15 min 16 s after the last input (B). btmon showed "Remote User Terminated (0x13)" just after a normal probe reply, then one brief reconnect, then "Connection Timeout" and the controller stayed off. The robot disabled 403 ms after the probe went stale, as designed.
+        - **Xbox controller: about 15 min with no button or stick input → it switches off.** The probe's GATT reads don't reset that timer. Untested: whether a rumble from the robot does.
+        - The controller asks for these connection parameters: interval 7.5 ms, latency 0, **supervision timeout 3.0 s**.
+      - The earlier quick-reconnect drops (back within about 4 s, then staying connected) are **still unexplained**; they don't match the idle auto-off. Catch one with btmon to get its reason code.
       - A btmon capture (no drop in it) is at `/home/viking/bt-capture.snoop`. To get disconnect reason codes: `sudo btmon -w <file>`, then `btmon -r <file> | grep -A5 Disconnect`.
     - **Fixed 2026-11-15, `/joy` layout (measured):**
       - axes: 0 LX, 1 LY, 2 LT, 3 RX, 4 RY, 5 RT, 6 unused (rests at 1.0), 7/8 D-pad. The triggers rest at +1.
