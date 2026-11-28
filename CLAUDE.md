@@ -23,6 +23,7 @@
   - **The Pi currently runs off a tether** (wall-wart power plus Ethernet), because the onboard 12→5 V converter is damaged.
     - History (before Claude): a voltage transient damaged that converter and put about 37 V on the Orange Pi's predecessor, destroying it.
     - **Planned (user, 2026-11-25, a day or two):** replace the converter and add a **TVS diode at its input**. Then the robot can run without the power tether, leaving only Ethernet.
+    - **2026-11-27:** converter repaired, output measured at **5.09 V**, sealed in the box with the IMU and LEDs. It is **not yet wired to the Pi** (planned 2026-11-28). After the first onboard boot, check `journalctl -k` for undervoltage or brownout warnings, at rest and with the motors running.
     - With two tethers plus the robot plus the controller, ground testing needs two people or onboard power.
 - **IMU:** BNO085, read on the Pi.
 - **Field link: Ethernet tether, no WiFi (user's decision, 2026-11-15).**
