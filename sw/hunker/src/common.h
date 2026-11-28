@@ -10,6 +10,7 @@
 #include "sensor_msgs/msg/joy_feedback.hpp"
 #include "sensor_msgs/msg/imu.hpp"
 
+#include "ControllerLinkProbe.h"
 #include "MyGpio.h"
 #include "FaultIndicator.h"
 #include "BalanceDrive.h"

@@ -10,6 +10,7 @@ RobotNode::RobotNode()
 
 RobotNode::~RobotNode()
 {
+    m_linkProbe.stop();
     m_joystick_sub.reset();
     m_feedback_publisher.reset();
     m_imu_sub.reset();
@@ -29,6 +30,7 @@ void RobotNode::init()
 
         m_myGpio.initEnableAndFaultLED();
         m_robot.init();
+        m_linkProbe.start();
 
         m_last_joy_msg_time = m_last_imu_msg_time = this->now() - rclcpp::Duration(10, 0);
 
@@ -154,6 +156,16 @@ void RobotNode::robotFunction()
 {
     try
     {
+        // Controller link check every 7 ms cycle, before the robot code runs, so a stale
+        // link means duty 0 in this same cycle. Disable only (no latch): press B once the
+        // link is back. A real disconnect is still handled by safetyFunction().
+        if (m_isRobotEnabled && !isControllerLinkOk())
+        {
+            writeLog("Controller link stale: no probe reply for %.0f ms -> Robot DISABLED (press B to re-enable)",
+                     m_linkProbe.secondsSinceLastReply() * 1000.0);
+            enableRobot(false);
+        }
+
         m_robot.robotFunction();
     }
     catch (const std::exception &e)
@@ -204,7 +216,22 @@ void RobotNode::checkControllerConnection()
         m_isControllerConnected = true;
     }
 
-    m_faultIndicator.setFault(FaultIndicator::FAULT_TYPE::FAULT_CONTROLLER_DISCONNECTED, !m_isControllerConnected);
+    const bool linkOk = isControllerLinkOk();
+    if (linkOk != m_lastLinkOk)
+    {
+        writeLog("Controller link probe: %s", linkOk ? "replies OK" : "STALE (no reply)");
+        m_lastLinkOk = linkOk;
+    }
+    const std::string probeStatus = m_linkProbe.status();
+    if (probeStatus != m_lastProbeStatus && probeStatus.rfind("OK", 0) != 0)
+    {
+        writeLog("Controller link probe status: %s", probeStatus.c_str());   // problems only; "OK" is logged above
+    }
+    m_lastProbeStatus = probeStatus;
+
+    // Fault LED "controller" (1 blink) for a lost controller or a stale link.
+    m_faultIndicator.setFault(FaultIndicator::FAULT_TYPE::FAULT_CONTROLLER_DISCONNECTED,
+                              !m_isControllerConnected || !linkOk);
 
     if (prev != m_isControllerConnected)
     {
@@ -234,7 +261,11 @@ void RobotNode::checkRobotEnableDisable()
             // Sticks must be centred, so nothing moves the moment the robot enables.
             // (The sticks read 0 from the first /joy message with this joy_node + xpadneo, and
             // the arrays start at 0, so no "move the sticks first" step is needed.)
-            if (!areAllJoysticksInDeadzone())
+            if (!isControllerLinkOk())
+            {
+                writeLog("Not enabling: controller link not confirmed (%s)", m_linkProbe.status().c_str());
+            }
+            else if (!areAllJoysticksInDeadzone())
             {
                 writeLog("Not enabling: sticks not centred");
                 sendXboxRumble();

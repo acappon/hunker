@@ -55,6 +55,12 @@ public:
     // No /joy message for this long = controller lost (joy_node autorepeats at 20 Hz).
     static constexpr double kControllerTimeoutSec = 0.5;
 
+    // No reply to the controller link probe for this long = link stale: motors are
+    // disabled (not e-stopped) and B is refused until replies return. Probe reads every
+    // 100 ms with ~30 ms round trip, so normal age is <= ~0.15 s. See ControllerLinkProbe.h.
+    static constexpr double kLinkStaleSec = 0.4;
+    bool isControllerLinkOk() const { return m_linkProbe.secondsSinceLastReply() <= kLinkStaleSec; }
+
     MyGpio m_myGpio;
     FaultIndicator m_faultIndicator;
 
@@ -91,6 +97,9 @@ private: // functions
 
 private: // data
     Robot m_robot;
+    ControllerLinkProbe m_linkProbe;
+    std::string m_lastProbeStatus;     // logged when it changes
+    bool m_lastLinkOk = false;         // logged when it changes
 
     rclcpp::Subscription<sensor_msgs::msg::Joy>::SharedPtr m_joystick_sub;
     rclcpp::Publisher<sensor_msgs::msg::JoyFeedback>::SharedPtr m_feedback_publisher;

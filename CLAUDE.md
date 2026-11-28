@@ -281,6 +281,26 @@ To check it: `ip -details link show can0 | grep -E "state|bitrate"`. You should 
       - B with either stick off-centre → rumble, no enable.
       - A single click now works every time. Controller auto-reconnects after a power cycle (Xbox button only).
     - **Open: the controller's BLE link dropped once for about 3 s** during testing, with no reason logged. Watch for it; the UB500 sits next to the USB 3 port, which can interfere with 2.4 GHz.
+    - **Controller link probe, 2026-11-27 (tested on the robot):** `src/ControllerLinkProbe.{h,cpp}`, using libdbus.
+      - **Why:** a switched-off controller took about 4 s to be noticed.
+        - The controller sends HID reports **only on change** (measured with hidraw: 0 in 5 s idle, 109/s while moving a stick). joy_node autorepeats the last state, and its `header.stamp` is the publish time.
+        - So nothing above the radio can see the loss until BlueZ's LE supervision timeout (default 4.2 s) removes the device.
+        - A rumble/FF write wouldn't detect it either: it's fire-and-forget, and errors don't come back.
+      - **How:** a thread reads the controller's GATT Battery Level (0x2A19) through BlueZ D-Bus every 100 ms, one read at a time, with a 1 s call timeout. The round trip is about 25–33 ms, 162 ms at worst.
+        - The characteristic is found with GetManagedObjects: Battery Level under a connected device with the HID service.
+        - Readable as `viking` without sudo.
+      - **Action:**
+        - In the 7 ms loop: enabled and no reply for more than **0.4 s** (`kLinkStaleSec`) → **disable** (no latch; press B to re-enable).
+        - B is refused while the link is stale. That's fail-safe: if the probe can't find the controller, you can't enable.
+        - The fault LED shows "controller" (1 blink).
+        - The old path still applies: no `/joy` for 0.5 s while enabled → latched e-stop. But the probe usually disables first.
+      - **Verified:** batteries pulled while enabled → disabled 404 ms after the last reply, about 3 s before the kernel noticed.
+      - Also measured, not done: BlueZ `[LE] ConnectionSupervisionTimeout` in `/etc/bluetooth/main.conf` (units of 10 ms) could shorten link-loss detection itself, but it would make dropouts more likely.
+    - **Spontaneous controller dropouts, 2026-11-27:**
+      - About one every 5–8 minutes: 19:50, 19:51, 20:02, 20:16, 20:20. Each is a sudden disconnect with a reconnect in 3–4 s; the kernel removes the device before the probe notices. No USB or HCI errors. Controller BLE firmware 5.22.
+      - Moving the CANable to the other port didn't help; it was moved back.
+      - **After the controller batteries were popped out and refitted at 20:21, there were no drops for 24+ min.** Working theory: a loose battery contact makes the controller reboot. Next time, check the battery contacts and the door, and try fresh batteries.
+      - A btmon capture (no drop in it) is at `/home/viking/bt-capture.snoop`. To get disconnect reason codes: `sudo btmon -w <file>`, then `btmon -r <file> | grep -A5 Disconnect`.
     - **Fixed 2026-11-15, `/joy` layout (measured):**
       - axes: 0 LX, 1 LY, 2 LT, 3 RX, 4 RY, 5 RT, 6 unused (rests at 1.0), 7/8 D-pad. The triggers rest at +1.
       - buttons: A0 B1 X2 Y3 LB4 RB5 View6 Menu7 Xbox8 L3 9 R3 10.

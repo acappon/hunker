@@ -22,12 +22,16 @@ include_directories(${sensor_msgs_INCLUDE_DIRS})
 
 # Find the lgpio library
 find_package(lgpio REQUIRED)
-add_executable(RobotNode src/main.cpp src/RobotNode.cpp src/FaultIndicator.cpp src/MyGpio.cpp src/BalanceDrive.cpp src/Robot.cpp src/SparkMaxCan.cpp)
+add_executable(RobotNode src/main.cpp src/RobotNode.cpp src/FaultIndicator.cpp src/MyGpio.cpp src/BalanceDrive.cpp src/Robot.cpp src/SparkMaxCan.cpp src/ControllerLinkProbe.cpp)
 ament_target_dependencies(RobotNode rclcpp std_msgs sensor_msgs)
 
 # Link against the lgpio library
 target_include_directories(RobotNode PRIVATE ${LGPIO_INCLUDE_DIRS})
-target_link_libraries(RobotNode ${LGPIO_LIBRARIES})
+# libdbus for the controller link probe (BlueZ GATT reads)
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(DBUS REQUIRED dbus-1)
+target_include_directories(RobotNode PRIVATE ${DBUS_INCLUDE_DIRS})
+target_link_libraries(RobotNode ${LGPIO_LIBRARIES} ${DBUS_LIBRARIES})
 
 # Standalone SPARK MAX bench tool (no ROS) using our own SocketCAN driver
 add_executable(spark_bench src/SparkMaxCan.cpp tools/spark_bench.cpp)
