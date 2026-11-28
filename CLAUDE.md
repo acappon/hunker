@@ -299,7 +299,7 @@ To check it: `ip -details link show can0 | grep -E "state|bitrate"`. You should 
     - **Spontaneous controller dropouts, 2026-11-27:**
       - About one every 5–8 minutes: 19:50, 19:51, 20:02, 20:16, 20:20. Each is a sudden disconnect with a reconnect in 3–4 s; the kernel removes the device before the probe notices. No USB or HCI errors. Controller BLE firmware 5.22.
       - Moving the CANable to the other port didn't help; it was moved back.
-      - **After the controller batteries were popped out and refitted at 20:21, there were no drops for 24+ min.** Working theory: a loose battery contact makes the controller reboot. Next time, check the battery contacts and the door, and try fresh batteries.
+      - **After the controller was switched off and on with its button at 20:21 (not a battery reseat), there were no drops for 24+ min.** Theories: something in the controller that a power cycle clears, or loose battery contacts making the controller reboot. **The tap test (20:48, firm taps, squeezing, twisting) caused no drop**, so the battery theory is mostly out. If drops return, capture the btmon reason code first, then try power-cycling the controller as a fix.
       - A btmon capture (no drop in it) is at `/home/viking/bt-capture.snoop`. To get disconnect reason codes: `sudo btmon -w <file>`, then `btmon -r <file> | grep -A5 Disconnect`.
     - **Fixed 2026-11-15, `/joy` layout (measured):**
       - axes: 0 LX, 1 LY, 2 LT, 3 RX, 4 RY, 5 RT, 6 unused (rests at 1.0), 7/8 D-pad. The triggers rest at +1.
